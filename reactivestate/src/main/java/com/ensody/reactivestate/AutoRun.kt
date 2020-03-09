@@ -1,0 +1,172 @@
+package com.ensody.reactivestate
+
+import androidx.lifecycle.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.coroutineContext
+
+/** Observer callback used by [autoRun] and [AutoRunner]. */
+typealias AutoRunCallback<R> = (Resolver) -> R
+
+private fun CoroutineContext.autoRun(
+    onChange: (() -> Unit)? = null,
+    observer: AutoRunCallback<Unit>
+): AutoRunner<Unit> {
+    val autoRunner = AutoRunner(onChange, observer)
+    this[Job]!!.invokeOnCompletion {
+        autoRunner.dispose()
+    }
+    autoRunner.run()
+    return autoRunner
+}
+
+/**
+ * Watches observables for changes.
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+suspend fun autoRun(
+    onChange: (() -> Unit)? = null,
+    observer: AutoRunCallback<Unit>
+): AutoRunner<Unit> =
+    coroutineContext.autoRun(onChange, observer)
+
+/**
+ * Watches observables for changes.
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+fun CoroutineScope.autoRun(
+    onChange: (() -> Unit)? = null,
+    observer: AutoRunCallback<Unit>
+): AutoRunner<Unit> =
+    coroutineContext.autoRun(onChange, observer)
+
+/**
+ * Watches observables for changes.
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+fun ViewModel.autoRun(
+    onChange: (() -> Unit)? = null,
+    observer: AutoRunCallback<Unit>
+) = viewModelScope.autoRun(onChange, observer)
+
+/**
+ * Watches observables for changes.
+ *
+ * IMPORTANT: Unlike the other autoRun variants this only runs between a single onStart/onStop
+ * lifecycle. This is safe for use in Fragment.onStart().
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+fun LifecycleOwner.autoRun(
+    onChange: (() -> Unit)? = null,
+    observer: AutoRunCallback<Unit>
+): AutoRunner<Unit> {
+    val autoRunner = AutoRunner(onChange, observer)
+    onStartOnce { autoRunner.run() }
+    onStopOnce { autoRunner.dispose() }
+    return autoRunner
+}
+
+/** Just the minimum interface needed for [Resolver]. No generic types. */
+interface BaseAutoRunner {
+    fun addObservable(data: LiveData<*>)
+}
+
+/**
+ * Watches observables for changes.
+ *
+ * Given an [observer], this class will automatically register itself as a listener and keep track
+ * of the observables which [observer] depends on.
+ *
+ * You have to call [run] once to start watching.
+ *
+ * To stop watching, you should call [dispose].
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param observer The callback which is used to track the observables.
+ */
+class AutoRunner<T>(onChange: (() -> Unit)? = null, private val observer: AutoRunCallback<T>) :
+    BaseAutoRunner, Disposable {
+    val listener = onChange ?: { run() }
+    private val listenerObserver = Observer<Any> {
+        listener()
+    }
+    private var resolver = Resolver(this)
+
+    /** Stops watching observables. */
+    override fun dispose() = observe {}
+
+    /** Calls [observer] and tracks its dependencies. */
+    fun run(): T = observe {
+        observer(it)
+    }
+
+    private fun <T> observe(func: (Resolver) -> T): T {
+        val nextResolver = Resolver(this)
+        try {
+            return func(nextResolver)
+        } finally {
+            for (item in resolver.observables - nextResolver.observables) {
+                item.removeObserver(listenerObserver)
+            }
+            resolver = nextResolver
+        }
+    }
+
+    override fun addObservable(data: LiveData<*>) {
+        if (!resolver.observables.contains(data)) {
+            data.observeForever(listenerObserver)
+        }
+    }
+}
+
+/** Tracks observables for [AutoRunner]. */
+class Resolver(private val autoRunner: BaseAutoRunner) {
+    internal val observables = mutableSetOf<LiveData<*>>()
+
+    /** Returns [LiveData.getValue] and tracks the observable. */
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T> invoke(data: LiveData<T>): T {
+        if (observables.add(data)) {
+            autoRunner.addObservable(data)
+        }
+        return data.value as T
+    }
+}
