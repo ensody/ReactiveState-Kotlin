@@ -7,6 +7,9 @@ apply from: "$rootDir/secrets.gradle"
 version = getProperty('version')
 group groupId
 
+def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
+def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
+
 task androidSourcesJar(type: Jar) {
     archiveClassifier.set('sources')
     from android.sourceSets.main.java.srcDirs
@@ -25,8 +28,8 @@ publishing {
             name = "Bintray"
             url = uri("https://api.bintray.com/maven/$bintrayUserOrg/${bintrayRepo}/${group}:${project.name}")
             credentials {
-                username = secrets.getProperty("bintray.username")
-                password = secrets.getProperty("bintray.apikey")
+                username = bintrayUsername
+                password = bintrayApiKey
             }
         }
     }
@@ -47,8 +50,8 @@ afterEvaluate {
 
 apply plugin: "com.jfrog.bintray"
 bintray {
-    user = secrets.getProperty("bintray.username")
-    key = secrets.getProperty("bintray.apikey")
+    user = bintrayUsername
+    key = bintrayApiKey
     publications = ['release']
     pkg {
         userOrg = bintrayUserOrg
