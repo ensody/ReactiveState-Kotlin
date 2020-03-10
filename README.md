@@ -1,5 +1,7 @@
 # ReactiveState for Android
 
+[ ![Download](https://api.bintray.com/packages/ensody/maven/com.ensody.reactivestate%3Areactivestate/images/download.svg) ](https://bintray.com/ensody/maven/com.ensody.reactivestate%3Areactivestate/_latestVersion)
+
 An easy to understand reactive state management solution for Android.
 
 This is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter.
@@ -43,7 +45,7 @@ class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 Example `Fragment` (using view bindings for type safety):
 
 ```kotlin
-class MainFragment : BaseFragment() {
+class MainFragment : Fragment() {
     private val model by stateViewModel { MainViewModel(it) }
 
     override fun onCreateView(
