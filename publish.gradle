@@ -4,6 +4,7 @@
 
 apply from: "$rootDir/secrets.gradle"
 
+version = getProperty('version')
 group groupId
 
 task androidSourcesJar(type: Jar) {
@@ -18,6 +19,19 @@ dokka {
 }
 
 apply plugin: "maven-publish"
+publishing {
+    repositories {
+        maven {
+            name = "Bintray"
+            url = uri("https://api.bintray.com/maven/$bintrayUserOrg/${bintrayRepo}/${group}:${project.name}")
+            credentials {
+                username = secrets.getProperty("bintray.username")
+                password = secrets.getProperty("bintray.apikey")
+            }
+        }
+    }
+}
+
 // Because the components are created only during the afterEvaluate phase, we must
 // configure your publications using the afterEvaluate() lifecycle method.
 afterEvaluate {
@@ -26,16 +40,6 @@ afterEvaluate {
             release(MavenPublication) {
                 from components.release
                 artifact androidSourcesJar
-            }
-        }
-    }
-    repositories {
-        maven {
-            name = "Bintray"
-            url = uri("https://api.bintray.com/maven/$bintrayUserOrg/${bintrayRepo}/${group}:${project.name}")
-            credentials {
-                username = secrets.getProperty("bintray.username")
-                password = secrets.getProperty("bintray.apikey")
             }
         }
     }

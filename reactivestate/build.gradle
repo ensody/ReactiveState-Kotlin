@@ -2,8 +2,6 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-version = "0.5"
-
 apply from: "$rootDir/publish.gradle"
 
 android {
