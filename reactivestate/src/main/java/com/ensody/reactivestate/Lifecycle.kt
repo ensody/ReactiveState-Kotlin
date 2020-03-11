@@ -141,6 +141,7 @@ fun LifecycleOwner.launchWhileStarted(block: suspend CoroutineScope.() -> Unit):
     val job = lifecycleScope.launchWhenStarted {
         block()
     }
-    onStopOnce { job.cancel() }
+    val disposable = onStopOnce { job.cancel() }
+    job.invokeOnCompletion { disposable.dispose() }
     return job
 }
