@@ -17,6 +17,14 @@ This means you have to re-create your bindings in `onStart()`.
 With `autoRun { ... }` you can observe and re-execute a block of code whenever any of the `LiveData` instances accessed by the block is modified.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
+## Installation
+
+Add this to your `build.gradle`'s `dependencies {}` section where `VERSION` should be replaced with the current version:
+
+```groovy
+implementation "com.ensody.reactivestate:reactivestate:VERSION"
+```
+
 ## Examples
 
 Example `ViewModel`:
