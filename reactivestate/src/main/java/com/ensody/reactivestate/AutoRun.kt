@@ -123,7 +123,7 @@ interface BaseAutoRunner {
  *
  * @param [onChange] Gets called when the observables change. Your onChange handler has to
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
- * @param observer The callback which is used to track the observables.
+ * @param [observer] The callback which is used to track the observables.
  */
 class AutoRunner<T>(
     onChange: AutoRunOnChangeCallback<T>? = null,
