@@ -19,10 +19,26 @@ Depending on the context in which `autoRun` is executed, this observer is automa
 
 ## Installation
 
-Add this to your `build.gradle`'s `dependencies {}` section where `VERSION` should be replaced with the current version:
+Add the package to your `build.gradle`'s `dependencies {}` where `VERSION` should be replaced with the current ReactiveState version:
 
 ```groovy
-implementation "com.ensody.reactivestate:reactivestate:VERSION"
+dependencies {
+    // ...
+    implementation "com.ensody.reactivestate:reactivestate:VERSION"
+    // ...
+}
+```
+
+Also, make sure you've integrated the JCenter repo, e.g. in your root `build.gradle`:
+
+```groovy
+allprojects {
+    repositories {
+        // ...
+        jcenter()
+        // ...
+    }
+}
 ```
 
 ## Examples
