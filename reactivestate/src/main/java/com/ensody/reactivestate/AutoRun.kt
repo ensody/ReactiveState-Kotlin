@@ -7,10 +7,13 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 /** Observer callback used by [autoRun] and [AutoRunner]. */
-typealias AutoRunCallback<R> = (Resolver) -> R
+typealias AutoRunCallback<T> = (Resolver) -> T
+
+/** onChange callback used by [autoRun] and [AutoRunner]. */
+typealias AutoRunOnChangeCallback<T> = (autoRunner: AutoRunner<T>) -> Unit
 
 private fun CoroutineContext.autoRun(
-    onChange: (() -> Unit)? = null,
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> {
     val autoRunner = AutoRunner(onChange, observer)
@@ -35,7 +38,7 @@ private fun CoroutineContext.autoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 suspend fun autoRun(
-    onChange: (() -> Unit)? = null,
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> =
     coroutineContext.autoRun(onChange, observer)
@@ -54,7 +57,7 @@ suspend fun autoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 fun CoroutineScope.autoRun(
-    onChange: (() -> Unit)? = null,
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> =
     coroutineContext.autoRun(onChange, observer)
@@ -73,7 +76,7 @@ fun CoroutineScope.autoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 fun ViewModel.autoRun(
-    onChange: (() -> Unit)? = null,
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ) = viewModelScope.autoRun(onChange, observer)
 
@@ -94,7 +97,7 @@ fun ViewModel.autoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 fun LifecycleOwner.autoRun(
-    onChange: (() -> Unit)? = null,
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> {
     val autoRunner = AutoRunner(onChange, observer)
@@ -118,15 +121,17 @@ interface BaseAutoRunner {
  *
  * To stop watching, you should call [dispose].
  *
- * @param [onChange] Gets called when the observables change. If you provide a handler you have to
- * manually call [run].
+ * @param [onChange] Gets called when the observables change. Your onChange handler has to
+ * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
  * @param observer The callback which is used to track the observables.
  */
-class AutoRunner<T>(onChange: (() -> Unit)? = null, private val observer: AutoRunCallback<T>) :
-    BaseAutoRunner, Disposable {
-    val listener = onChange ?: { run() }
+class AutoRunner<T>(
+    onChange: AutoRunOnChangeCallback<T>? = null,
+    private val observer: AutoRunCallback<T>
+) : BaseAutoRunner, Disposable {
+    val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
     private val listenerObserver = Observer<Any> {
-        listener()
+        listener(this)
     }
     private var resolver = Resolver(this)
 
