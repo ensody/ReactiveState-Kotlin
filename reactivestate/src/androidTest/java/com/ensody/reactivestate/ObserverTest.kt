@@ -3,10 +3,11 @@ package com.ensody.reactivestate
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.LiveData
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import assertk.assertThat
+import assertk.assertions.isEqualTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
-import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -22,34 +23,34 @@ class ObserverTest {
         val source = MutableLiveDataNonNull(0)
         val target = MutableLiveDataNonNull(-1)
         val job = launch {
-            val runner = autoRun { target.value = it(source) * 2 }
+            val runner = autoRun { target.value = 2 * it(source) }
 
             // Right after creation of the AutoRunner the values should be in sync
-            assertEquals(0, target.value)
+            assertThat(target.value).isEqualTo(0)
 
             // Setting value multiple times should work
             listOf(2, 5, 10).forEach {
                 source.value = it
-                assertEquals(it * 2, target.value)
+                assertThat(target.value).isEqualTo(2 * it)
             }
 
             // Test disposing (target.value is out of sync)
             runner.dispose()
             val oldValue = target.value
             source.value += 5
-            assertEquals(oldValue, target.value)
+            assertThat(target.value).isEqualTo(oldValue)
 
             // Re-enable AutoRunner
             runner.run()
-            assertEquals(source.value * 2, target.value)
+            assertThat(target.value).isEqualTo(source.value * 2)
             source.value += 5
-            assertEquals(source.value * 2, target.value)
+            assertThat(target.value).isEqualTo(source.value * 2)
         }
         // The underlying AutoRunner should be automatically disposed because its scope has ended
         job.join()
         val oldValue = source.value * 2
         source.value += 5
-        assertEquals(oldValue, target.value)
+        assertThat(target.value).isEqualTo(oldValue)
     }
 
     @Test
@@ -57,21 +58,21 @@ class ObserverTest {
         val source = MutableLiveDataNonNull(0)
         var target: LiveData<Int> = MutableLiveDataNonNull(-1)
         val job = launch {
-            target = derived { it(source) * 2 }
+            target = derived { 2 * it(source) }
 
             // Right after creation of the derived observable the values should be in sync
-            assertEquals(0, target.value)
+            assertThat(target.value).isEqualTo(0)
 
             // Setting value multiple times should work
             listOf(2, 5, 10).forEach {
                 source.value = it
-                assertEquals(it * 2, target.value)
+                assertThat(target.value).isEqualTo(2 * it)
             }
         }
         // The underlying AutoRunner should be automatically disposed because its scope has ended
         job.join()
         val oldValue = source.value * 2
         source.value += 5
-        assertEquals(oldValue, target.value)
+        assertThat(target.value).isEqualTo(oldValue)
     }
 }
