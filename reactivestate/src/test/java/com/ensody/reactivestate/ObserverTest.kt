@@ -11,7 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class SampleTest {
+class ObserverTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 

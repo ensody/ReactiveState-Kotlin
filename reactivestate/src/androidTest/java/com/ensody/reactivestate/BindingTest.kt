@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-class ObserverTest {
+class BindingTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
