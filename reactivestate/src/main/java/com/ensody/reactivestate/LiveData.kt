@@ -26,7 +26,7 @@ fun <T> SavedStateHandle.getLiveDataNonNull(key: String, initialValue: T) =
         }
     }.fixValueType()
 
-open class LiveDataNonNullProxy<T>(source: LiveData<T>) : MediatorLiveData<T>() {
+open class LiveDataNonNullProxy<T>(private val source: LiveData<T>) : MediatorLiveData<T>() {
     private var initialized = false
 
     init {
@@ -40,7 +40,7 @@ open class LiveDataNonNullProxy<T>(source: LiveData<T>) : MediatorLiveData<T>() 
         }
     }
 
-    override fun getValue(): T = super.getValue()!!
+    override fun getValue(): T = if (hasActiveObservers()) super.getValue()!! else source.value!!
 }
 
 class MutableLiveDataNonNullProxy<T>(private val source: MutableLiveData<T>) :
