@@ -1,44 +1,38 @@
 package com.ensody.reactivestate
 
-import android.widget.CheckBox
 import android.widget.Checkable
+import android.widget.CompoundButton
 import android.widget.TextView
 import androidx.core.widget.addTextChangedListener
-import androidx.lifecycle.*
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 
 private typealias Scope = LifecycleOwner
 
-fun <T> Scope.bindConverted(
-    data: MutableLiveData<T>,
-    view: TextView,
-    convert: (String) -> T
-): Disposable {
-    val disposable = DisposableGroup()
-    disposable.add(onStartOnce {
-        val watcher = view.addTextChangedListener {
-            val value = convert(view.text.toString())
-            if (data.value != value) {
-                data.value = value
-            }
-        }
-        disposable.add(object : Disposable {
-            override fun dispose() {
-                view.removeTextChangedListener(watcher)
-            }
-        })
-        disposable.add(onStopOnce {
-            disposable.dispose()
-        })
-    })
-    return disposable
-}
+// -------------------------------------------------------------------------------------------------
+// TextView
+// -------------------------------------------------------------------------------------------------
 
-fun Scope.bind(
-    data: MutableLiveData<String>,
-    view: TextView,
-    convert: (String) -> String = { it }
-): Disposable =
-    bindConverted(data, view, convert)
+fun Scope.bind(data: MutableLiveData<String>, view: TextView): Disposable =
+    DisposableGroup().apply {
+        add(onStartOnce {
+            val watcher = view.addTextChangedListener {
+                val value = view.text.toString()
+                if (data.value != value) {
+                    data.value = value
+                }
+            }
+            add(object : Disposable {
+                override fun dispose() {
+                    view.removeTextChangedListener(watcher)
+                }
+            })
+            add(onStopOnce {
+                dispose()
+            })
+        })
+    }
 
 fun Scope.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
     autoRun { get ->
@@ -48,37 +42,20 @@ fun Scope.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
         }
     }
 
-fun <T> Scope.bind(
-    view: TextView,
-    data: LiveData<T>,
-    convert: (T) -> String = { it.toString() }
-): Disposable =
+fun Scope.bind(view: TextView, data: LiveData<String>): Disposable =
     bind(view) { get ->
-        convert(get(data))
-    }
-
-fun <T> Scope.bindTwoWay(
-    data: MutableLiveData<T>,
-    view: TextView,
-    convertToView: (T) -> String = { it.toString() },
-    convertToData: (String) -> T
-): Disposable =
-    DisposableGroup().apply {
-        add(bind(view, data, convertToView))
-        add(bindConverted(data, view, convertToData))
+        get(data)
     }
 
 fun Scope.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable =
-    bindTwoWay(data, view) { it }
+    DisposableGroup().apply {
+        add(bind(view, data))
+        add(bind(data, view))
+    }
 
-fun Scope.bindTwoWayInt(data: MutableLiveData<Int>, view: TextView): Disposable =
-    bindTwoWay(data, view) { it.toInt() }
-
-fun Scope.bindTwoWayFloat(data: MutableLiveData<Float>, view: TextView): Disposable =
-    bindTwoWay(data, view) { it.toFloat() }
-
-fun Scope.bindTwoWayDouble(data: MutableLiveData<Double>, view: TextView): Disposable =
-    bindTwoWay(data, view) { it.toDouble() }
+// -------------------------------------------------------------------------------------------------
+// Checkable
+// -------------------------------------------------------------------------------------------------
 
 fun Scope.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable =
     autoRun { get ->
@@ -88,69 +65,42 @@ fun Scope.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable 
         }
     }
 
-fun <T> Scope.bindConverted(
-    view: Checkable,
-    data: LiveData<T>,
-    convert: (T) -> Boolean
-): Disposable =
+fun Scope.bind(view: Checkable, data: LiveData<Boolean>): Disposable =
     bind(view) { get ->
-        convert(get(data))
+        get(data)
     }
 
-fun Scope.bind(
-    view: Checkable,
-    data: LiveData<Boolean>,
-    convert: (Boolean) -> Boolean = { it }
-): Disposable =
-    bind(view) { get ->
-        convert(get(data))
+// -------------------------------------------------------------------------------------------------
+// CompoundButton (which is also a TextView, but we want the Checkable aspect)
+// -------------------------------------------------------------------------------------------------
+
+fun Scope.bind(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
+    DisposableGroup().apply {
+        add(onStartOnce {
+            view.setOnCheckedChangeListener { _, isChecked ->
+                if (data.value != isChecked) {
+                    data.value = isChecked
+                }
+            }
+            add(object : Disposable {
+                override fun dispose() {
+                    view.setOnCheckedChangeListener(null)
+                }
+            })
+            add(onStopOnce {
+                dispose()
+            })
+        })
     }
 
-fun <T> Scope.bindConverted(
-    data: MutableLiveData<T>,
-    view: CheckBox,
-    convert: (Boolean) -> T
-): Disposable {
-    val disposable = DisposableGroup()
-    disposable.add(onStartOnce {
-        view.setOnCheckedChangeListener { _, isChecked ->
-            val value = convert(isChecked)
-            if (data.value != value) {
-                data.value = value
-            }
-        }
-        disposable.add(object : Disposable {
-            override fun dispose() {
-                view.setOnCheckedChangeListener(null)
-            }
-        })
-        disposable.add(onStopOnce {
-            disposable.dispose()
-        })
-    })
-    return disposable
-}
-
-fun Scope.bind(
-    data: MutableLiveData<Boolean>,
-    view: CheckBox,
-    convert: (Boolean) -> Boolean = { it }
-): Disposable =
-    bindConverted(data, view, convert)
-
-fun Scope.bind(view: CheckBox, observer: AutoRunCallback<Boolean>): Disposable =
+fun Scope.bind(view: CompoundButton, observer: AutoRunCallback<Boolean>): Disposable =
     bind(view as Checkable, observer)
 
-fun Scope.bind(view: CheckBox, data: LiveData<Boolean>): Disposable =
+fun Scope.bind(view: CompoundButton, data: LiveData<Boolean>): Disposable =
     bind(view as Checkable, data)
 
-fun <T> Scope.bindTwoWay(
-    data: MutableLiveData<T>,
-    view: CheckBox,
-    convertToView: (T) -> Boolean,
-    convertToData: (Boolean) -> T
-): Disposable =
+fun Scope.bindTwoWay(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
     DisposableGroup().apply {
-        add(bindConverted(view as Checkable, data, convertToView))
-        add(bindConverted(data, view, convertToData))
+        add(bind(view, data))
+        add(bind(data, view))
     }
