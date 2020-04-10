@@ -54,12 +54,12 @@ class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val username = savedStateHandle.getLiveDataNonNull("username", "")
     val password = savedStateHandle.getLiveDataNonNull("password", "")
     val usernameError = MutableLiveDataNonNull("")
-    val passwordError = derived { get ->
+    val passwordError = derived {
         validatePassword(get(password))
     }
 
     // Simple form validation with multiple fields
-    val isFormValid = derived { get ->
+    val isFormValid = derived {
         get(username).isNotEmpty() && get(usernameError).isEmpty() &&
         get(password).isNotEmpty() && get(passwordError).isEmpty()
     }
@@ -68,7 +68,7 @@ class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         // Instead of derived you can also use autoRun for more complex
         // cases (e.g. if you need to set multiple LiveData values or
         // you want to deal with coroutines and throttling/debouncing).
-        autoRun { get ->
+        autoRun {
             usernameError.value = validateUsername(get(username))
         }
     }
@@ -105,18 +105,18 @@ class MainFragment : Fragment() {
         bind(binding.passwordError, state.passwordError)
 
         // One-way binding using more flexible autoRun callback style.
-        bind(binding.count) { get ->
+        bind(binding.count) {
             // NOTE: You'll probably want to localize this string.
             "${get(state.count)}" 
         }
 
         // Even more complicated cases can use autoRun directly.
-        autoRun { get ->
+        autoRun {
             // Only enable submit button if form is valid
             binding.submitButton.isEnabled = get(state.isFormValid)
         }
 
-        autoRun { get ->
+        autoRun {
             val invalid = get(state.usernameError).isNotEmpty()
             // Show username error TextView only when there is an error
             binding.usernameError.visibility =
