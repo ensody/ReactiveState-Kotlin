@@ -25,7 +25,7 @@ private fun CoroutineContext.autoRun(
 }
 
 /**
- * Watches observables for changes.
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -44,7 +44,7 @@ suspend fun autoRun(
     coroutineContext.autoRun(onChange, observer)
 
 /**
- * Watches observables for changes.
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -63,7 +63,7 @@ fun CoroutineScope.autoRun(
     coroutineContext.autoRun(onChange, observer)
 
 /**
- * Watches observables for changes.
+ * Watches observables for changes. Often useful to keep things in sync.
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -81,7 +81,7 @@ fun ViewModel.autoRun(
 ) = viewModelScope.autoRun(onChange, observer)
 
 /**
- * Watches observables for changes.
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * IMPORTANT: Unlike the other autoRun variants this only runs between a single onStart/onStop
  * lifecycle. This is safe for use in Fragment.onStart().
@@ -112,7 +112,7 @@ interface BaseAutoRunner {
 }
 
 /**
- * Watches observables for changes.
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * Given an [observer], this class will automatically register itself as a listener and keep track
  * of the observables which [observer] depends on.

@@ -15,6 +15,7 @@ These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of
 This means you have to create your bindings in `onStart()`.
 
 With `autoRun { ... }` you can observe and re-execute a block of code whenever any of the `LiveData` instances accessed by the block is modified.
+This is useful e.g. for keeping the UI in sync with your ViewModel.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
 ## Installation
