@@ -139,14 +139,12 @@ class AutoRunner<T>(
     override fun dispose() = observe {}
 
     /** Calls [observer] and tracks its dependencies. */
-    fun run(): T = observe {
-        it.observer()
-    }
+    fun run(): T = observe(observer)
 
-    private fun <T> observe(func: (Resolver) -> T): T {
+    private fun <T> observe(observer: AutoRunCallback<T>): T {
         val nextResolver = Resolver(this)
         try {
-            return func(nextResolver)
+            return nextResolver.observer()
         } finally {
             for (item in resolver.observables - nextResolver.observables) {
                 item.removeObserver(listenerObserver)
