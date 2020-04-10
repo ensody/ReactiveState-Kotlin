@@ -7,10 +7,10 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
 /** Observer callback used by [autoRun] and [AutoRunner]. */
-typealias AutoRunCallback<T> = (Resolver) -> T
+typealias AutoRunCallback<T> = Resolver.() -> T
 
 /** onChange callback used by [autoRun] and [AutoRunner]. */
-typealias AutoRunOnChangeCallback<T> = (autoRunner: AutoRunner<T>) -> Unit
+typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
 
 private fun CoroutineContext.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
@@ -140,7 +140,7 @@ class AutoRunner<T>(
 
     /** Calls [observer] and tracks its dependencies. */
     fun run(): T = observe {
-        observer(it)
+        it.observer()
     }
 
     private fun <T> observe(func: (Resolver) -> T): T {
@@ -168,7 +168,7 @@ class Resolver(private val autoRunner: BaseAutoRunner) {
 
     /** Returns [LiveData.getValue] and tracks the observable. */
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> invoke(data: LiveData<T>): T {
+    operator fun <T> get(data: LiveData<T>): T {
         if (observables.add(data)) {
             autoRunner.addObservable(data)
         }

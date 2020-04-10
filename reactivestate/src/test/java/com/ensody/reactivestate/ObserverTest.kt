@@ -43,7 +43,7 @@ class ObserverTest {
         val source = MutableLiveDataNonNull(0)
         val target = MutableLiveData(-1).fixValueType()
         val job = launch {
-            val runner = autoRun { target.value = 2 * it(source) }
+            val runner = autoRun { target.value = 2 * get(source) }
 
             // Right after creation of the AutoRunner the values should be in sync
             assertThat(target.value).isEqualTo(0)
@@ -78,7 +78,7 @@ class ObserverTest {
         val source = MutableLiveDataNonNull(0)
         var target: LiveData<Int> = MutableLiveDataNonNull(-1)
         val job = launch {
-            target = derived { 2 * it(source) }
+            target = derived { 2 * get(source) }
 
             // Right after creation of the derived observable the values should be in sync
             assertThat(target.value).isEqualTo(0)

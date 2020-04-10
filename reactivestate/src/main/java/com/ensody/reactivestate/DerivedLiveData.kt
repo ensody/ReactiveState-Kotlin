@@ -10,7 +10,7 @@ class DerivedLiveData<T>(scope: CoroutineScope, private val observer: AutoRunCal
     LiveData<T>(null) {
 
     init {
-        scope.autoRun { value = observer(it) }
+        scope.autoRun { value = observer() }
     }
 }
 

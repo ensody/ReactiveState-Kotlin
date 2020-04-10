@@ -35,17 +35,15 @@ fun Scope.bind(data: MutableLiveData<String>, view: TextView): Disposable =
     }
 
 fun Scope.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
-    autoRun { get ->
-        val value = observer(get)
+    autoRun {
+        val value = observer()
         if (view.text.toString() != value) {
             view.text = value
         }
     }
 
 fun Scope.bind(view: TextView, data: LiveData<String>): Disposable =
-    bind(view) { get ->
-        get(data)
-    }
+    bind(view) { get(data) }
 
 fun Scope.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable =
     DisposableGroup().apply {
@@ -58,17 +56,15 @@ fun Scope.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable 
 // -------------------------------------------------------------------------------------------------
 
 fun Scope.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable =
-    autoRun { get ->
-        val value = observer(get)
+    autoRun {
+        val value = observer()
         if (view.isChecked != value) {
             view.isChecked = value
         }
     }
 
 fun Scope.bind(view: Checkable, data: LiveData<Boolean>): Disposable =
-    bind(view) { get ->
-        get(data)
-    }
+    bind(view) { get(data) }
 
 // -------------------------------------------------------------------------------------------------
 // CompoundButton (which is also a TextView, but we want the Checkable aspect)
