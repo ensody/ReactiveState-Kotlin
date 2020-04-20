@@ -15,13 +15,9 @@ typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
 private fun CoroutineContext.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
-): AutoRunner<Unit> {
-    val autoRunner = AutoRunner(onChange, observer)
-    this[Job]!!.invokeOnCompletion {
-        autoRunner.dispose()
-    }
-    autoRunner.run()
-    return autoRunner
+): AutoRunner<Unit> = AutoRunner(onChange, observer).apply {
+    disposeOnCompletionOf(this@autoRun)
+    run()
 }
 
 /**

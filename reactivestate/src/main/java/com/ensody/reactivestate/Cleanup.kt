@@ -70,6 +70,10 @@ internal fun CoroutineContext.invokeOnCompletion(handler: CompletionHandler): Di
 internal fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disposable =
     coroutineContext.invokeOnCompletion(handler)
 
+/** Disposes the [Disposable] when [Job] completes (including cancellation). */
+fun Disposable.disposeOnCompletionOf(job: Job): Disposable =
+    job.invokeOnCompletion { dispose() }
+
 /** Disposes the [Disposable] when [CoroutineContext] completes (including cancellation). */
 fun Disposable.disposeOnCompletionOf(context: CoroutineContext): Disposable =
     context.invokeOnCompletion { dispose() }
