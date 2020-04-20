@@ -40,7 +40,8 @@ open class LiveDataNonNullProxy<T>(private val source: LiveData<T>) : MediatorLi
         }
     }
 
-    override fun getValue(): T = if (hasActiveObservers()) super.getValue()!! else source.value!!
+    @Suppress("UNCHECKED_CAST")
+    override fun getValue(): T = (if (hasActiveObservers()) super.getValue() else source.value) as T
 }
 
 class MutableLiveDataNonNullProxy<T>(private val source: MutableLiveData<T>) :

@@ -2,7 +2,6 @@ package com.ensody.reactivestate
 
 import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 
@@ -160,12 +159,22 @@ class AutoRunner<T>(
 class Resolver(private val autoRunner: BaseAutoRunner) {
     internal val observables = mutableSetOf<LiveData<*>>()
 
-    /** Returns [LiveData.getValue] and tracks the observable. */
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T> get(data: LiveData<T>): T {
+    private fun <T : LiveData<*>> add(data: T): T {
         if (observables.add(data)) {
             autoRunner.addObservable(data)
         }
-        return data.value as T
+        return data
     }
+
+    /** Returns [LiveData.getValue] and tracks the observable. */
+    operator fun <T> get(data: MutableLiveDataNonNull<T>): T = add(data).value
+
+    /** Returns [LiveData.getValue] and tracks the observable. */
+    operator fun <T> get(data: DerivedLiveData<T>): T = add(data).value
+
+    /** Returns [LiveData.getValue] and tracks the observable. */
+    operator fun <T> get(data: LiveDataNonNullProxy<T>): T = add(data).value
+
+    /** Returns [LiveData.getValue] and tracks the observable. */
+    operator fun <T> get(data: LiveData<T>): T? = add(data).value
 }

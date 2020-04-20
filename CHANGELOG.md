@@ -8,6 +8,7 @@ ATTENTION: This release comes with a few breaking changes.
 * Added bindings for `CompoundButton` (replacing `CheckBox` bindings).
 * `AutoRunner`'s and `autoRun`'s `observer` callback now receives the `Resolver` via `this` instead of as an argument (more consistent and compact code). You can write `get(livedata)` to retrieve a `LiveData` value.
 * `AutoRunner`'s and `autoRun`'s `onChange` callback now receives the `AutoRunner` as its first argument.
+* Improved `AutoRunner`'s null handling of `LiveData`.
 * Added `onResume`, `onResumeOnce`, `onPause`, `onPauseOnce`, `launchWhileResumed` lifecycle observers.
 * Added `Disposable.disposeOnCompletionOf(coroutineContext)` extension methods.
 * Added `WorkQueue` and helpers like `conflatedWorkQueue` for simpler communication between UI and ViewModel.
