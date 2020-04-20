@@ -8,6 +8,7 @@ import androidx.lifecycle.*
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [viewModelScope] completes.
  *
  * See [AutoRunner] for more details.
  *
@@ -24,11 +25,12 @@ fun ViewModel.autoRun(
  * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * IMPORTANT: Unlike the other autoRun variants this only runs between a single onStart/onStop
- * lifecycle. This is safe for use in Fragment.onStart().
+ * lifecycle. This is safe for use in `Fragment.onStart()`.
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the `Livecycle` stops.
  *
  * See [AutoRunner] for more details.
  *

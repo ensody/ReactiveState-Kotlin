@@ -8,14 +8,21 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
+
+class TestState(store: LiveDataStore, scope: CoroutineScope) : State(scope) {
+    val name = store.getLiveData("name", "")
+    val count = store.getLiveData("count", 0)
+}
 
 class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val name = savedStateHandle.getLiveDataNonNull("name", "")
-    val count = savedStateHandle.getLiveDataNonNull("count", 0)
+    val state = TestState(savedStateHandle.toStore(), viewModelScope)
 }
 
 class TestFragment : Fragment() {
     internal val model by stateViewModel { TestViewModel(it) }
+    internal val state get() = model.state
 
     internal lateinit var textView: TextView
 

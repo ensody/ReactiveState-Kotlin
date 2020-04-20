@@ -41,16 +41,31 @@ fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
 fun <T> CoroutineScope.workQueue() = WorkQueue<T>(this)
 
+/** Creates a [WorkQueue]. You have to manually call `consume()`. */
+fun <T> State.workQueue() = WorkQueue<T>(scope)
+
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
     workQueue<T>().apply { consume(this@workQueue, workers = workers, config = config) }
+
+/** Creates a [WorkQueue] and starts consuming it with the given [config]. */
+fun <T> State.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
+    workQueue<T>().apply { consume(scope, workers = workers, config = config) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
 fun CoroutineScope.simpleWorkQueue(workers: Int = 1) =
     workQueue<WorkQueueEntry>(workers = workers) { worker() }
 
+/** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
+fun State.simpleWorkQueue(workers: Int = 1) =
+    workQueue<WorkQueueEntry>(workers = workers) { worker() }
+
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
 fun CoroutineScope.conflatedWorkQueue(timeoutMillis: Long = 0L) =
+    workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
+
+/** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
+fun State.conflatedWorkQueue(timeoutMillis: Long = 0L) =
     workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
 
 /**

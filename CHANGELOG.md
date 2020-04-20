@@ -3,6 +3,7 @@
 ## Next release (master)
 
 * This release splits the `reactivestate` module into a Kotlin module (`core`) and an Android module (`reactivestate`). The change is backwards-compatible unless you've accessed `BaseAutoRunner` (very unlikely).
+* Added `State` base class for separating business logic from `ViewModel`, making it easier to use in normal unit tests.
 
 ## 0.8
 

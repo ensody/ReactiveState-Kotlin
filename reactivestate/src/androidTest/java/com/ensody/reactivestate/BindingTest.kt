@@ -29,19 +29,19 @@ class BindingTest {
         scenario.onFragment { fragment = it }
 
         fragment.apply {
-            bindTwoWay(model.name, textView)
-            model.count.value = 1
-            model.name.value = "test"
-            assertThat(textView.text.toString()).isEqualTo(model.name.value)
+            bindTwoWay(state.name, textView)
+            state.count.value = 1
+            state.name.value = "test"
+            assertThat(textView.text.toString()).isEqualTo(state.name.value)
             textView.text = "hello"
-            assertThat(textView.text.toString()).isEqualTo(model.name.value)
+            assertThat(textView.text.toString()).isEqualTo(state.name.value)
         }
 
         // Bindings should auto-dispose themselves
         scenario.moveToState(Lifecycle.State.CREATED)
         fragment.apply {
-            model.name.value = "test"
-            assertThat(textView.text.toString()).isNotEqualTo(model.name.value)
+            state.name.value = "test"
+            assertThat(textView.text.toString()).isNotEqualTo(state.name.value)
         }
 
         // Re-creating the fragment should keep view model state
@@ -49,10 +49,10 @@ class BindingTest {
         scenario.onFragment { fragment = it }
         scenario.moveToState(Lifecycle.State.RESUMED)
         fragment.apply {
-            bindTwoWay(model.name, textView)
-            assertThat(model.name.value).isEqualTo("test")
-            assertThat(textView.text.toString()).isEqualTo(model.name.value)
-            assertThat(model.count.value).isEqualTo(1)
+            bindTwoWay(state.name, textView)
+            assertThat(state.name.value).isEqualTo("test")
+            assertThat(textView.text.toString()).isEqualTo(state.name.value)
+            assertThat(state.count.value).isEqualTo(1)
         }
     }
 }

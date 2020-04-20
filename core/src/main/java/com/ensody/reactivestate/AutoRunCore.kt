@@ -19,11 +19,12 @@ private fun CoroutineContext.autoRun(
 }
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [CoroutineContext] completes.
  *
  * See [AutoRunner] for more details.
  *
@@ -38,11 +39,12 @@ suspend fun autoRun(
     coroutineContext.autoRun(onChange, observer)
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [CoroutineScope] completes.
  *
  * See [AutoRunner] for more details.
  *
@@ -56,6 +58,26 @@ fun CoroutineScope.autoRun(
 ): AutoRunner<Unit> =
     coroutineContext.autoRun(onChange, observer)
 
+/**
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [State.scope] completes.
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+fun State.autoRun(
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
+    observer: AutoRunCallback<Unit>
+): AutoRunner<Unit> =
+    scope.autoRun(onChange, observer)
+
 /** Just the minimum interface needed for [Resolver]. No generic types. */
 abstract class BaseAutoRunner {
     internal abstract val resolver: Resolver
@@ -64,7 +86,7 @@ abstract class BaseAutoRunner {
 }
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
  *
  * Given an [observer], this class will automatically register itself as a listener and keep track
  * of the observables which [observer] depends on.
@@ -72,6 +94,8 @@ abstract class BaseAutoRunner {
  * You have to call [run] once to start watching.
  *
  * To stop watching, you should call [dispose].
+ *
+ * Instead of instantiating an `AutoRunner` directly you'll usually want to use an [autoRun] helper.
  *
  * @param [onChange] Gets called when the observables change. Your onChange handler has to
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.

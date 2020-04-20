@@ -43,12 +43,20 @@ allprojects {
 Example `ViewModel`:
 
 ```kotlin
+// We separate the actual state object from ViewModel because this
+// allows writing unit tests against our business logic without
+// resorting to Robolectric (and we want to avoid instrumentation tests
+// because they are slow and make coverage tracking more difficult).
 class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val count = savedStateHandle.getLiveDataNonNull("count", 0)
+    val state = MainState(savedStateHandle.toStore(), viewModelScope)
+}
+
+class MainState(store: LiveDataStore, scope: CoroutineScope) : State(scope) {
+    val count = store.getLiveData("count", 0)
 
     // These store form data
-    val username = savedStateHandle.getLiveDataNonNull("username", "")
-    val password = savedStateHandle.getLiveDataNonNull("password", "")
+    val username = store.getLiveData("username", "")
+    val password = store.getLiveData("password", "")
     val usernameError = MutableLiveDataNonNull("")
     val passwordError = derived {
         validatePassword(get(password))
@@ -79,7 +87,8 @@ Example `Fragment` (using view bindings for type safety):
 
 ```kotlin
 class MainFragment : Fragment() {
-    private val state by stateViewModel { MainViewModel(it) }
+    private val model by stateViewModel { MainViewModel(it) }
+    private val state get() = model.state
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
