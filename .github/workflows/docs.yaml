@@ -1,0 +1,34 @@
+name: Publish documentation to gh-pages
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy-docs:
+    name: Publish docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Build project
+        run: sudo ./gradlew build
+      - name: Fix permissions
+        run: sudo chown -R "$(whoami):$(whoami)" .
+      - name: Install common deps
+        run: sudo scripts/build-common.sh
+      - name: Fix permissions
+        run: sudo chown -R "$(whoami):$(whoami)" ~/.poetry
+      - name: Install Python deps
+        run: PATH="~/.poetry/bin:$PATH" poetry install
+      - name: Deploy docs
+        run: ./deploy-docs.sh
+        env:
+          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+
+env:
+  GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+  LC_ALL: C.UTF-8
+  LANG: C.UTF-8

@@ -4,19 +4,15 @@
 
 An easy to understand reactive state management solution for Android.
 
-This is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter.
+This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Android patterns and problems.
 
-State is held in one or multiple instances of `LiveData`.
-These are standard Android classes that are widely in use and can be converted to/from `Flow`.
-This library also provides non-nullable `LiveData` variants.
+With `autoRun { ... }` you can observe and re-execute a function whenever any of the `LiveData` instances accessed by the function is modified.
+This is useful e.g. for keeping the UI in sync with your ViewModel.
+Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
 With `bind()` and `bindTwoWay()` you can easily create one-way or two-way bindings between `LiveData` and your views.
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to *prevent accidental memory leaks*.
 This means you have to create your bindings in `onStart()`.
-
-With `autoRun { ... }` you can observe and re-execute a block of code whenever any of the `LiveData` instances accessed by the block is modified.
-This is useful e.g. for keeping the UI in sync with your ViewModel.
-Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
 ## Installation
 

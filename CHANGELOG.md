@@ -2,7 +2,7 @@
 
 ## Next release (master)
 
-ATTENTION: This release comes with a few minor breaking changes.
+ATTENTION: This release comes with a few breaking changes.
 
 * Bindings don't have value converters, anymore. Usually you need to store the raw field value and a separate conversion (if possible without errors), anyway. Use `autoRun` or `derived` to convert values.
 * Added bindings for `CompoundButton` (replacing `CheckBox` bindings).
@@ -11,6 +11,7 @@ ATTENTION: This release comes with a few minor breaking changes.
 * Added `onResume`, `onResumeOnce`, `onPause`, `onPauseOnce`, `launchWhileResumed` lifecycle observers.
 * Added `Disposable.disposeOnCompletionOf(coroutineContext)` extension methods.
 * Added unit tests.
+* Added documentation.
 
 ## 0.5
 
