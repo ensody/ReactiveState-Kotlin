@@ -10,6 +10,7 @@ ATTENTION: This release comes with a few breaking changes.
 * `AutoRunner`'s and `autoRun`'s `onChange` callback now receives the `AutoRunner` as its first argument.
 * Added `onResume`, `onResumeOnce`, `onPause`, `onPauseOnce`, `launchWhileResumed` lifecycle observers.
 * Added `Disposable.disposeOnCompletionOf(coroutineContext)` extension methods.
+* Added `WorkQueue` and helpers like `conflatedWorkQueue` for simpler communication between UI and ViewModel.
 * Added unit tests.
 * Added documentation.
 
