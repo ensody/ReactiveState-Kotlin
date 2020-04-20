@@ -10,9 +10,13 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.venv
 .DS_Store
 /build
 /captures
-/docs/api
+/docs/reactivestate
+/docs/index.md
+/docs/CHANGELOG.md
+/site
 .externalNativeBuild
 .cxx

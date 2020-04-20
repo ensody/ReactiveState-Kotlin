@@ -17,8 +17,8 @@ task androidSourcesJar(type: Jar) {
 
 apply plugin: 'org.jetbrains.dokka'
 dokka {
-    outputDirectory = "$buildDir/dokka"
-    outputFormat = 'html'
+    outputDirectory = "$rootDir/docs"
+    outputFormat = 'gfm'
 }
 
 apply plugin: "maven-publish"
