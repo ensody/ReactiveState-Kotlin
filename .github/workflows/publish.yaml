@@ -1,4 +1,4 @@
-name: Publish documentation to gh-pages
+name: Publish package to Bintray and documentation to gh-pages
 
 on:
   push:
@@ -28,6 +28,11 @@ jobs:
         run: ./deploy-docs.sh
         env:
           GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+      - name: Publish package
+        run: ./gradlew bintrayUpload "-Pversion=${GITHUB_REF:1}"
+        env:
+          BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
+          BINTRAY_APIKEY: ${{ secrets.BINTRAY_APIKEY }}
 
 env:
   GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
