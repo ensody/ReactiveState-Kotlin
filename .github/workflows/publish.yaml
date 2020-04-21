@@ -1,12 +1,13 @@
 name: Publish documentation to gh-pages
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
 
 jobs:
   deploy-docs:
-    name: Publish docs
+    name: Publish package and docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,7 +27,7 @@ jobs:
       - name: Deploy docs
         run: ./deploy-docs.sh
         env:
-          PERSONAL_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
 
 env:
   GRADLE_OPTS: -Dorg.gradle.configureondemand=true -Dorg.gradle.parallel=true -Dkotlin.incremental=false -Dorg.gradle.jvmargs="-Xmx3g -XX:MaxPermSize=2048m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
