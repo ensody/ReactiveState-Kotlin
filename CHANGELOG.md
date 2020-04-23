@@ -1,4 +1,4 @@
-# Changelog
+# Change log
 
 ## 0.8
 

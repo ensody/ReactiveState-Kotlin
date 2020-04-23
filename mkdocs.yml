@@ -38,4 +38,4 @@ markdown_extensions:
 nav:
   - 'Overview': index.md
   - 'API reference': reactivestate/index.md
-  - 'Change Log': changelog.md
+  - 'Change log': changelog.md
