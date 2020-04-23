@@ -17,7 +17,7 @@ ext {
     bintrayUserOrg = 'ensody'
     bintrayRepo = 'maven'
     licenses = ['MIT']
-    repoUrl = 'https://github.com/ensody/ReactiveState-Android'
+    repoUrl = 'https://github.com/ensody/ReactiveState-Kotlin'
     vcsUrl = "${repoUrl}.git"
     website = repoUrl
 }

@@ -1,10 +1,10 @@
-# ReactiveState for Android
+# ReactiveState for Kotlin and Android
 
 [ ![Download](https://api.bintray.com/packages/ensody/maven/com.ensody.reactivestate%3Areactivestate/images/download.svg) ](https://bintray.com/ensody/maven/com.ensody.reactivestate%3Areactivestate/_latestVersion)
 
-An easy to understand reactive state management solution for Android.
+An easy to understand reactive state management solution for Kotlin and Android.
 
-This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Android patterns and problems.
+This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Kotlin and Android patterns and problems.
 
 With `autoRun { ... }` you can observe and re-execute a function whenever any of the `LiveData` instances accessed by the function is modified.
 This is useful e.g. for keeping the UI in sync with your ViewModel.
