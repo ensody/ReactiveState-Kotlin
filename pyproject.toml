@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "reactivestate"
+name = "ReactiveState-Kotlin"
 version = "0.7.0"
 description = "reactivestate"
 authors = []

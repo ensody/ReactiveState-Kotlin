@@ -2,7 +2,7 @@ FROM ubuntu:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV PATH=$PATH:~/bin
+ENV PATH=$PATH:~/bin:~/.poetry/bin
 
 WORKDIR /workspace
 
