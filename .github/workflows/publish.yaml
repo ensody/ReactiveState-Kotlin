@@ -29,7 +29,8 @@ jobs:
         env:
           GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
       - name: Publish package
-        run: ./gradlew bintrayUpload "-Pversion=${GITHUB_REF:1}"
+        # GITHUB_REF is refs/tags/v<VERSION>
+        run: ./gradlew bintrayUpload "-Pversion=${GITHUB_REF:11}"
         env:
           BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
           BINTRAY_APIKEY: ${{ secrets.BINTRAY_APIKEY }}
