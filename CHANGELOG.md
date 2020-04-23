@@ -1,5 +1,9 @@
 # Change log
 
+## Next release (master)
+
+* This release splits the `reactivestate` module into a Kotlin module (`core`) and an Android module (`reactivestate`). The change is backwards-compatible unless you've accessed `BaseAutoRunner` (very unlikely).
+
 ## 0.8
 
 ATTENTION: This release comes with a few breaking changes.

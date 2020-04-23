@@ -1,2 +1,3 @@
 rootProject.name='ReactiveState'
+include ':core'
 include ':reactivestate'

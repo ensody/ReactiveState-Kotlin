@@ -10,11 +10,6 @@ group groupId
 def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
 def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
 
-task androidSourcesJar(type: Jar) {
-    archiveClassifier.set('sources')
-    from android.sourceSets.main.java.srcDirs
-}
-
 apply plugin: 'org.jetbrains.dokka'
 dokka {
     outputDirectory = "$rootDir/docs"
@@ -30,19 +25,6 @@ publishing {
             credentials {
                 username = bintrayUsername
                 password = bintrayApiKey
-            }
-        }
-    }
-}
-
-// Because the components are created only during the afterEvaluate phase, we must
-// configure your publications using the afterEvaluate() lifecycle method.
-afterEvaluate {
-    publishing {
-        publications {
-            release(MavenPublication) {
-                from components.release
-                artifact androidSourcesJar
             }
         }
     }
