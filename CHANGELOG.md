@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release (master)
+## 0.8
 
 ATTENTION: This release comes with a few breaking changes.
 
@@ -13,7 +13,7 @@ ATTENTION: This release comes with a few breaking changes.
 * Added `Disposable.disposeOnCompletionOf(coroutineContext)` extension methods.
 * Added `WorkQueue` and helpers like `conflatedWorkQueue` for simpler communication between UI and ViewModel.
 * Added unit tests.
-* Added documentation.
+* Added simple documentation with API reference.
 
 ## 0.5
 
