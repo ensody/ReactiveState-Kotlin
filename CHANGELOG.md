@@ -1,5 +1,12 @@
 # Change log
 
+## 0.9.1
+
+This release introduces no code changes.
+
+* Fixed release publication on jcenter.
+* Minor documentation improvements.
+
 ## 0.9
 
 ATTENTION: Due to the core & reactivestate module split you have to also add the core module to your dependencies as described in the [README](README.md).
