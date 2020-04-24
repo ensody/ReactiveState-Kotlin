@@ -1,0 +1,70 @@
+name: build
+
+env:
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
+  LC_ALL: C.UTF-8
+  LANG: C.UTF-8
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: JDK ${{ matrix.java_version }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java_version: [1.8]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
+      - name: Install JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java_version }}
+      - name: Configure Gradle
+        run: ./gradlew help
+      - name: Build project
+        run: sudo ./gradlew assemble --stacktrace
+      - name: Fix permissions
+        run: sudo chown -R "$(whoami):$(whoami)" .
+      - name: Run tests
+        run: ./gradlew test --stacktrace
+      - name: Final checks
+        run: ./gradlew check --stacktrace
+
+      - name: Bundle the build report
+        if: failure()
+        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+      - name: Upload the build report
+        if: failure()
+        uses: actions/upload-artifact@master
+        with:
+          name: error-report
+          path: build-reports.zip
+
+  publish:
+    name: Publish package and docs
+    runs-on: ubuntu-latest
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install common deps
+        run: sudo scripts/build-common.sh
+      - name: Fix permissions
+        run: sudo chown -R "$(whoami):$(whoami)" ~/.poetry
+      - name: Install Python deps
+        run: PATH="~/.poetry/bin:$PATH" poetry install
+      - name: Deploy docs
+        run: ./deploy-docs.sh
+        env:
+          GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+      - name: Publish package
+        # GITHUB_REF is refs/tags/v<VERSION>
+        run: ./gradlew bintrayUpload "-Pversion=${GITHUB_REF:11}"
+        env:
+          BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
+          BINTRAY_APIKEY: ${{ secrets.BINTRAY_APIKEY }}
