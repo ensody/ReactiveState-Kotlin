@@ -4,20 +4,11 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
-This library is split into two separate modules for Kotlin ([core](https://ensody.github.io/ReactiveState-Kotlin/core/)) and Android ([reactivestate](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/)).
+This library is split into two separate modules for Kotlin ([`core`](https://ensody.github.io/ReactiveState-Kotlin/core/)) and Android ([`reactivestate`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/)).
 
 ## Use-cases
 
 ### Keeping UI in sync with state
-
-With [autoRun](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/)
-you can observe and re-execute a function whenever any of the `LiveData` instances accessed by the function is modified.
-On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
-Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
-
-With `bind()` and `bindTwoWay()` you can easily create one-way or two-way bindings between `LiveData` and your views.
-These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to *prevent accidental memory leaks*.
-This means you have to create your bindings in `onStart()`.
 
 ```kotlin
 class MainViewModel : ViewModel() {
@@ -53,22 +44,20 @@ class MainFragment : Fragment() {
 }
 ```
 
+With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`State`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-state/), `CoroutineScope`, etc.)
+you can observe and re-execute a function whenever any of the `LiveData` instances accessed by that function are modified.
+On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
+Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
+
+With [`bind`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind/)
+and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind-two-way/) you can easily create one-way or two-way bindings between `LiveData` and your views.
+These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to prevent accidental memory leaks and unnecessary resource consumption.
+This means you have to create your bindings and `AutoRunner`s in `onStart()`.
+
+Note that `autoRun` and `bind` can be extended to support observables other than `LiveData` (useful when writing non-Android code or possibly the introduction of a `Flow`-with-value).
+In fact, [`LiveData` support](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/get/) is added by the Android-specific `reactivestate` module while the rest of `autoRun` lives in the non-Android `core` module.
+
 ### Running operations outside of the UI lifecycle
-
-On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
-To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
-
-In order to simplify this pattern, ReactiveState provides `WorkQueue` and helpers like
-[conflatedWorkQueue](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/conflated-work-queue/)
-(available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, `State`, etc.).
-A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
-You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
-
-Usually, you'd use a `WorkQueue` to throttle UI events and execute event handlers in a `ViewModel`.
-Also, you can build a request-response event pipeline between the UI and the `ViewModel` with helpers like `argWorkQueue` (see example below).
-Of course, you can also throttle UI events with [FlowBinding](https://github.com/ReactiveCircus/FlowBinding) and only use a `WorkQueue` to serialize the event execution.
-
-While you can process any type of event in a `WorkQueue`, most helper methods are built around processing lambda functions, so you don't need to write boilerplate (defining event classes and dispatching on them in huge `when` statements):
 
 ```kotlin
 class MainViewModel : ViewModel() {
@@ -112,28 +101,48 @@ class MainFragment : Fragment() {
 }
 ```
 
+On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
+To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
+
+In order to simplify this pattern, ReactiveState provides [`WorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-work-queue/) and helpers like
+[conflatedWorkQueue](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/conflated-work-queue/)
+(available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, [`State`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-state/), etc.).
+A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
+You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
+
+Usually, you'd use a `WorkQueue` to throttle UI events and execute event handlers in a `ViewModel`.
+Also, you can build a request-response event pipeline between the UI and the `ViewModel` with helpers like [`argWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/arg-work-queue/) (see example above).
+Of course, you can also throttle UI events with [FlowBinding](https://github.com/ReactiveCircus/FlowBinding) and only use a `WorkQueue` to serialize the event execution or handle request-response-style messaging.
+
+While you can process any type of event in a `WorkQueue`, most helper methods are built around processing lambda functions, so you don't need to write boilerplate (defining event classes and dispatching on them in huge `when` statements):
+
 ### Automatic cleanups and lifetime/lifecycle management
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
-ReactiveState provides a `Disposable` interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
-You can also use `disposable.disposeOnCompletionOf(coroutineScopeOrContext)` to auto-dispose your disposables.
-For more complex use-cases you can use `DisposableGroup` (which is a `Disposable`) to group multiple disposables into a single disposable object.
+ReactiveState provides a [`Disposable`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-disposable/) interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
+You can also use [`disposable.disposeOnCompletionOf`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/kotlinx.coroutines.-disposable-handle/dispose-on-completion-of/)`(coroutineScopeOrContext)` to auto-dispose your disposables.
+For more complex use-cases you can use [`DisposableGroup`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-disposable-group/) (which is a `Disposable`) to group multiple disposables into a single disposable object.
 
-With extension function like `LifecycleOwner.onResume` or `LifecycleOwner.onStopOnce` you can easily add long-running or one-time observers to a `Lifecycle`.
-These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like `autoRun` does.
+With extension functions like [`LifecycleOwner.onResume`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/on-resume/)
+or [`LifecycleOwner.onStopOnce`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/on-stop-once/)
+you can easily add long-running or one-time observers to a `Lifecycle`.
+These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like
+[`LifecycleOwner.autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/)
+does.
 
-Also, you can use extension functions like `LifecycleOwner.launchWhileStarted()` and `launchWhileResumed()` to only execute a coroutine as long as the UI is not stopped.
-In contrast to Android's `launchWhenStarted()` this also takes care of the termination.
+Also, you can use extension functions like
+[`LifecycleOwner.launchWhileStarted`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-started/)
+and [`launchWhileResumed`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-resumed/)
+to only execute a coroutine as long as the UI is not stopped.
+In contrast to Android's `launchWhenStarted` this also takes care of the termination.
 
-Since only the start/stop (and resume/pause) lifecycles can be meaningfully and reliably observed, most of ReactiveState's Android code requires launching in `onStart()` and then it auto-terminates/disposes when the lifecycle triggers an `onStop()`.
+Since the start/stop (and resume/pause) lifecycle matches most closely to a `LifecycleOwner`'s visibility/usage, most of ReactiveState's Android extension functions require launching in `onStart()` and then the code auto-terminates/disposes when the lifecycle triggers an `onStop()`.
+Normally, you only want to update the UI when it's visible (in the foreground), anyway. For any other background processing you can still use e.g. `autoRun` on `ViewModel` or `lifecycleScope` and have the UI re-sync in `onStart()` once it becomes visible again.
+The `onCreateView()`/`onDestroyView()` cycle (via `viewLifecycleOwner`) isn't used because when the `Fragment`'s `Activity` moves to the back stack you only receive an `onStop()` without `onDestroyView()`.
+In order to prevent such surprises we can just use `onStart()`/`onStop()`.
 
 ### Flexible ViewModel instantiation
-
-ReactiveState's `viewModel` and `stateViewModel` extension functions allow creating a `ViewModel` by directly instantiating it.
-This results in more natural code and allows passing arguments to the `ViewModel`.
-Internally, these helper functions are just wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
-They just reduce the amount of boilerplate around common use-cases.
 
 ```kotlin
 class MainViewModel(dependency: SomeDependency) : ViewModel() {
@@ -150,6 +159,13 @@ class MainFragment : Fragment() {
     private val model2 by stateViewModel { StateViewModel(it, SomeDependency()) }
 }
 ```
+
+ReactiveState's [`viewModel`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/view-model/),
+[`stateViewModel`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/state-view-model/),
+[and other](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/) extension functions allow creating a `ViewModel` by directly instantiating it.
+This results in more natural code and allows passing arguments to the `ViewModel`.
+Internally, these helper functions are just wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
+They just reduce the amount of boilerplate for common use-cases.
 
 ## Installation
 
