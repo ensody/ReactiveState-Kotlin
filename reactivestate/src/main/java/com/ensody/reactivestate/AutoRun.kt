@@ -64,7 +64,7 @@ private fun <T, D : LiveData<T>> Resolver.track(data: D): D =
     track(data) { LiveDataObservable(data, autoRunner) }
 
 private class LiveDataObservable(
-    override val underlyingObservable: LiveData<*>,
+    private val data: LiveData<*>,
     autoRunner: BaseAutoRunner
 ) : AutoRunnerObservable {
     private val observer = Observer<Any> {
@@ -72,10 +72,10 @@ private class LiveDataObservable(
     }
 
     override fun addObserver() {
-        underlyingObservable.observeForever(observer)
+        data.observeForever(observer)
     }
 
     override fun removeObserver() {
-        underlyingObservable.removeObserver(observer)
+        data.removeObserver(observer)
     }
 }

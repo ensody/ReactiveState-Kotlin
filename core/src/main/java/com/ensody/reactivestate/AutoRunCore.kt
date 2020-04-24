@@ -131,8 +131,7 @@ class AutoRunner<T>(
 
 /** Tracks observables for [AutoRunner]. */
 class Resolver(val autoRunner: BaseAutoRunner) {
-    private val dataToObservable = mutableMapOf<Any, AutoRunnerObservable>()
-    private val observableToData = mutableMapOf<AutoRunnerObservable, Any>()
+    private val observables = mutableMapOf<Any, AutoRunnerObservable>()
 
     /**
      * Tracks an arbitrary observable.
@@ -147,11 +146,10 @@ class Resolver(val autoRunner: BaseAutoRunner) {
         underlyingObservable: S,
         getObservable: () -> T
     ): S {
-        if (underlyingObservable !in dataToObservable) {
-            val existing = autoRunner.resolver.dataToObservable[underlyingObservable]
+        if (underlyingObservable !in observables) {
+            val existing = autoRunner.resolver.observables[underlyingObservable]
             val observable = existing ?: getObservable()
-            dataToObservable[underlyingObservable] = observable
-            observableToData[observable] = underlyingObservable
+            observables[underlyingObservable] = observable
             if (existing == null) {
                 observable.addObserver()
             }
@@ -160,8 +158,10 @@ class Resolver(val autoRunner: BaseAutoRunner) {
     }
 
     internal fun switchTo(next: Resolver) {
-        for (item in observableToData.keys - next.observableToData.keys) {
-            item.removeObserver()
+        for ((underlyingObservable, item) in observables) {
+            if (item != next.observables[underlyingObservable]) {
+                item.removeObserver()
+            }
         }
     }
 }
@@ -172,8 +172,6 @@ class Resolver(val autoRunner: BaseAutoRunner) {
  * You can use this to wrap actual observables (e.g. Android's `LiveData`).
  */
 interface AutoRunnerObservable {
-    val underlyingObservable: Any
-
     fun addObserver()
     fun removeObserver()
 }
