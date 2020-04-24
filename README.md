@@ -55,11 +55,10 @@ class MainFragment : Fragment() {
 
 ### Running operations outside of the UI lifecycle
 
-On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
+On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
 To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
 
-In order to simplify this pattern, ReactiveState provides `WorkQueue`
-and helpers like
+In order to simplify this pattern, ReactiveState provides `WorkQueue` and helpers like
 [conflatedWorkQueue](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/conflated-work-queue/)
 (available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, `State`, etc.).
 A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
@@ -94,6 +93,7 @@ class MainFragment : Fragment() {
         button.setOnClickListener {
             model.queue.launch {
                 val result = model.someAction()
+                // Here you could also navigate to some other Fragment
                 model.responses.launch { fragment -> fragment.showPopUp(result.someMessage) }
             }
         }
@@ -158,9 +158,8 @@ Add the package to your `build.gradle`'s `dependencies {}` where `VERSION` shoul
 ```groovy
 dependencies {
     // ...
-    // Use this in non-Android projects
     implementation "com.ensody.reactivestate:core:VERSION"
-    // Use this in Android projects
+    // Additionally use this in Android projects
     implementation "com.ensody.reactivestate:reactivestate:VERSION"
     // ...
 }
