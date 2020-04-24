@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
  * [autoRun] or [workQueue].
  */
 abstract class State(val scope: CoroutineScope) : Disposable {
-    val disposable = disposeOnCompletionOf(scope)
+    private val disposable = disposeOnCompletionOf(scope)
 
     override fun dispose() {
         disposable.dispose()
