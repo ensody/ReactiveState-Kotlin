@@ -54,7 +54,8 @@ and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/c
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to prevent accidental memory leaks and unnecessary resource consumption.
 This means you have to create your bindings and `AutoRunner`s in `onStart()`.
 
-Note that `autoRun` and `bind` can be extended to support observables other than `LiveData` (useful when writing non-Android code or possibly the introduction of a `Flow`-with-value).
+Note that `autoRun` and `bind` can be extended to support observables other than `LiveData`.
+This is useful when writing non-Android code or possibly the introduction of a `Flow`-with-value.
 In fact, [`LiveData` support](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/get/) is added by the Android-specific `reactivestate` module while the rest of `autoRun` lives in the non-Android `core` module.
 
 ### Running operations outside of the UI lifecycle
@@ -63,10 +64,11 @@ In fact, [`LiveData` support](https://ensody.github.io/ReactiveState-Kotlin/reac
 class MainViewModel : ViewModel() {
     // This queue can be used to throttle actions using 200ms windows
     val queue = conflatedWorkQueue(200)
-    // This queue can be used to execute a response on the MainFragment.
+    // This queue can be used to execute a response on the MainFragment (latest
+    // instance passed in as `this`).
     // Note: In most cases you'll want to store the result in LiveData.
-    // This is only meant for actual events instead of state.
-    val responses = argWorkQueue<MainFragment>()
+    // This is only meant for actual events/navigation instead of state.
+    val responses = thisWorkQueue<MainFragment>()
 
     suspend fun someAction(): SomeResult {
         // ...
@@ -78,12 +80,20 @@ class MainFragment : Fragment() {
     
     override fun onStart() {
         // ...
+        // val button = ...
 
         button.setOnClickListener {
             model.queue.launch {
                 val result = model.someAction()
-                // Here you could also navigate to some other Fragment
-                model.responses.launch { fragment -> fragment.showPopUp(result.someMessage) }
+                // Switch back to MainFragment (the latest visible instance).
+                model.responses.launch {
+                    // If the screen got rotated in the meantime, `this` would point
+                    // to the new MainFragment instance instead of the destroyed one
+                    // that did the initial `model.queue.launch` call above.
+                    showPopUp(result.someMessage)
+                    // Instead of showing a pop-up you could also navigate to some other Fragment.
+                    // findNavController()...
+                }
             }
         }
 
@@ -111,7 +121,7 @@ A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
 You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
 
 Usually, you'd use a `WorkQueue` to throttle UI events and execute event handlers in a `ViewModel`.
-Also, you can build a request-response event pipeline between the UI and the `ViewModel` with helpers like [`argWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/arg-work-queue/) (see example above).
+Also, you can build a request-response event pipeline between the UI and the `ViewModel` with helpers like [`thisWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/this-work-queue/) (see example above).
 Of course, you can also throttle UI events with [FlowBinding](https://github.com/ReactiveCircus/FlowBinding) and only use a `WorkQueue` to serialize the event execution or handle request-response-style messaging.
 
 While you can process any type of event in a `WorkQueue`, most helper methods are built around processing lambda functions, so you don't need to write boilerplate (defining event classes and dispatching on them in huge `when` statements):
@@ -121,7 +131,7 @@ While you can process any type of event in a `WorkQueue`, most helper methods ar
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
 ReactiveState provides a [`Disposable`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-disposable/) interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
-You can also use [`disposable.disposeOnCompletionOf`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/kotlinx.coroutines.-disposable-handle/dispose-on-completion-of/)`(coroutineScopeOrContext)` to auto-dispose your disposables.
+You can also use [`disposable.disposeOnCompletionOf`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/kotlinx.coroutines.-disposable-handle/dispose-on-completion-of/) to auto-dispose your disposables.
 For more complex use-cases you can use [`DisposableGroup`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-disposable-group/) (which is a `Disposable`) to group multiple disposables into a single disposable object.
 
 With extension functions like [`LifecycleOwner.onResume`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/on-resume/)
