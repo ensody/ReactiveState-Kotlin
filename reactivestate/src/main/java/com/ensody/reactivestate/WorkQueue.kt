@@ -14,6 +14,12 @@ fun <T> LifecycleOwner.workQueue() = lifecycleScope.workQueue<T>()
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
 fun <T> ViewModel.argWorkQueue() = viewModelScope.argWorkQueue<T>()
 
+/** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
+fun <T> LifecycleOwner.thisWorkQueue() = lifecycleScope.thisWorkQueue<T>()
+
+/** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
+fun <T> ViewModel.thisWorkQueue() = viewModelScope.thisWorkQueue<T>()
+
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
 fun <T> LifecycleOwner.argWorkQueue() = lifecycleScope.argWorkQueue<T>()
 

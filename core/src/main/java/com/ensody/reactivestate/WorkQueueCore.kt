@@ -50,6 +50,12 @@ fun <T> CoroutineScope.argWorkQueue() = WorkQueue<(T) -> Unit>(this)
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
 fun <T> State.argWorkQueue() = scope.argWorkQueue<T>()
 
+/** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
+fun <T> CoroutineScope.thisWorkQueue() = WorkQueue<T.() -> Unit>(this)
+
+/** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
+fun <T> State.thisWorkQueue() = scope.thisWorkQueue<T>()
+
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
     workQueue<T>().apply { consume(this@workQueue, workers = workers, config = config) }
