@@ -6,6 +6,7 @@
 * Added `State` base class for separating business logic from `ViewModel`, making it easier to use in normal unit tests.
 * Added `argWorkQueue`, arg-based `consume` and `consumeConflated` helpers for ViewModel -> UI event/notification use-case.
 * Fixed one-level recursion when observing `LiveData`.
+* Documentation improvements.
 
 ## 0.8
 

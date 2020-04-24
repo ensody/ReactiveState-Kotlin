@@ -8,13 +8,12 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 
-private typealias Scope = LifecycleOwner
-
 // -------------------------------------------------------------------------------------------------
 // TextView
 // -------------------------------------------------------------------------------------------------
 
-fun Scope.bind(data: MutableLiveData<String>, view: TextView): Disposable =
+/** Keeps [data] in sync with [view]`.text`. */
+fun LifecycleOwner.bind(data: MutableLiveData<String>, view: TextView): Disposable =
     DisposableGroup().apply {
         add(onStartOnce {
             val watcher = view.addTextChangedListener {
@@ -34,7 +33,8 @@ fun Scope.bind(data: MutableLiveData<String>, view: TextView): Disposable =
         })
     }
 
-fun Scope.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
+/** Keeps [view]`.text` in sync with the value returned by [observer] (via [LifecycleOwner.autoRun]). */
+fun LifecycleOwner.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
     autoRun {
         val value = observer()
         if (view.text.toString() != value) {
@@ -42,10 +42,12 @@ fun Scope.bind(view: TextView, observer: AutoRunCallback<String>): Disposable =
         }
     }
 
-fun Scope.bind(view: TextView, data: LiveData<String>): Disposable =
+/** Keeps [view]`.text` in sync with [data]. */
+fun LifecycleOwner.bind(view: TextView, data: LiveData<String>): Disposable =
     bind(view) { get(data) ?: "" }
 
-fun Scope.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable =
+/** Keeps [data] and [view]`.text` in sync with each other (bidirectionally). */
+fun LifecycleOwner.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable =
     DisposableGroup().apply {
         add(bind(view, data))
         add(bind(data, view))
@@ -55,7 +57,8 @@ fun Scope.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable 
 // Checkable
 // -------------------------------------------------------------------------------------------------
 
-fun Scope.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable =
+/** Keeps [view]`.isChecked` in sync with the value returned by [observer] (via [LifecycleOwner.autoRun]). */
+fun LifecycleOwner.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable =
     autoRun {
         val value = observer()
         if (view.isChecked != value) {
@@ -63,14 +66,16 @@ fun Scope.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Disposable 
         }
     }
 
-fun Scope.bind(view: Checkable, data: LiveData<Boolean>, default: Boolean = false): Disposable =
+/** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
+fun LifecycleOwner.bind(view: Checkable, data: LiveData<Boolean>, default: Boolean = false): Disposable =
     bind(view) { get(data) ?: default }
 
 // -------------------------------------------------------------------------------------------------
 // CompoundButton (which is also a TextView, but we want the Checkable aspect)
 // -------------------------------------------------------------------------------------------------
 
-fun Scope.bind(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
+/** Keeps [data] in sync with [view]`.isChecked`. */
+fun LifecycleOwner.bind(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
     DisposableGroup().apply {
         add(onStartOnce {
             view.setOnCheckedChangeListener { _, isChecked ->
@@ -89,13 +94,16 @@ fun Scope.bind(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable
         })
     }
 
-fun Scope.bind(view: CompoundButton, observer: AutoRunCallback<Boolean>): Disposable =
+/** Keeps [view]`.isChecked` in sync with the value returned by [observer] (via [LifecycleOwner.autoRun]). */
+fun LifecycleOwner.bind(view: CompoundButton, observer: AutoRunCallback<Boolean>): Disposable =
     bind(view as Checkable, observer)
 
-fun Scope.bind(view: CompoundButton, data: LiveData<Boolean>): Disposable =
+/** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
+fun LifecycleOwner.bind(view: CompoundButton, data: LiveData<Boolean>): Disposable =
     bind(view as Checkable, data)
 
-fun Scope.bindTwoWay(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
+/** Keeps [data] and [view]`.isChecked` in sync with each other (bidirectionally). */
+fun LifecycleOwner.bindTwoWay(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
     DisposableGroup().apply {
         add(bind(view, data))
         add(bind(data, view))

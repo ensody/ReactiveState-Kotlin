@@ -5,6 +5,11 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.*
 
+/**
+ * Creates `ViewModel`.
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ViewModel> Fragment.viewModel(crossinline provider: () -> T) =
     viewModels<T> {
@@ -13,6 +18,11 @@ inline fun <reified T : ViewModel> Fragment.viewModel(crossinline provider: () -
         }
     }
 
+/**
+ * Creates `ViewModel` scoped to the `Activity`.
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline provider: () -> T) =
     activityViewModels<T> {
@@ -21,6 +31,11 @@ inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline provid
         }
     }
 
+/**
+ * Creates `ViewModel` with a `SavedStateHandle`.
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ViewModel> Fragment.stateViewModel(crossinline provider: (handle: SavedStateHandle) -> T) =
     viewModels<T> {
@@ -33,6 +48,11 @@ inline fun <reified T : ViewModel> Fragment.stateViewModel(crossinline provider:
         }
     }
 
+/**
+ * Creates `ViewModel` with a `SavedStateHandle`, scoped to the `Activity`.
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : ViewModel> Fragment.activityStateViewModel(crossinline provider: (handle: SavedStateHandle) -> T) =
     activityViewModels<T> {
