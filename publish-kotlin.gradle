@@ -10,7 +10,7 @@ afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
-                from components.kotlin
+                from components.java
             }
         }
     }
