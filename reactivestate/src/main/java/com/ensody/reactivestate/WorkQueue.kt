@@ -11,6 +11,12 @@ fun <T> ViewModel.workQueue() = viewModelScope.workQueue<T>()
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
 fun <T> LifecycleOwner.workQueue() = lifecycleScope.workQueue<T>()
 
+/** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
+fun <T> ViewModel.argWorkQueue() = viewModelScope.argWorkQueue<T>()
+
+/** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
+fun <T> LifecycleOwner.argWorkQueue() = lifecycleScope.argWorkQueue<T>()
+
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 fun <T> ViewModel.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
     viewModelScope.workQueue(workers = workers, config = config)

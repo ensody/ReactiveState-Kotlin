@@ -42,7 +42,13 @@ fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
 fun <T> CoroutineScope.workQueue() = WorkQueue<T>(this)
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-fun <T> State.workQueue() = WorkQueue<T>(scope)
+fun <T> State.workQueue() = scope.workQueue<T>()
+
+/** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
+fun <T> CoroutineScope.argWorkQueue() = WorkQueue<(T) -> Unit>(this)
+
+/** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
+fun <T> State.argWorkQueue() = scope.argWorkQueue<T>()
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
@@ -145,3 +151,18 @@ class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
         consumersDisposer.dispose()
     }
 }
+
+/** Consume work queue, passing [arg] to each lambda. */
+fun <T> WorkQueue<(T) -> Unit>.consume(
+    arg: T,
+    scope: CoroutineScope,
+    workers: Int = 1
+) = consume(scope, workers = workers) { map { it(arg) } }
+
+/** Consume work queue, conflate lambdas and pass [arg] to each lambda. */
+fun <T> WorkQueue<(T) -> Unit>.conflatedConsume(
+    arg: T,
+    scope: CoroutineScope,
+    timeoutMillis: Long = 0,
+    workers: Int = 1
+) = consume(scope, workers = workers) { conflatedMap(timeoutMillis) { it(arg) } }
