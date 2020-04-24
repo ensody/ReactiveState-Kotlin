@@ -67,11 +67,18 @@ private class LiveDataObservable(
     private val data: LiveData<*>,
     autoRunner: BaseAutoRunner
 ) : AutoRunnerObservable {
+    private var ignoreFirst = false
     private val observer = Observer<Any> {
-        autoRunner.triggerChange()
+        if (ignoreFirst) {
+            ignoreFirst = false
+        } else {
+            autoRunner.triggerChange()
+        }
     }
 
     override fun addObserver() {
+        // Prevent recursion and assume the value is already set correctly
+        ignoreFirst = !data.hasActiveObservers()
         data.observeForever(observer)
     }
 
