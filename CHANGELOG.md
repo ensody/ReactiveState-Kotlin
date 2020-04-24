@@ -1,5 +1,10 @@
 # Change log
 
+## Next release (master)
+
+* Added `thisWorkQueue` helper for passing an arg via `this`.
+* Further documentation improvements.
+
 ## 0.9.1
 
 This release introduces no code changes.
