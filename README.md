@@ -22,7 +22,7 @@ class MainViewModel : ViewModel() {
 
 class MainFragment : Fragment() {
     private val model by viewModels<MainViewModel>()
-    
+
     override fun onStart() {
         // ...
         // val nameInputField = ...
@@ -77,7 +77,7 @@ class MainViewModel : ViewModel() {
 
 class MainFragment : Fragment() {
     private val model by viewModels<MainViewModel>()
-    
+
     override fun onStart() {
         // ...
         // val button = ...
@@ -150,7 +150,37 @@ In contrast to Android's `launchWhenStarted` this also takes care of the termina
 Since the start/stop (and resume/pause) lifecycle matches most closely to a `LifecycleOwner`'s visibility/usage, most of ReactiveState's Android extension functions require launching in `onStart()` and then the code auto-terminates/disposes when the lifecycle triggers an `onStop()`.
 Normally, you only want to update the UI when it's visible (in the foreground), anyway. For any other background processing you can still use e.g. `autoRun` on `ViewModel` or `lifecycleScope` and have the UI re-sync in `onStart()` once it becomes visible again.
 The `onCreateView()`/`onDestroyView()` cycle (via `viewLifecycleOwner`) isn't used because when the `Fragment`'s `Activity` moves to the back stack you only receive an `onStop()` without `onDestroyView()`.
-In order to prevent such surprises we can just use `onStart()`/`onStop()`.
+Also, an `Activity` only receives `onStop()`. In order to make the API consistent and prevent surprises we just use `onStart()`/`onStop()`.
+
+### Non-nullable LiveData
+
+```kotlin
+val livedata = MutableLiveData(1)
+val fixed = livedata.fixValueType()
+val nonnull = MutableLiveDataNonNull(1)
+nullable.value // => Type: Int?
+fixed.value    // => Type: Int
+nonnull.value  // => Type: Int
+
+autoRun {
+    get(livedata) // => Type: Int?
+    get(fixed)    // => Type: Int
+    get(nonnull)  // => Type: Int
+}
+
+```
+
+Android's `LiveData<T>.value` is unfortunately nullable (type `T?`).
+This leads to unnecessary null checks and complicates code even if `value` is guaranteed to never be `null`.
+
+ReactiveState provides a [`MutableLiveDataNonNull<T>`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/-mutable-live-data-non-null/)
+which fixes the type of `value` to be `T` instead of `T?`.
+In contrast to `MutableLiveData`, the constructor requires an initial value.
+When using `MutableLiveDataNonNull` with `autoRun`, the [`get`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/get/)
+function returns a non-null value (`T`) while `get()` on a normal `LiveData` returns a nullable value (`T?`).
+
+With [`LiveData.fixValueType`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-live-data/)
+you can convert an existing nullable `LiveData` into a non-nullable one.
 
 ### Flexible ViewModel instantiation
 
@@ -277,7 +307,7 @@ class MainFragment : Fragment() {
         // One-way binding using more flexible autoRun callback style.
         bind(binding.count) {
             // NOTE: You'll probably want to localize this string.
-            "${get(state.count)}" 
+            "${get(state.count)}"
         }
 
         // Even more complicated cases can use autoRun directly.
