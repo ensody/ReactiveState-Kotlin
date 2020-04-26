@@ -5,6 +5,7 @@
 * Added `thisWorkQueue` helper for passing an arg via `this`.
 * `argWorkQueue` now supports suspension functions.
 * Added `AttachedDisposables` interface for objects that can clean up other disposables.
+* `AutoRunner` now implements `AttachedDisposables`.
 * Added `OnDispose { ... }` class for triggering a function when its `dispose()` method is called.
 * Further documentation improvements.
 

@@ -79,7 +79,7 @@ fun State.autoRun(
     scope.autoRun(onChange, observer)
 
 /** Just the minimum interface needed for [Resolver]. No generic types. */
-abstract class BaseAutoRunner {
+abstract class BaseAutoRunner : AttachedDisposables {
     internal abstract val resolver: Resolver
 
     abstract fun triggerChange()
@@ -104,12 +104,16 @@ abstract class BaseAutoRunner {
 class AutoRunner<T>(
     onChange: AutoRunOnChangeCallback<T>? = null,
     private val observer: AutoRunCallback<T>
-) : BaseAutoRunner(), Disposable {
+) : BaseAutoRunner() {
+    override val attachedDisposables = DisposableGroup()
     val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
     override var resolver = Resolver(this)
 
     /** Stops watching observables. */
-    override fun dispose() = observe {}
+    override fun dispose() {
+        observe {}
+        attachedDisposables.dispose()
+    }
 
     /** Calls [observer] and tracks its dependencies. */
     fun run(): T = observe(observer)
