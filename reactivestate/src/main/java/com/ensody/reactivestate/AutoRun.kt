@@ -24,8 +24,9 @@ fun ViewModel.autoRun(
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
- * IMPORTANT: Unlike the other autoRun variants this only runs between a single onStart/onStop
+ * IMPORTANT: Unlike the other `autoRun` variants this only runs between a single `onStart`/`onStop`
  * lifecycle. This is safe for use in `Fragment.onStart()`.
+ * Use `lifecycleScope.autoRun` to observe during the whole object lifetime, instead.
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -42,9 +43,19 @@ fun LifecycleOwner.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> {
-    val autoRunner = AutoRunner(onChange, observer)
-    onStartOnce { autoRunner.run() }
-    onStopOnce { autoRunner.dispose() }
+    var hasOnStop = false
+    val clearHasOnStop = OnDispose { hasOnStop = false }
+    val autoRunner = AutoRunner(onChange) {
+        if (!hasOnStop) {
+            hasOnStop = true
+            autoRunner.attachedDisposables.apply {
+                add(clearHasOnStop)
+                add(onStopOnce { autoRunner.dispose() })
+            }
+        }
+        observer()
+    }
+    autoRunner.attachedDisposables.add(onStartOnce { autoRunner.run() })
     return autoRunner
 }
 
