@@ -22,14 +22,8 @@ fun LifecycleOwner.bind(data: MutableLiveData<String>, view: TextView): Disposab
                     data.value = value
                 }
             }
-            add(object : Disposable {
-                override fun dispose() {
-                    view.removeTextChangedListener(watcher)
-                }
-            })
-            add(onStopOnce {
-                dispose()
-            })
+            add(OnDispose { view.removeTextChangedListener(watcher) })
+            add(onStopOnce { dispose() })
         })
     }
 
@@ -67,7 +61,11 @@ fun LifecycleOwner.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Di
     }
 
 /** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
-fun LifecycleOwner.bind(view: Checkable, data: LiveData<Boolean>, default: Boolean = false): Disposable =
+fun LifecycleOwner.bind(
+    view: Checkable,
+    data: LiveData<Boolean>,
+    default: Boolean = false
+): Disposable =
     bind(view) { get(data) ?: default }
 
 // -------------------------------------------------------------------------------------------------
@@ -83,14 +81,8 @@ fun LifecycleOwner.bind(data: MutableLiveData<Boolean>, view: CompoundButton): D
                     data.value = isChecked
                 }
             }
-            add(object : Disposable {
-                override fun dispose() {
-                    view.setOnCheckedChangeListener(null)
-                }
-            })
-            add(onStopOnce {
-                dispose()
-            })
+            add(OnDispose { view.setOnCheckedChangeListener(null) })
+            add(onStopOnce { dispose() })
         })
     }
 
