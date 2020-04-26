@@ -1,7 +1,12 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletionHandler
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
+import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
+import kotlin.properties.ReadWriteProperty
+import kotlin.reflect.KProperty
 
 /**
  * An object that can be disposed/deactivated/canceled by calling `dispose()`.
@@ -106,3 +111,74 @@ fun Disposable.disposeOnCompletionOf(context: CoroutineContext): Disposable =
 /** Disposes the [Disposable] when [CoroutineScope] completes (including cancellation). */
 fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
     scope.invokeOnCompletion { dispose() }
+
+/**
+ * Creates an automatically invalidated property.
+ *
+ * The property starts out invalid and must be set to become valid.
+ * When it becomes invalidated you have to set it, again, to make it valid.
+ *
+ * The property is invalidated when the provided [invalidateOn] function calls the lambda function
+ * passed as its first argument.
+ *
+ * Example:
+ *
+ * ```kotlin
+ * class SomeClass {
+ *     var value by validUntil<String> { invalidate ->
+ *         onSomeEvent { invalidate() }
+ *     }
+ * }
+ * ```
+ *
+ * Android-specific example (requires `reactivestate` module):
+ *
+ * ```kotlin
+ * class MainFragment : Fragment() {
+ *     private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
+ *
+ *     override fun onCreateView(
+ *         inflater: LayoutInflater, container: ViewGroup?,
+ *         savedInstanceState: Bundle?
+ *     ): View {
+ *         binding = MainFragmentBinding.inflate(inflater, container, false)
+ *         return binding.root
+ *     }
+ * }
+ *
+ * override fun onStart() {
+ *     // ...
+ *
+ *     val username = binding.username
+ *     // ...
+ * }
+ * ```
+ */
+fun <T> validUntil(invalidateOn: (invalidate: () -> Unit) -> Any?): ReadWriteProperty<Any?, T> =
+    DisposableProperty(invalidateOn)
+
+private class DisposableProperty<T>(invalidateOn: (invalidate: () -> Unit) -> Any?) :
+    ReadWriteProperty<Any?, T> {
+    private var value: T? = null
+    private var hasValue = false
+
+    init {
+        invalidateOn {
+            value = null
+            hasValue = false
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
+        if (!hasValue) {
+            throw IllegalStateException("The property is not set. Maybe it was disposed?")
+        }
+        return value as T
+    }
+
+    override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        this.value = value
+        hasValue = true
+    }
+}

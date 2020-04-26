@@ -8,6 +8,7 @@
 * `AutoRunner` now implements `AttachedDisposables`.
 * Added `OnDispose { ... }` class for triggering a function when its `dispose()` method is called.
 * Added `onDestroyView { ... }`, `onDestroy`, `onCreate`, `onCreateView` and their `...Once` variants.
+* Added `validUntil` for properties that are only valid during a lifecycle subset.
 * Further documentation improvements.
 
 ## 0.9.1

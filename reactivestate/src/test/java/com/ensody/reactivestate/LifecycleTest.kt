@@ -5,13 +5,27 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isInstanceOf
+import assertk.fail
 import org.junit.Test
+
+inline fun <reified T : Throwable> assertThrows(func: () -> Unit): T {
+    try {
+        func()
+    } catch (e: Throwable) {
+        if (e is T) {
+            return e
+        }
+    }
+    fail("Expected exception ${T::class.simpleName}")
+}
 
 class LifecycleTest {
     @Test
     fun lifecycleObservers() {
         val owner = object : LifecycleOwner {
             val lifecycle = LifecycleRegistry(this)
+            var lifecycleValue: String by validUntil(::onStop)
 
             override fun getLifecycle(): Lifecycle = lifecycle
         }
@@ -31,6 +45,7 @@ class LifecycleTest {
             run += 1
         }
         owner.onStart {
+            owner.lifecycleValue = "I have a value!"
             start += 1
         }
         owner.onStartOnce {
@@ -55,6 +70,9 @@ class LifecycleTest {
             pauseOnce += 1
         }
 
+        assertThat(assertThrows<IllegalStateException> {
+            owner.lifecycleValue
+        }).isInstanceOf(IllegalStateException::class)
         assertThat(run).isEqualTo(0)
         assertThat(start).isEqualTo(0)
         assertThat(startOnce).isEqualTo(0)
@@ -66,6 +84,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(0)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(1)
         assertThat(startOnce).isEqualTo(1)
@@ -77,6 +96,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(0)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(1)
         assertThat(startOnce).isEqualTo(1)
@@ -88,6 +108,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(0)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(1)
         assertThat(startOnce).isEqualTo(1)
@@ -99,6 +120,9 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        assertThrows<IllegalStateException> {
+            owner.lifecycleValue
+        }
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(1)
         assertThat(startOnce).isEqualTo(1)
@@ -110,6 +134,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
@@ -121,6 +146,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
@@ -132,6 +158,7 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
+        assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
@@ -143,6 +170,9 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+        assertThrows<IllegalStateException> {
+            owner.lifecycleValue
+        }
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
@@ -154,6 +184,6 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        assertThat(owner.lifecycle.observerCount).isEqualTo(4)
+        assertThat(owner.lifecycle.observerCount).isEqualTo(5)
     }
 }

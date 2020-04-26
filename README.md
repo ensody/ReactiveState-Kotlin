@@ -55,7 +55,7 @@ These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of
 This means you have to create your bindings and `AutoRunner`s in `onStart()`.
 
 Note that `autoRun` and `bind` can be extended to support observables other than `LiveData`.
-This is useful when writing non-Android code or possibly the introduction of a `Flow`-with-value.
+This is useful when writing non-Android code or possibly introducing of a `Flow`-with-value.
 In fact, [`LiveData` support](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/get/) is added by the Android-specific `reactivestate` module while the rest of `autoRun` lives in the non-Android `core` module.
 
 ### Running operations outside of the UI lifecycle
@@ -151,6 +151,9 @@ Since the start/stop (and resume/pause) lifecycle matches most closely to a `Lif
 Normally, you only want to update the UI when it's visible (in the foreground), anyway. For any other background processing you can still use e.g. `autoRun` on `ViewModel` or `lifecycleScope` and have the UI re-sync in `onStart()` once it becomes visible again.
 The `onCreateView()`/`onDestroyView()` cycle (via `viewLifecycleOwner`) isn't used because when the `Fragment`'s `Activity` moves to the back stack you only receive an `onStop()` without `onDestroyView()`.
 Also, an `Activity` only receives `onStop()`. In order to make the API consistent and prevent surprises we just use `onStart()`/`onStop()`.
+
+Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
+This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
 
 ### Non-nullable LiveData
 
@@ -284,17 +287,20 @@ Example `Fragment` (using view bindings for type safety):
 class MainFragment : Fragment() {
     private val model by stateViewModel { MainViewModel(it) }
     private val state get() = model.state
+    private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View = MainFragmentBinding.inflate(inflater, container, false).root
+    ): View {
+        binding = MainFragmentBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
     // All bindings and autoRun calls get disposed during onStop(), so
     // we always re-create them in onStart()
     override fun onStart() {
         super.onStart()
-        val binding = MainFragmentBinding.bind(requireView())
 
         // Two-way bindings (String/TextView or Bool/CompoundButton)
         bindTwoWay(state.username, binding.username)
