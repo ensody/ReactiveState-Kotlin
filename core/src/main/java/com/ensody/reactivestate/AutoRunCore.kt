@@ -123,12 +123,19 @@ class AutoRunner<T>(
     }
 
     private fun <T> observe(observer: AutoRunCallback<T>): T {
+        val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
             return nextResolver.observer()
         } finally {
-            resolver.switchTo(nextResolver)
-            resolver = nextResolver
+            // Detect if we had a recursion (e.g. due to dispose() being called within observer)
+            if (resolver === previousResolver) {
+                resolver.switchTo(nextResolver)
+                resolver = nextResolver
+            } else {
+                // The resolver has changed in the meantime, so nextResolver is outdated.
+                nextResolver.switchTo(resolver)
+            }
         }
     }
 }
