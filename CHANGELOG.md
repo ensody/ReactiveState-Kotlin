@@ -7,6 +7,7 @@
 * Added `AttachedDisposables` interface for objects that can clean up other disposables.
 * `AutoRunner` now implements `AttachedDisposables`.
 * Added `OnDispose { ... }` class for triggering a function when its `dispose()` method is called.
+* Added `onDestroyView { ... }`, `onDestroy`, `onCreate`, `onCreateView` and their `...Once` variants.
 * Further documentation improvements.
 
 ## 0.9.1
