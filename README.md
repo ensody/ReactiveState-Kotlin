@@ -70,38 +70,42 @@ class MainViewModel : ViewModel() {
     // This is only meant for actual events/navigation instead of state.
     val responses = thisWorkQueue<MainFragment>()
 
-    suspend fun someAction(): SomeResult {
-        // ...
+    fun someAction() {
+        model.queue.launch {
+            val result = api.requestSomeAction()
+
+            // Switch back to MainFragment (the latest visible instance).
+            model.responses.launch {
+                // If the screen got rotated in the meantime, `this` would point
+                // to the new MainFragment instance instead of the destroyed one
+                // that did the initial `model.queue.launch` call above.
+                showPopUp(result.someMessage)
+                // Instead of showing a pop-up you could also navigate to some other Fragment.
+                // findNavController()...
+            }
+        }
     }
 }
 
 class MainFragment : Fragment() {
     private val model by viewModels<MainViewModel>()
 
+    init {
+        lifecycleScope.launchWhenStarted {
+            // Execute responses, passing MainFragment to each lambda
+            model.responses.consume(this@MainFragment, this)
+            // Alternatively: model.responses.conflatedConsume(this@MainFragment, this, 200)
+        }
+    }
+
+    // ...
+
     override fun onStart() {
         // ...
         // val button = ...
 
         button.setOnClickListener {
-            model.queue.launch {
-                val result = model.someAction()
-                // Switch back to MainFragment (the latest visible instance).
-                model.responses.launch {
-                    // If the screen got rotated in the meantime, `this` would point
-                    // to the new MainFragment instance instead of the destroyed one
-                    // that did the initial `model.queue.launch` call above.
-                    showPopUp(result.someMessage)
-                    // Instead of showing a pop-up you could also navigate to some other Fragment.
-                    // findNavController()...
-                }
-            }
-        }
-
-        // This is a ReactiveState helper. See below for more details.
-        launchWhileStarted {
-            // Execute responses, passing MainFragment to each lambda
-            model.responses.consume(this@MainFragment, this)
-            // Alternatively: model.responses.conflatedConsume(this@MainFragment, this, 200)
+            model.someAction()
         }
     }
 
@@ -144,8 +148,8 @@ does.
 Also, you can use extension functions like
 [`LifecycleOwner.launchWhileStarted`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-started/)
 and [`launchWhileResumed`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-resumed/)
-to only execute a coroutine as long as the UI is not stopped.
-In contrast to Android's `launchWhenStarted` this also takes care of the termination.
+to only execute a coroutine as long as the UI is not stopped. Once stopped, the coroutine is canceled.
+In contrast to Android's `launchWhenStarted` this terminates the coroutine instead of suspending it.
 
 Since the start/stop (and resume/pause) lifecycle matches most closely to a `LifecycleOwner`'s visibility/usage, most of ReactiveState's Android extension functions require launching in `onStart()` and then the code auto-terminates/disposes when the lifecycle triggers an `onStop()`.
 Normally, you only want to update the UI when it's visible (in the foreground), anyway. For any other background processing you can still use e.g. `autoRun` on `ViewModel` or `lifecycleScope` and have the UI re-sync in `onStart()` once it becomes visible again.
@@ -199,7 +203,7 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
 
 class MainFragment : Fragment() {
     private val model by viewModel { MainViewModel(SomeDependency()) }
-    private val model2 by stateViewModel { StateViewModel(it, SomeDependency()) }
+    private val model2 by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
 }
 ```
 
