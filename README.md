@@ -71,14 +71,14 @@ class MainViewModel : ViewModel() {
     val responses = thisWorkQueue<MainFragment>()
 
     fun someAction() {
-        model.queue.launch {
+        queue.launch {
             val result = api.requestSomeAction()
 
             // Switch back to MainFragment (the latest visible instance).
-            model.responses.launch {
+            responses.launch {
                 // If the screen got rotated in the meantime, `this` would point
                 // to the new MainFragment instance instead of the destroyed one
-                // that did the initial `model.queue.launch` call above.
+                // that did the initial `someAction` call above.
                 showPopUp(result.someMessage)
                 // Instead of showing a pop-up you could also navigate to some other Fragment.
                 // findNavController()...
