@@ -1,3 +1,3 @@
-rootProject.name='ReactiveState'
+rootProject.name='ReactiveState-Android'
 include ':core'
 include ':reactivestate'

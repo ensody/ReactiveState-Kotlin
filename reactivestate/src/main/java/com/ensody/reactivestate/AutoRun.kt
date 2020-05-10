@@ -45,7 +45,7 @@ fun LifecycleOwner.autoRun(
 ): AutoRunner<Unit> {
     var hasOnStop = false
     val clearHasOnStop = OnDispose { hasOnStop = false }
-    val autoRunner = AutoRunner(onChange) {
+    val autoRunner = AutoRunner(lifecycleScope, onChange) {
         if (!hasOnStop) {
             hasOnStop = true
             autoRunner.attachedDisposables.apply {

@@ -10,10 +10,13 @@ This library is split into two separate modules for Kotlin ([`core`](https://ens
 
 ### Keeping UI in sync with state
 
+Note: While this is an Android example, `autoRun` (`core`) also has experimental support for `StateFlow` which is multi-platform compatible.
+
 ```kotlin
 class MainViewModel : ViewModel() {
-    val name = MutableLiveData("")
-    val counter = MutableLiveData(0)
+    // You can also use the normal MutableLiveData, but then you'll have to deal with null.
+    val name = MutableLiveDataNonNull("")
+    val counter = MutableLiveDataNonNull(0)
 
     fun increment() {
         counter.value += 1
@@ -45,7 +48,7 @@ class MainFragment : Fragment() {
 ```
 
 With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`State`](https://ensody.github.io/ReactiveState-Kotlin/core/com.ensody.reactivestate/-state/), `CoroutineScope`, etc.)
-you can observe and re-execute a function whenever any of the `LiveData` instances accessed by that function are modified.
+you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
 On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
@@ -54,9 +57,7 @@ and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/c
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to prevent accidental memory leaks and unnecessary resource consumption.
 This means you have to create your bindings and `AutoRunner`s in `onStart()`.
 
-Note that `autoRun` and `bind` can be extended to support observables other than `LiveData`.
-This is useful when writing non-Android code or possibly introducing of a `Flow`-with-value.
-In fact, [`LiveData` support](https://ensody.github.io/ReactiveState-Kotlin/reactivestate/com.ensody.reactivestate/get/) is added by the Android-specific `reactivestate` module while the rest of `autoRun` lives in the non-Android `core` module.
+Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
 
 ### Running operations outside of the UI lifecycle
 

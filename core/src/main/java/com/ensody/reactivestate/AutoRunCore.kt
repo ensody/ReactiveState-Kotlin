@@ -1,42 +1,12 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineScope
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 /** Observer callback used by [autoRun] and [AutoRunner]. */
 typealias AutoRunCallback<T> = Resolver.() -> T
 
 /** onChange callback used by [autoRun] and [AutoRunner]. */
 typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
-
-private fun CoroutineContext.autoRun(
-    onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
-): AutoRunner<Unit> = AutoRunner(onChange, observer).apply {
-    disposeOnCompletionOf(this@autoRun)
-    run()
-}
-
-/**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
- *
- * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
- *
- * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
- * The [AutoRunner] is automatically disposed when the [CoroutineContext] completes.
- *
- * See [AutoRunner] for more details.
- *
- * @param [onChange] Gets called when the observables change. If you provide a handler you have to
- * manually call [run].
- * @param [observer] The callback which is used to track the observables.
- */
-suspend fun autoRun(
-    onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
-): AutoRunner<Unit> =
-    coroutineContext.autoRun(onChange, observer)
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
@@ -56,7 +26,10 @@ fun CoroutineScope.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> =
-    coroutineContext.autoRun(onChange, observer)
+    AutoRunner(this, onChange, observer).apply {
+        disposeOnCompletionOf(this@autoRun)
+        run()
+    }
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
@@ -82,6 +55,7 @@ fun State.autoRun(
 abstract class BaseAutoRunner : AttachedDisposables {
     internal abstract val resolver: Resolver
 
+    abstract val autoRunnerScope: CoroutineScope
     abstract fun triggerChange()
 }
 
@@ -102,6 +76,7 @@ abstract class BaseAutoRunner : AttachedDisposables {
  * @param [observer] The callback which is used to track the observables.
  */
 class AutoRunner<T>(
+    override val autoRunnerScope: CoroutineScope,
     onChange: AutoRunOnChangeCallback<T>? = null,
     private val observer: AutoRunCallback<T>
 ) : BaseAutoRunner() {

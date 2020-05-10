@@ -7,6 +7,14 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isInstanceOf
 import assertk.fail
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.TestCoroutineDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runBlockingTest
+import kotlinx.coroutines.test.setMain
+import org.junit.After
+import org.junit.Before
 import org.junit.Test
 
 inline fun <reified T : Throwable> assertThrows(func: () -> Unit): T {
@@ -20,9 +28,23 @@ inline fun <reified T : Throwable> assertThrows(func: () -> Unit): T {
     fail("Expected exception ${T::class.simpleName}")
 }
 
+@ExperimentalCoroutinesApi
 class LifecycleTest {
+    private val testDispatcher = TestCoroutineDispatcher()
+
+    @Before
+    fun setup() {
+        Dispatchers.setMain(testDispatcher)
+    }
+
+    @After
+    fun cleanUp() {
+        Dispatchers.resetMain()
+        testDispatcher.cleanupTestCoroutines()
+    }
+
     @Test
-    fun lifecycleObservers() {
+    fun lifecycleObservers() = testDispatcher.runBlockingTest {
         val owner = object : LifecycleOwner {
             val lifecycle = LifecycleRegistry(this)
             var lifecycleValue: String by validUntil(::onStop)

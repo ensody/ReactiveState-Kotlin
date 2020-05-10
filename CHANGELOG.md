@@ -1,5 +1,12 @@
 # Change log
 
+## Next release (master)
+
+ATTENTION: There's a breaking change to support `StateFlow`.
+
+* Added experimental `StateFlow` support to `autoRun` (`StateFlow` was added in `kotlinx-coroutines-core` 1.3.6).
+* Breaking change: Removed `CoroutineContext.autoRun` and `suspend fun autoRun` because proper `StateFlow` support requires access to a `CoroutineScope`.
+
 ## 0.10
 
 * Added `thisWorkQueue` helper for passing an arg via `this`.
