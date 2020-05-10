@@ -1,6 +1,6 @@
 # Change log
 
-## Next release (master)
+## 0.10
 
 * Added `thisWorkQueue` helper for passing an arg via `this`.
 * `argWorkQueue` now supports suspension functions.
