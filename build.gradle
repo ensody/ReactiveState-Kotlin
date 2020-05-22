@@ -8,7 +8,7 @@ buildscript {
         classpath 'com.android.tools.build:gradle:3.6.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.+'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
     }
 }
 
@@ -27,8 +27,85 @@ allprojects {
         google()
         jcenter()
     }
-}
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+
+    if (!isAndroidProject) {
+        apply plugin: 'java-library'
+        apply plugin: 'kotlin'
+
+        sourceCompatibility = "8"
+        targetCompatibility = "8"
+
+        apply from: "$rootDir/dependencies.gradle"
+
+        dependencies {
+            base()
+        }
+
+        apply from: "$rootDir/publish-kotlin.gradle"
+
+    } else {
+        apply plugin: 'com.android.library'
+        apply plugin: 'kotlin-android'
+        apply plugin: 'kotlin-android-extensions'
+
+        android {
+            compileSdkVersion 29
+            buildToolsVersion "29.0.3"
+
+            compileOptions {
+                sourceCompatibility JavaVersion.VERSION_1_8
+                targetCompatibility JavaVersion.VERSION_1_8
+            }
+
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+
+            defaultConfig {
+                minSdkVersion 19
+                targetSdkVersion 29
+                versionCode 1
+                versionName version
+
+                multiDexEnabled true
+
+                testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+                consumerProguardFiles 'consumer-rules.pro'
+            }
+
+            buildTypes {
+                release {
+                    minifyEnabled false
+                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                }
+            }
+
+            packagingOptions {
+                exclude 'META-INF/DEPENDENCIES'
+                exclude 'META-INF/LICENSE'
+                exclude 'META-INF/LICENSE.txt'
+                exclude 'META-INF/license.txt'
+                exclude 'META-INF/NOTICE'
+                exclude 'META-INF/NOTICE.txt'
+                exclude 'META-INF/notice.txt'
+                exclude 'META-INF/AL2.0'
+                exclude 'META-INF/ASL2.0'
+                exclude 'META-INF/LGPL2.1'
+                exclude 'META-INF/*.kotlin_module'
+            }
+
+        }
+
+        apply from: "$rootDir/dependencies.gradle"
+
+        dependencies {
+            baseAndroid()
+
+            androidTestImplementation 'com.android.support:multidex:1.0.3'
+        }
+
+        apply from: "$rootDir/publish-android.gradle"
+    }
 }

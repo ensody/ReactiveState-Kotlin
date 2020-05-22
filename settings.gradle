@@ -1,3 +1,3 @@
-rootProject.name='ReactiveState-Android'
+rootProject.name='ReactiveState-Kotlin'
 include ':core'
 include ':reactivestate'
