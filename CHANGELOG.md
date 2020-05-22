@@ -1,6 +1,6 @@
 # Change log
 
-## Next release (master)
+## 0.11
 
 ATTENTION: There's a breaking change to support `StateFlow`.
 
