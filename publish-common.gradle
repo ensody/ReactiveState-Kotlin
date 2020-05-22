@@ -5,16 +5,10 @@
 apply from: "$rootDir/secrets.gradle"
 
 version = getProperty('version')
-group groupId
+group rootProject.group
 
 def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
 def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
-
-apply plugin: 'org.jetbrains.dokka'
-dokka {
-    outputDirectory = "$rootDir/docs"
-    outputFormat = 'gfm'
-}
 
 apply plugin: "maven-publish"
 publishing {
