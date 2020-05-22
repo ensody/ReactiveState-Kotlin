@@ -22,7 +22,7 @@ ext {
     website = repoUrl
 }
 
-allprojects {
+subprojects {
     repositories {
         google()
         jcenter()
