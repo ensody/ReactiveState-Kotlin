@@ -14,8 +14,7 @@
 .DS_Store
 /build
 /captures
-/docs/core
-/docs/reactivestate
+/docs/reference/
 /docs/index.md
 /docs/changelog.md
 /site

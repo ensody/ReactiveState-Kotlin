@@ -38,6 +38,6 @@ markdown_extensions:
 nav:
   - 'Overview': index.md
   - 'API reference':
-    - 'core': core/index.md
-    - 'reactivestate': reactivestate/index.md
+    - 'core': reference/core/index.md
+    - 'reactivestate': reference/reactivestate/index.md
   - 'Change log': changelog.md

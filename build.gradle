@@ -12,6 +12,9 @@ buildscript {
     }
 }
 
+group 'com.ensody.reactivestate'
+version = getProperty('version')
+
 ext {
     bintrayUserOrg = 'ensody'
     bintrayRepo = 'maven'
@@ -21,15 +24,15 @@ ext {
     website = repoUrl
 }
 
-group 'com.ensody.reactivestate'
-
 subprojects {
+    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+
     repositories {
         google()
         jcenter()
     }
 
-    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+    apply from: "$rootDir/dependencies.gradle"
 
     if (!isAndroidProject) {
         apply plugin: 'java-library'
@@ -38,14 +41,9 @@ subprojects {
         sourceCompatibility = "8"
         targetCompatibility = "8"
 
-        apply from: "$rootDir/dependencies.gradle"
-
         dependencies {
             base()
         }
-
-        apply from: "$rootDir/publish-kotlin.gradle"
-
     } else {
         apply plugin: 'com.android.library'
         apply plugin: 'kotlin-android'
@@ -99,20 +97,18 @@ subprojects {
 
         }
 
-        apply from: "$rootDir/dependencies.gradle"
-
         dependencies {
             baseAndroid()
 
             androidTestImplementation 'com.android.support:multidex:1.0.3'
         }
-
-        apply plugin: 'org.jetbrains.dokka'
-        dokka {
-            outputDirectory = "$rootDir/docs"
-            outputFormat = 'gfm'
-        }
-
-        apply from: "$rootDir/publish-android.gradle"
     }
+
+    apply plugin: 'org.jetbrains.dokka'
+    dokka {
+        outputDirectory = "$rootDir/docs/reference"
+        outputFormat = 'gfm'
+    }
+
+    apply from: "$rootDir/publish.gradle"
 }
