@@ -81,6 +81,15 @@ subprojects {
                 }
             }
 
+            testOptions {
+                unitTests {
+                    all {
+                        systemProperty 'robolectric.enabledSdks', '19,20,21,22,23,24,25,26,27,28'
+                    }
+                    includeAndroidResources = true
+                }
+            }
+
             packagingOptions {
                 exclude 'META-INF/DEPENDENCIES'
                 exclude 'META-INF/LICENSE'
@@ -94,7 +103,6 @@ subprojects {
                 exclude 'META-INF/LGPL2.1'
                 exclude 'META-INF/*.kotlin_module'
             }
-
         }
 
         dependencies {
