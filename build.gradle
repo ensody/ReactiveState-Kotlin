@@ -68,8 +68,6 @@ subprojects {
                 versionCode 1
                 versionName version
 
-                multiDexEnabled true
-
                 testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
                 consumerProguardFiles 'consumer-rules.pro'
             }
@@ -102,13 +100,12 @@ subprojects {
                 exclude 'META-INF/ASL2.0'
                 exclude 'META-INF/LGPL2.1'
                 exclude 'META-INF/*.kotlin_module'
+                exclude 'META-INF/rxjava.properties'
             }
         }
 
         dependencies {
             baseAndroid()
-
-            androidTestImplementation 'com.android.support:multidex:1.0.3'
         }
     }
 

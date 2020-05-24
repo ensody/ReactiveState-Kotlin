@@ -13,6 +13,7 @@
 /.venv
 .DS_Store
 /build
+*/build
 /captures
 /docs/reference/
 /docs/index.md
