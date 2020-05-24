@@ -12,19 +12,13 @@ buildscript {
     }
 }
 
+// Base package setup
 group 'com.ensody.reactivestate'
 version = getProperty('version')
-
-ext {
-    bintrayUserOrg = 'ensody'
-    bintrayRepo = 'maven'
-    licenses = ['MIT']
-    repoUrl = 'https://github.com/ensody/ReactiveState-Kotlin'
-    vcsUrl = "${repoUrl}.git"
-    website = repoUrl
-}
-
 subprojects {
+    group rootProject.group
+    version = rootProject.version
+
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
 
     repositories {
@@ -35,85 +29,32 @@ subprojects {
     apply from: "$rootDir/dependencies.gradle"
 
     if (!isAndroidProject) {
-        apply plugin: 'java-library'
-        apply plugin: 'kotlin'
-
-        sourceCompatibility = "8"
-        targetCompatibility = "8"
+        apply from: "$rootDir/gradle/common/kotlin-library.gradle"
 
         dependencies {
             base()
         }
     } else {
-        apply plugin: 'com.android.library'
-        apply plugin: 'kotlin-android'
-        apply plugin: 'kotlin-android-extensions'
-
-        android {
-            compileSdkVersion 29
-            buildToolsVersion "29.0.3"
-
-            compileOptions {
-                sourceCompatibility JavaVersion.VERSION_1_8
-                targetCompatibility JavaVersion.VERSION_1_8
-            }
-
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-
-            defaultConfig {
-                minSdkVersion 19
-                targetSdkVersion 29
-                versionCode 1
-                versionName version
-
-                testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-                consumerProguardFiles 'consumer-rules.pro'
-            }
-
-            buildTypes {
-                release {
-                    minifyEnabled false
-                    proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-                }
-            }
-
-            testOptions {
-                unitTests {
-                    all {
-                        systemProperty 'robolectric.enabledSdks', '19,20,21,22,23,24,25,26,27,28'
-                    }
-                    includeAndroidResources = true
-                }
-            }
-
-            packagingOptions {
-                exclude 'META-INF/DEPENDENCIES'
-                exclude 'META-INF/LICENSE'
-                exclude 'META-INF/LICENSE.txt'
-                exclude 'META-INF/license.txt'
-                exclude 'META-INF/NOTICE'
-                exclude 'META-INF/NOTICE.txt'
-                exclude 'META-INF/notice.txt'
-                exclude 'META-INF/AL2.0'
-                exclude 'META-INF/ASL2.0'
-                exclude 'META-INF/LGPL2.1'
-                exclude 'META-INF/*.kotlin_module'
-                exclude 'META-INF/rxjava.properties'
-            }
-        }
+        apply from: "$rootDir/gradle/common/android-library.gradle"
+        androidLibrary(19)
 
         dependencies {
             baseAndroid()
         }
     }
 
-    apply plugin: 'org.jetbrains.dokka'
-    dokka {
-        outputDirectory = "$rootDir/docs/reference"
-        outputFormat = 'gfm'
-    }
+    apply from: "$rootDir/gradle/common/dokka.gradle"
+}
 
-    apply from: "$rootDir/publish.gradle"
+// Publishing packages
+apply from: "$rootDir/secrets.gradle"
+def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
+def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
+def licenses = ['MIT']
+def repoUrl = 'https://github.com/ensody/ReactiveState-Kotlin'
+def vcsUrl = "${repoUrl}.git"
+def website = repoUrl
+subprojects {
+    apply from: "$rootDir/gradle/publish-bintray.gradle"
+    publishBintray('ensody', 'maven', group, project.name, bintrayUsername, bintrayApiKey, licenses, vcsUrl, website)
 }
