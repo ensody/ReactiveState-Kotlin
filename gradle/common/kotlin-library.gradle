@@ -1,5 +1,10 @@
-apply plugin: 'java-library'
-apply plugin: 'kotlin'
+ext.kotlinLibrary = {
+    apply plugin: 'java-library'
+    apply plugin: 'kotlin'
 
-sourceCompatibility = "8"
-targetCompatibility = "8"
+    sourceCompatibility = "8"
+    targetCompatibility = "8"
+
+    // Behave like Android
+    task testDebugUnitTest(type: Test, dependsOn: ['test'], group: 'verification')
+}

@@ -10,6 +10,9 @@ buildscript {
         classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
     }
+
+    apply from: "$rootDir/gradle/common/coverage.gradle"
+    installCoverageDeps()
 }
 
 // Base package setup
@@ -30,6 +33,7 @@ subprojects {
 
     if (!isAndroidProject) {
         apply from: "$rootDir/gradle/common/kotlin-library.gradle"
+        kotlinLibrary()
 
         dependencies {
             base()
@@ -44,6 +48,9 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/common/dokka.gradle"
+
+    apply from: "$rootDir/gradle/common/coverage.gradle"
+    trackCoverage()
 }
 
 // Publishing packages

@@ -1,6 +1,5 @@
 package com.ensody.reactivestate
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -8,16 +7,12 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isNotEqualTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class BindingTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
     @Test
     fun bindingOnFragment() {
         val scenario = launchFragmentInContainer<TestFragment>()

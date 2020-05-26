@@ -30,7 +30,9 @@ jobs:
       - name: Fix permissions
         run: sudo chown -R "$(whoami):$(whoami)" .
       - name: Run tests
-        run: ./gradlew test --stacktrace
+        run: ./gradlew testDebugUnitTest --stacktrace
+      - name: Create coverage report
+        run: ./gradlew jacocoTestReportDefault
       - name: Final checks
         run: ./gradlew check --stacktrace
 
