@@ -2,14 +2,7 @@
 .gradle
 /local.properties
 /secrets.properties
-/.idea/.name
-/.idea/caches
-/.idea/dictionaries
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+/.idea
 /.venv
 .DS_Store
 /build

@@ -56,7 +56,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Publish package
-        run: sudo ./gradlew bintrayUpload "-Pversion=$(echo "$GITHUB_REF" | sed 's#refs/.[^/]*/\(_publish/\)\?v##')" "-Pbintray.username=$BINTRAY_USERNAME" "-Pbintray.apikey=$BINTRAY_APIKEY"
+        run: sudo ./gradlew publish "-Pversion=$(echo "$GITHUB_REF" | sed 's#refs/.[^/]*/\(_publish/\)\?v##')" "-Pbintray.username=$BINTRAY_USERNAME" "-Pbintray.apikey=$BINTRAY_APIKEY"
         env:
           BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
           BINTRAY_APIKEY: ${{ secrets.BINTRAY_APIKEY }}

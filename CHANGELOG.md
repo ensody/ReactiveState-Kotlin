@@ -1,5 +1,9 @@
 # Change log
 
+## 0.11.2
+
+* Fixed release packaging of Android reactivestate package
+
 ## 0.11
 
 ATTENTION: There's a breaking change to support `StateFlow`.

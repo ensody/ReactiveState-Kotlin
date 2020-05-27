@@ -1,7 +1,7 @@
 apply from: "$rootDir/gradle/common/publish.gradle"
 
 ext.publishBintray = { orgName, repoName, groupName, projectName, username, apiKey, licensesArg = [], vcsUrlArg = "", websiteUrlArg = "" ->
-    publish("https://api.bintray.com/maven/$orgName/${repoName}/${groupName}:${projectName}", username, apiKey)
+    publish("https://api.bintray.com/maven/$orgName/${repoName}/${groupName}:${projectName}/;publish=1", username, apiKey)
 
     apply plugin: "com.jfrog.bintray"
     bintray {
