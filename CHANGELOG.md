@@ -1,5 +1,9 @@
 # Change log
 
+## 0.11.3
+
+* Fixed edge case with `autoRun` on `LiveData` incorrectly ignoring the first notification
+
 ## 0.11.2
 
 * Fixed release packaging of Android reactivestate package
