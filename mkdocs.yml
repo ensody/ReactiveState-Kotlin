@@ -40,4 +40,4 @@ nav:
   - 'API reference':
     - 'core': reference/core/index.md
     - 'reactivestate': reference/reactivestate/index.md
-  - 'Change log': changelog.md
+  - 'Changelog': changelog.md

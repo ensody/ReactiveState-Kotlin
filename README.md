@@ -69,6 +69,7 @@ class MainViewModel : ViewModel() {
     // instance passed in as `this`).
     // Note: In most cases you'll want to store the result in LiveData.
     // This is only meant for actual events/navigation instead of state.
+    // XXX: You'll probably want to use an interface instead of MainFragment.
     val responses = thisWorkQueue<MainFragment>()
 
     fun someAction() {
@@ -220,10 +221,16 @@ They just reduce the amount of boilerplate for common use-cases.
 Add the package to your `build.gradle`'s `dependencies {}` where `VERSION` should be replaced with the current ReactiveState version:
 
 ```groovy
+// For Kotlin-only projects
 dependencies {
     // ...
     implementation "com.ensody.reactivestate:core:VERSION"
-    // Additionally use this in Android projects
+    // ...
+}
+
+// For Android projects
+dependencies {
+    // ...
     implementation "com.ensody.reactivestate:reactivestate:VERSION"
     // ...
 }
