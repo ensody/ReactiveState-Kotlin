@@ -5,8 +5,8 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import assertk.assertions.isFailure
 import assertk.assertions.isInstanceOf
-import assertk.fail
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.TestCoroutineDispatcher
@@ -16,17 +16,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-
-inline fun <reified T : Throwable> assertThrows(func: () -> Unit): T {
-    try {
-        func()
-    } catch (e: Throwable) {
-        if (e is T) {
-            return e
-        }
-    }
-    fail("Expected exception ${T::class.simpleName}")
-}
 
 @ExperimentalCoroutinesApi
 class LifecycleTest {
@@ -92,9 +81,9 @@ class LifecycleTest {
             pauseOnce += 1
         }
 
-        assertThat(assertThrows<IllegalStateException> {
+        assertThat {
             owner.lifecycleValue
-        }).isInstanceOf(IllegalStateException::class)
+        }.isFailure().isInstanceOf(IllegalStateException::class)
         assertThat(run).isEqualTo(0)
         assertThat(start).isEqualTo(0)
         assertThat(startOnce).isEqualTo(0)
@@ -142,9 +131,9 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        assertThrows<IllegalStateException> {
+        assertThat {
             owner.lifecycleValue
-        }
+        }.isFailure().isInstanceOf(IllegalStateException::class)
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(1)
         assertThat(startOnce).isEqualTo(1)
@@ -192,9 +181,9 @@ class LifecycleTest {
         assertThat(pauseOnce).isEqualTo(1)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        assertThrows<IllegalStateException> {
+        assertThat {
             owner.lifecycleValue
-        }
+        }.isFailure().isInstanceOf(IllegalStateException::class)
         assertThat(run).isEqualTo(1)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
