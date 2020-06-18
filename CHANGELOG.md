@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.12.0
+
+Breaking changes (migration to `StateFlow`):
+
+* `derived` now returns a `StateFlow` instead of a `LiveData`, so you can use `derived` in multi-platform code.
+* `LiveDataStore` has been replaced with `StateFlowStore`, so you can write multi-platform code.
+* `InMemoryStore` has been replaced with `InMemoryStateFlowStore`.
+* `SavedStateHandleStore` now implements `StateFlowStore` and requires a `CoroutineScope` in addition to `SavedStateHandle`.
+* `State` has been renamed to `Scoped` (more descriptive).
+
+Other changes:
+
+* Added `StateFlow`-based API for bindings. The `LiveData`-based API is still available.
+
 ## 0.11.4
 
 * Switched to api instead of implementation for most dependencies.

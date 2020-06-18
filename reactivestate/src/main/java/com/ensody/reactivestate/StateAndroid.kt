@@ -1,0 +1,33 @@
+package com.ensody.reactivestate
+
+import androidx.lifecycle.SavedStateHandle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+
+// TODO: Add SavedStateHandle-like object for View
+
+/** A [StateFlowStore] that wraps a `SavedStateHandle`. */
+class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
+    StateFlowStore {
+
+    private val store = InMemoryStateFlowStore()
+
+    override fun contains(key: String): Boolean =
+        savedStateHandle.contains(key)
+
+    override fun <T> getData(key: String, default: T): MutableStateFlow<T> {
+        val tracked = store.contains(key)
+        val data = store.getData(key, default)
+        if (tracked) {
+            return data
+        }
+        val liveData = savedStateHandle.getLiveDataNonNull(key, default)
+        scope.autoRun {
+            data.value = get(liveData)
+        }
+        scope.autoRun {
+            liveData.postValue(get(data))
+        }
+        return data
+    }
+}

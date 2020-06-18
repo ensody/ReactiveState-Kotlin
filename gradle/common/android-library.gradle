@@ -35,9 +35,6 @@ ext.androidLibrary = { minVersion, targetVersion = 29 ->
         testOptions {
             // Needed for Robolectric
             unitTests {
-                all {
-                    systemProperty 'robolectric.enabledSdks', (minVersion..28).join(',')
-                }
                 includeAndroidResources = true
             }
         }

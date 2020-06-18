@@ -47,7 +47,7 @@ class MainFragment : Fragment() {
 }
 ```
 
-With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`State`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-state/), `CoroutineScope`, etc.)
+With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`Scoped`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-scoped/), `CoroutineScope`, etc.)
 you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
 On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
@@ -122,7 +122,7 @@ To work around this, you'll usually launch a coroutine in `ViewModel.viewModelSc
 
 In order to simplify this pattern, ReactiveState provides [`WorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-work-queue/) and helpers like
 [conflatedWorkQueue](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/conflated-work-queue/)
-(available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, [`State`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-state/), etc.).
+(available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, [`Scoped`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-scoped/), etc.).
 A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
 You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
 
@@ -254,14 +254,13 @@ Example `ViewModel`:
 
 ```kotlin
 // We separate the actual state object from ViewModel because this
-// allows writing unit tests against our business logic without
-// resorting to Robolectric (and we want to avoid instrumentation tests
-// because they are slow and make coverage tracking more difficult).
+// makes most of our code platform-independent (e.g. works on Android and iOS)
+// and allows writing unit tests without Robolectric.
 class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val state = MainState(savedStateHandle.toStore(), viewModelScope)
+    val state = MainState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
 }
 
-class MainState(store: LiveDataStore, scope: CoroutineScope) : State(scope) {
+class MainState(scope: CoroutineScope, store: LiveDataStore) : Scoped(scope) {
     val count = store.getLiveData("count", 0)
 
     // These store form data

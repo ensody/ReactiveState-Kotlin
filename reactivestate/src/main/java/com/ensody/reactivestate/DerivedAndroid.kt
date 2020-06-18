@@ -16,11 +16,5 @@ class DerivedLiveData<T>(scope: CoroutineScope, private val observer: AutoRunCal
     override fun getValue(): T = super.getValue() as T
 }
 
-fun <T> CoroutineScope.derived(observer: AutoRunCallback<T>) =
-    DerivedLiveData(this, observer)
-
 fun <T> ViewModel.derived(observer: AutoRunCallback<T>) =
     viewModelScope.derived(observer)
-
-fun <T> State.derived(observer: AutoRunCallback<T>) =
-    scope.derived(observer)

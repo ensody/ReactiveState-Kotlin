@@ -43,7 +43,7 @@ class LiveDataObserverTest {
         val source = MutableLiveDataNonNull(0)
         val target = MutableLiveData(-1).fixValueType()
         val job = launch {
-            val runner = autoRun { target.value = 2 * get(source) }
+            autoRun { target.value = 2 * get(source) }
 
             // Right after creation of the AutoRunner the values should be in sync
             assertThat(target.value).isEqualTo(0)
@@ -53,18 +53,6 @@ class LiveDataObserverTest {
                 source.value = it
                 assertThat(target.value).isEqualTo(2 * it)
             }
-
-            // Test disposing (target.value is out of sync)
-            runner.dispose()
-            val oldValue = target.value
-            source.value += 5
-            assertThat(target.value).isEqualTo(oldValue)
-
-            // Re-enable AutoRunner
-            runner.run()
-            assertThat(target.value).isEqualTo(source.value * 2)
-            source.value += 5
-            assertThat(target.value).isEqualTo(source.value * 2)
         }
         // The underlying AutoRunner should be automatically disposed because its scope has ended
         job.join()
@@ -78,7 +66,7 @@ class LiveDataObserverTest {
         val source = MutableLiveDataNonNull(0)
         var target: LiveData<Int> = MutableLiveDataNonNull(-1)
         val job = launch {
-            target = derived { 2 * get(source) }
+            target = DerivedLiveData(this) { 2 * get(source) }
 
             // Right after creation of the derived observable the values should be in sync
             assertThat(target.value).isEqualTo(0)
