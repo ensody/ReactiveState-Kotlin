@@ -2,6 +2,7 @@ name: build
 
 env:
   GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx4g -Dorg.gradle.daemon=false -Dkotlin.incremental=false"
+  RUNNING_ON_CI: "true"
   LC_ALL: C.UTF-8
   LANG: C.UTF-8
 

@@ -19,7 +19,7 @@ ext.trackCoverage = {
         android {
             buildTypes {
                 debug {
-                    testCoverageEnabled = true
+                    testCoverageEnabled = System.getenv("RUNNING_ON_CI") == "true"
                 }
             }
 
