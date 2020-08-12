@@ -9,7 +9,7 @@ typealias AutoRunCallback<T> = Resolver.() -> T
 typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [Scoped] -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -32,12 +32,12 @@ fun CoroutineScope.autoRun(
     }
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [Scoped] -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
- * The [AutoRunner] is automatically disposed when the [State.scope] completes.
+ * The [AutoRunner] is automatically disposed when the [Scoped.scope] completes.
  *
  * See [AutoRunner] for more details.
  *
@@ -45,7 +45,7 @@ fun CoroutineScope.autoRun(
  * manually call [run].
  * @param [observer] The callback which is used to track the observables.
  */
-fun State.autoRun(
+fun Scoped.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> =
@@ -60,7 +60,7 @@ abstract class BaseAutoRunner : AttachedDisposables {
 }
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [State] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [Scoped] -> UI).
  *
  * Given an [observer], this class will automatically register itself as a listener and keep track
  * of the observables which [observer] depends on.

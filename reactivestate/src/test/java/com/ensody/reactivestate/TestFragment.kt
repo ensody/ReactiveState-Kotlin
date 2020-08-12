@@ -11,13 +11,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 
-class TestState(store: LiveDataStore, scope: CoroutineScope) : State(scope) {
-    val name = store.getLiveData("name", "")
-    val count = store.getLiveData("count", 0)
+class TestState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
+    val name = store.getData("name", "")
+    val count = store.getData("count", 0)
 }
 
 class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val state = TestState(savedStateHandle.toStore(), viewModelScope)
+    val state = TestState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
 }
 
 class TestFragment : Fragment() {

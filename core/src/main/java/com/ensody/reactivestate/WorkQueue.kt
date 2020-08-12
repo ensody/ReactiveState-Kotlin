@@ -42,26 +42,26 @@ fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
 fun <T> CoroutineScope.workQueue() = WorkQueue<T>(this)
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-fun <T> State.workQueue() = scope.workQueue<T>()
+fun <T> Scoped.workQueue() = scope.workQueue<T>()
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
 fun <T> CoroutineScope.argWorkQueue() = WorkQueue<suspend (T) -> Unit>(this)
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
-fun <T> State.argWorkQueue() = scope.argWorkQueue<T>()
+fun <T> Scoped.argWorkQueue() = scope.argWorkQueue<T>()
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
 fun <T> CoroutineScope.thisWorkQueue() = WorkQueue<suspend T.() -> Unit>(this)
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
-fun <T> State.thisWorkQueue() = scope.thisWorkQueue<T>()
+fun <T> Scoped.thisWorkQueue() = scope.thisWorkQueue<T>()
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
     workQueue<T>().apply { consume(this@workQueue, workers = workers, config = config) }
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
-fun <T> State.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
+fun <T> Scoped.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
     workQueue<T>().apply { consume(scope, workers = workers, config = config) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
@@ -69,7 +69,7 @@ fun CoroutineScope.simpleWorkQueue(workers: Int = 1) =
     workQueue<WorkQueueEntry>(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
-fun State.simpleWorkQueue(workers: Int = 1) =
+fun Scoped.simpleWorkQueue(workers: Int = 1) =
     workQueue<WorkQueueEntry>(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
@@ -77,7 +77,7 @@ fun CoroutineScope.conflatedWorkQueue(timeoutMillis: Long = 0L) =
     workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
-fun State.conflatedWorkQueue(timeoutMillis: Long = 0L) =
+fun Scoped.conflatedWorkQueue(timeoutMillis: Long = 0L) =
     workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
 
 /**

@@ -7,6 +7,8 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 // -------------------------------------------------------------------------------------------------
 // TextView
@@ -14,6 +16,21 @@ import androidx.lifecycle.MutableLiveData
 
 /** Keeps [data] in sync with [view]`.text`. */
 fun LifecycleOwner.bind(data: MutableLiveData<String>, view: TextView): Disposable =
+    DisposableGroup().apply {
+        add(onStartOnce {
+            val watcher = view.addTextChangedListener {
+                val value = view.text.toString()
+                if (data.value != value) {
+                    data.value = value
+                }
+            }
+            add(OnDispose { view.removeTextChangedListener(watcher) })
+            add(onStopOnce { dispose() })
+        })
+    }
+
+/** Keeps [data] in sync with [view]`.text`. */
+fun LifecycleOwner.bind(data: MutableStateFlow<String>, view: TextView): Disposable =
     DisposableGroup().apply {
         add(onStartOnce {
             val watcher = view.addTextChangedListener {
@@ -40,8 +57,19 @@ fun LifecycleOwner.bind(view: TextView, observer: AutoRunCallback<String>): Disp
 fun LifecycleOwner.bind(view: TextView, data: LiveData<String>): Disposable =
     bind(view) { get(data) ?: "" }
 
+/** Keeps [view]`.text` in sync with [data]. */
+fun LifecycleOwner.bind(view: TextView, data: StateFlow<String>): Disposable =
+    bind(view) { get(data) }
+
 /** Keeps [data] and [view]`.text` in sync with each other (bidirectionally). */
 fun LifecycleOwner.bindTwoWay(data: MutableLiveData<String>, view: TextView): Disposable =
+    DisposableGroup().apply {
+        add(bind(view, data))
+        add(bind(data, view))
+    }
+
+/** Keeps [data] and [view]`.text` in sync with each other (bidirectionally). */
+fun LifecycleOwner.bindTwoWay(data: MutableStateFlow<String>, view: TextView): Disposable =
     DisposableGroup().apply {
         add(bind(view, data))
         add(bind(data, view))
@@ -61,12 +89,12 @@ fun LifecycleOwner.bind(view: Checkable, observer: AutoRunCallback<Boolean>): Di
     }
 
 /** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
-fun LifecycleOwner.bind(
-    view: Checkable,
-    data: LiveData<Boolean>,
-    default: Boolean = false
-): Disposable =
+fun LifecycleOwner.bind(view: Checkable, data: LiveData<Boolean>, default: Boolean = false): Disposable =
     bind(view) { get(data) ?: default }
+
+/** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
+fun LifecycleOwner.bind(view: Checkable, data: StateFlow<Boolean>): Disposable =
+    bind(view) { get(data) }
 
 // -------------------------------------------------------------------------------------------------
 // CompoundButton (which is also a TextView, but we want the Checkable aspect)
@@ -86,16 +114,41 @@ fun LifecycleOwner.bind(data: MutableLiveData<Boolean>, view: CompoundButton): D
         })
     }
 
+/** Keeps [data] in sync with [view]`.isChecked`. */
+fun LifecycleOwner.bind(data: MutableStateFlow<Boolean>, view: CompoundButton): Disposable =
+    DisposableGroup().apply {
+        add(onStartOnce {
+            view.setOnCheckedChangeListener { _, isChecked ->
+                if (data.value != isChecked) {
+                    data.value = isChecked
+                }
+            }
+            add(OnDispose { view.setOnCheckedChangeListener(null) })
+            add(onStopOnce { dispose() })
+        })
+    }
+
 /** Keeps [view]`.isChecked` in sync with the value returned by [observer] (via [LifecycleOwner.autoRun]). */
 fun LifecycleOwner.bind(view: CompoundButton, observer: AutoRunCallback<Boolean>): Disposable =
     bind(view as Checkable, observer)
 
 /** Keeps [view]`.isChecked` in sync with [data]. If `data.value` is null, [default] is used. */
-fun LifecycleOwner.bind(view: CompoundButton, data: LiveData<Boolean>): Disposable =
+fun LifecycleOwner.bind(view: CompoundButton, data: LiveData<Boolean>, default: Boolean = false): Disposable =
+    bind(view as Checkable, data, default = default)
+
+/** Keeps [view]`.isChecked` in sync with [data] */
+fun LifecycleOwner.bind(view: CompoundButton, data: StateFlow<Boolean>): Disposable =
     bind(view as Checkable, data)
 
 /** Keeps [data] and [view]`.isChecked` in sync with each other (bidirectionally). */
 fun LifecycleOwner.bindTwoWay(data: MutableLiveData<Boolean>, view: CompoundButton): Disposable =
+    DisposableGroup().apply {
+        add(bind(view, data))
+        add(bind(data, view))
+    }
+
+/** Keeps [data] and [view]`.isChecked` in sync with each other (bidirectionally). */
+fun LifecycleOwner.bindTwoWay(data: MutableStateFlow<Boolean>, view: CompoundButton): Disposable =
     DisposableGroup().apply {
         add(bind(view, data))
         add(bind(data, view))
