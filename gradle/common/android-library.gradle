@@ -38,5 +38,9 @@ ext.androidLibrary = { minVersion, targetVersion = 29 ->
                 includeAndroidResources = true
             }
         }
+
+        packagingOptions {
+            pickFirst 'META-INF/*.kotlin_module'
+        }
     }
 }
