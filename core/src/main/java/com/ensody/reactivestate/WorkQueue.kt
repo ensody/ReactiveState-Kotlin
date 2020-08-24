@@ -23,13 +23,13 @@ public fun Flow<WorkQueueEntry>.conflatedWorker(timeoutMillis: Long = 0): Flow<U
 /** Maps a conflated [Flow] with [timeoutMillis] delay between the first and last element. */
 public inline fun <T, R> Flow<T>.conflatedMap(
     timeoutMillis: Long = 0,
-    crossinline transform: suspend (value: T) -> R
+    crossinline transform: suspend (value: T) -> R,
 ): Flow<R> = conflate().map(transform).addDelay(timeoutMillis)
 
 /** Transforms a conflated [Flow] with [timeoutMillis] delay between the first and last element. */
 public inline fun <T, R> Flow<T>.conflatedTransform(
     timeoutMillis: Long = 0,
-    crossinline transform: suspend FlowCollector<R>.(value: T) -> Unit
+    crossinline transform: suspend FlowCollector<R>.(value: T) -> Unit,
 ): Flow<R> = conflate().transform(transform).addDelay(timeoutMillis)
 
 /** Adds a [timeoutMillis] delay to a [Flow]. If delay is zero or negative this is a no-op. */
@@ -131,7 +131,7 @@ public class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
     public fun consume(
         scope: CoroutineScope,
         workers: Int = 1,
-        config: WorkQueueConfigCallback<T>
+        config: WorkQueueConfigCallback<T>,
     ): Disposable {
         require(workers > 0) { "WorkQueue.consume(): Number of workers must be positive" }
         consumersDisposer.dispose()
@@ -162,7 +162,7 @@ public class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
 public fun <T> WorkQueue<suspend (T) -> Unit>.consume(
     arg: T,
     scope: CoroutineScope,
-    workers: Int = 1
+    workers: Int = 1,
 ): Disposable = consume(scope, workers = workers) { map { it(arg) } }
 
 /** Consume work queue, conflate lambdas and pass [arg] to each lambda. */
@@ -170,5 +170,5 @@ public fun <T> WorkQueue<suspend (T) -> Unit>.conflatedConsume(
     arg: T,
     scope: CoroutineScope,
     timeoutMillis: Long = 0,
-    workers: Int = 1
+    workers: Int = 1,
 ): Disposable = consume(scope, workers = workers) { conflatedMap(timeoutMillis) { it(arg) } }

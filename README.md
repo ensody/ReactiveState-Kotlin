@@ -57,45 +57,40 @@ This means you have to create your bindings and `AutoRunner`s in `onStart()`.
 
 Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
 
-### Running operations outside of the UI lifecycle
+### Correct lifecycle handling
 
 ```kotlin
+interface MainView {
+    fun showMessage(message: String)
+}
+
 class MainViewModel : ViewModel() {
     // This queue can be used to throttle actions using 200ms windows
     val queue = conflatedWorkQueue(200)
-    // This queue can be used to execute a response on the MainFragment (latest
-    // instance passed in as `this`).
-    // Note: In most cases you'll want to store the result in StateFlow/LiveData.
-    // This is only meant for actual events/navigation instead of state.
-    // XXX: You'll probably want to use an interface instead of MainFragment.
-    val responses = thisWorkQueue<MainFragment>()
+    // This queue can be used to send events to the MainView in the STARTED lifecycle state.
+    // Instead of boilerplaty event classes we use a simple MainView interface with methods.
+    val viewExecutor = thisWorkQueue<MainView>()
 
     fun someAction() {
         queue.launch {
             val result = api.requestSomeAction()
 
             // Switch back to MainFragment (the latest visible instance).
-            responses.launch {
+            viewExecutor.launch {
                 // If the screen got rotated in the meantime, `this` would point
                 // to the new MainFragment instance instead of the destroyed one
                 // that did the initial `someAction` call above.
-                showPopUp(result.someMessage)
-                // Instead of showing a pop-up you could also navigate to some other Fragment.
-                // findNavController()...
+                showMessage(result.someMessage)
             }
         }
     }
 }
 
-class MainFragment : Fragment() {
-    private val model by viewModels<MainViewModel>()
+class MainFragment : Fragment(), MainView {
+    private val viewModel: MainViewModel by viewModels()
 
     init {
-        lifecycleScope.launchWhenStarted {
-            // Execute responses, passing MainFragment to each lambda
-            model.responses.consume(this@MainFragment, this)
-            // Alternatively: model.responses.conflatedConsume(this@MainFragment, this, 200)
-        }
+        viewModel.viewExecutor.consume(this, this)
     }
 
     // ...
@@ -105,11 +100,11 @@ class MainFragment : Fragment() {
         // val button = ...
 
         button.setOnClickListener {
-            model.someAction()
+            viewModel.someAction()
         }
     }
 
-    fun showPopUp(message: String) {
+    fun showMessage(message: String) {
         // ...
     }
 }
@@ -125,12 +120,12 @@ A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
 You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
 
 Usually, you'd use a `WorkQueue` to throttle UI events and execute event handlers in a `ViewModel`.
-Also, you can build a request-response event pipeline between the UI and the `ViewModel` with helpers like [`thisWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/this-work-queue/) (see example above).
+Also, you can build an event pipeline between the UI and the `ViewModel` with helpers like [`thisWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/this-work-queue/) (see example above).
 Of course, you can also throttle UI events with [FlowBinding](https://github.com/ReactiveCircus/FlowBinding) and only use a `WorkQueue` to serialize the event execution or handle request-response-style messaging.
 
 While you can process any type of event in a `WorkQueue`, most helper methods are built around processing lambda functions, so you don't need to write boilerplate (defining event classes and dispatching on them in huge `when` statements):
 
-### Automatic cleanups and lifetime/lifecycle management
+### Automatic cleanups based on lifecycle state
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
@@ -172,16 +167,16 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
 }
 
 class MainFragment : Fragment() {
-    private val model by viewModel { MainViewModel(SomeDependency()) }
-    private val model2 by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
+    private val viewModel by buildViewModel { MainViewModel(SomeDependency()) }
+    private val viewModel2 by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
 }
 ```
 
-ReactiveState's [`viewModel`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/view-model/),
+ReactiveState's [`buildViewModel`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/build-view-model/),
 [`stateViewModel`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/state-view-model/),
 [and other](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/) extension functions allow creating a `ViewModel` by directly instantiating it.
 This results in more natural code and allows passing arguments to the `ViewModel`.
-Internally, these helper functions are just wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
+Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
 
 ## Installation
