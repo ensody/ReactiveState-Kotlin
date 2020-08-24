@@ -1,0 +1,37 @@
+ext.androidCommon = { minVersion, targetVersion = 29 ->
+    apply plugin: 'kotlin-android'
+    apply plugin: 'kotlin-android-extensions'
+
+    android {
+        compileSdkVersion targetVersion
+
+        compileOptions {
+            sourceCompatibility JavaVersion.VERSION_1_8
+            targetCompatibility JavaVersion.VERSION_1_8
+        }
+
+        kotlinOptions {
+            jvmTarget = "1.8"
+        }
+
+        defaultConfig {
+            minSdkVersion minVersion
+            targetSdkVersion targetVersion
+            versionCode 1
+            versionName version
+
+            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        }
+
+        testOptions {
+            // Needed for Robolectric
+            unitTests {
+                includeAndroidResources = true
+            }
+        }
+
+        packagingOptions {
+            pickFirst 'META-INF/*.kotlin_module'
+        }
+    }
+}

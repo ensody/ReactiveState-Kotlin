@@ -8,76 +8,76 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 /** Default work queue entry type. */
-typealias WorkQueueEntry = suspend () -> Unit
+public typealias WorkQueueEntry = suspend () -> Unit
 
 /** Callback used to configure the Flow of a [WorkQueue]. */
-typealias WorkQueueConfigCallback<T> = Flow<T>.() -> Flow<*>
+public typealias WorkQueueConfigCallback<T> = Flow<T>.() -> Flow<*>
 
 /** Executes each simple lambda in a [Flow]. */
-fun Flow<WorkQueueEntry>.worker(): Flow<Unit> = map { it() }
+public fun Flow<WorkQueueEntry>.worker(): Flow<Unit> = map { it() }
 
 /** Executes each simple lambda in a conflated [Flow] using [conflatedMap]. */
-fun Flow<WorkQueueEntry>.conflatedWorker(timeoutMillis: Long = 0): Flow<Unit> =
+public fun Flow<WorkQueueEntry>.conflatedWorker(timeoutMillis: Long = 0): Flow<Unit> =
     conflatedMap(timeoutMillis) { it() }
 
 /** Maps a conflated [Flow] with [timeoutMillis] delay between the first and last element. */
-inline fun <T, R> Flow<T>.conflatedMap(
+public inline fun <T, R> Flow<T>.conflatedMap(
     timeoutMillis: Long = 0,
     crossinline transform: suspend (value: T) -> R
 ): Flow<R> = conflate().map(transform).addDelay(timeoutMillis)
 
 /** Transforms a conflated [Flow] with [timeoutMillis] delay between the first and last element. */
-inline fun <T, R> Flow<T>.conflatedTransform(
+public inline fun <T, R> Flow<T>.conflatedTransform(
     timeoutMillis: Long = 0,
     crossinline transform: suspend FlowCollector<R>.(value: T) -> Unit
 ): Flow<R> = conflate().transform(transform).addDelay(timeoutMillis)
 
 /** Adds a [timeoutMillis] delay to a [Flow]. If delay is zero or negative this is a no-op. */
-fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
+public fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
     require(timeoutMillis >= 0) { "Timeout should be greater than or equal to 0" }
     return if (timeoutMillis == 0L) this else onEach { delay(timeoutMillis) }
 }
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-fun <T> CoroutineScope.workQueue() = WorkQueue<T>(this)
+public fun <T> CoroutineScope.workQueue(): WorkQueue<T> = WorkQueue<T>(this)
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-fun <T> Scoped.workQueue() = scope.workQueue<T>()
+public fun <T> Scoped.workQueue(): WorkQueue<T> = scope.workQueue<T>()
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
-fun <T> CoroutineScope.argWorkQueue() = WorkQueue<suspend (T) -> Unit>(this)
+public fun <T> CoroutineScope.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = WorkQueue<suspend (T) -> Unit>(this)
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
-fun <T> Scoped.argWorkQueue() = scope.argWorkQueue<T>()
+public fun <T> Scoped.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = scope.argWorkQueue<T>()
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
-fun <T> CoroutineScope.thisWorkQueue() = WorkQueue<suspend T.() -> Unit>(this)
+public fun <T> CoroutineScope.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = WorkQueue<suspend T.() -> Unit>(this)
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
-fun <T> Scoped.thisWorkQueue() = scope.thisWorkQueue<T>()
+public fun <T> Scoped.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = scope.thisWorkQueue<T>()
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
-fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
+public fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>): WorkQueue<T> =
     workQueue<T>().apply { consume(this@workQueue, workers = workers, config = config) }
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
-fun <T> Scoped.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>) =
+public fun <T> Scoped.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>): WorkQueue<T> =
     workQueue<T>().apply { consume(scope, workers = workers, config = config) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
-fun CoroutineScope.simpleWorkQueue(workers: Int = 1) =
+public fun CoroutineScope.simpleWorkQueue(workers: Int = 1): WorkQueue<suspend () -> Unit> =
     workQueue<WorkQueueEntry>(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
-fun Scoped.simpleWorkQueue(workers: Int = 1) =
+public fun Scoped.simpleWorkQueue(workers: Int = 1): WorkQueue<suspend () -> Unit> =
     workQueue<WorkQueueEntry>(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
-fun CoroutineScope.conflatedWorkQueue(timeoutMillis: Long = 0L) =
+public fun CoroutineScope.conflatedWorkQueue(timeoutMillis: Long = 0L): WorkQueue<suspend () -> Unit> =
     workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
-fun Scoped.conflatedWorkQueue(timeoutMillis: Long = 0L) =
+public fun Scoped.conflatedWorkQueue(timeoutMillis: Long = 0L): WorkQueue<suspend () -> Unit> =
     workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
 
 /**
@@ -95,20 +95,20 @@ fun Scoped.conflatedWorkQueue(timeoutMillis: Long = 0L) =
  *
  * @param [scope] The queue only lives as long as the given scope's context is active.
  */
-class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
+public class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
     private val channel = Channel<T>(BUFFERED)
     private val selfDisposer = disposeOnCompletionOf(scope)
     private val consumersDisposer = DisposableGroup()
 
     /** Adds a new entry to the work queue. Can be called outside of a coroutine. */
-    fun launch(entry: T) {
+    public fun launch(entry: T) {
         scope.launch {
             add(entry)
         }
     }
 
     /** Adds a new entry to the work queue. Must be called from a coroutine. */
-    suspend fun add(entry: T) {
+    public suspend fun add(entry: T) {
         channel.send(entry)
     }
 
@@ -128,7 +128,7 @@ class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
      * @param [workers] Number of worker coroutines.
      * @param [config] Configures the [Flow].
      */
-    fun consume(
+    public fun consume(
         scope: CoroutineScope,
         workers: Int = 1,
         config: WorkQueueConfigCallback<T>
@@ -159,16 +159,16 @@ class WorkQueue<T>(private val scope: CoroutineScope) : Disposable {
 }
 
 /** Consume work queue, passing [arg] to each lambda. */
-fun <T> WorkQueue<suspend (T) -> Unit>.consume(
+public fun <T> WorkQueue<suspend (T) -> Unit>.consume(
     arg: T,
     scope: CoroutineScope,
     workers: Int = 1
-) = consume(scope, workers = workers) { map { it(arg) } }
+): Disposable = consume(scope, workers = workers) { map { it(arg) } }
 
 /** Consume work queue, conflate lambdas and pass [arg] to each lambda. */
-fun <T> WorkQueue<suspend (T) -> Unit>.conflatedConsume(
+public fun <T> WorkQueue<suspend (T) -> Unit>.conflatedConsume(
     arg: T,
     scope: CoroutineScope,
     timeoutMillis: Long = 0,
     workers: Int = 1
-) = consume(scope, workers = workers) { conflatedMap(timeoutMillis) { it(arg) } }
+): Disposable = consume(scope, workers = workers) { conflatedMap(timeoutMillis) { it(arg) } }

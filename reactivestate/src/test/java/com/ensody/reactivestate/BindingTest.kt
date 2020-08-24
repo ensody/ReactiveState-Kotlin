@@ -12,7 +12,7 @@ import org.junit.runner.RunWith
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
-class BindingTest {
+internal class BindingTest {
     @Test
     fun bindingOnFragment() {
         val scenario = launchFragmentInContainer<TestFragment>()
@@ -29,7 +29,7 @@ class BindingTest {
             state.name.value = "test"
             assertThat(textView.text.toString()).isEqualTo(state.name.value)
             textView.text = "hello"
-            assertThat(textView.text.toString()).isEqualTo(state.name.value)
+            assertThat("" + textView.text).isEqualTo(state.name.value)
         }
 
         // Bindings should auto-dispose themselves

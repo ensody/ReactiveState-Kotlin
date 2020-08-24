@@ -13,15 +13,15 @@ import kotlin.reflect.KProperty
  *
  * This is an alias for [DisposableHandle].
  */
-typealias Disposable = DisposableHandle
+public typealias Disposable = DisposableHandle
 
 /**
  * A [Disposable] that can have additional `Disposable`s attached to it, so they are automatically
  * disposed together with this object.
  */
-interface AttachedDisposables : Disposable {
+public interface AttachedDisposables : Disposable {
     /** The attached disposables which should be auto-disposed when this object is disposed. */
-    val attachedDisposables: DisposableGroup
+    public val attachedDisposables: DisposableGroup
 }
 
 /**
@@ -34,14 +34,14 @@ interface AttachedDisposables : Disposable {
  * disposable.dispose() // => "disposing myself"
  * ```
  */
-class OnDispose(val function: () -> Unit) : Disposable {
+public class OnDispose(private val function: () -> Unit) : Disposable {
     override fun dispose() {
         function()
     }
 }
 
 /** A [Disposable] wrapping a [Job]. */
-class JobDisposable(val job: Job) : Disposable {
+public class JobDisposable(internal val job: Job) : Disposable {
     override fun dispose() {
         job.cancel()
     }
@@ -51,12 +51,12 @@ class JobDisposable(val job: Job) : Disposable {
  * A [Disposable] that can dispose multiple [Disposable] and [Job] instances
  * at once.
  */
-class DisposableGroup : Disposable {
+public class DisposableGroup : Disposable {
     private val disposables = mutableSetOf<Disposable>()
     private val jobs = mutableSetOf<Job>()
 
     /** Add a [Disposable] to this group. */
-    fun add(disposable: Disposable) {
+    public fun add(disposable: Disposable) {
         if (disposable is JobDisposable) {
             add(disposable.job)
         } else {
@@ -65,12 +65,12 @@ class DisposableGroup : Disposable {
     }
 
     /** Add a [Job] to this group. */
-    fun add(job: Job) {
+    public fun add(job: Job) {
         jobs.add(job)
     }
 
     /** Remove a [Disposable] from this group. */
-    fun remove(disposable: Disposable) {
+    public fun remove(disposable: Disposable) {
         if (disposable is JobDisposable) {
             remove(disposable.job)
         } else {
@@ -79,7 +79,7 @@ class DisposableGroup : Disposable {
     }
 
     /** Remove a [Job] from this group. */
-    fun remove(job: Job) {
+    public fun remove(job: Job) {
         jobs.remove(job)
     }
 
@@ -101,15 +101,15 @@ internal fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disp
     coroutineContext.invokeOnCompletion(handler)
 
 /** Disposes the [Disposable] when [Job] completes (including cancellation). */
-fun Disposable.disposeOnCompletionOf(job: Job): Disposable =
+public fun Disposable.disposeOnCompletionOf(job: Job): Disposable =
     job.invokeOnCompletion { dispose() }
 
 /** Disposes the [Disposable] when [CoroutineContext] completes (including cancellation). */
-fun Disposable.disposeOnCompletionOf(context: CoroutineContext): Disposable =
+public fun Disposable.disposeOnCompletionOf(context: CoroutineContext): Disposable =
     context.invokeOnCompletion { dispose() }
 
 /** Disposes the [Disposable] when [CoroutineScope] completes (including cancellation). */
-fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
+public fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
     scope.invokeOnCompletion { dispose() }
 
 /**
@@ -154,7 +154,7 @@ fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
  * }
  * ```
  */
-fun <T> validUntil(invalidateOn: (invalidate: () -> Unit) -> Any?): ReadWriteProperty<Any?, T> =
+public fun <T> validUntil(invalidateOn: (invalidate: () -> Unit) -> Any?): ReadWriteProperty<Any?, T> =
     DisposableProperty(invalidateOn)
 
 private class DisposableProperty<T>(invalidateOn: (invalidate: () -> Unit) -> Any?) :

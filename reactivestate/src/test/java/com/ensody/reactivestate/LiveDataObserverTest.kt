@@ -12,7 +12,7 @@ import org.junit.Rule
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class LiveDataObserverTest {
+internal class LiveDataObserverTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 

@@ -18,7 +18,7 @@ import org.junit.Before
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class LifecycleTest {
+internal class LifecycleTest {
     private val testDispatcher = TestCoroutineDispatcher()
 
     @Before

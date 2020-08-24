@@ -10,7 +10,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class WorkQueueTest {
+internal class WorkQueueTest {
     @Test
     fun conflatedResultQueue() = runBlockingTest {
         val queue = simpleWorkQueue()

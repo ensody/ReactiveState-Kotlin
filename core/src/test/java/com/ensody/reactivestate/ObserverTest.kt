@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class ObserverTest {
+internal class ObserverTest {
     @Test
     fun autoRunOnCoroutineScope() = runBlockingTest {
         val source = MutableStateFlow(0)

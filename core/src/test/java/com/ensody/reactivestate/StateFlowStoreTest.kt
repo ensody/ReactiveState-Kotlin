@@ -11,7 +11,7 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class SampleState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
+internal class SampleState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
     val counter = store.getData("counter", 0)
 
     fun increment() {
@@ -20,7 +20,7 @@ class SampleState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) 
 }
 
 @ExperimentalCoroutinesApi
-class StateFlowStoreTest {
+internal class StateFlowStoreTest {
     @Test
     fun conflatedQueue() = runBlockingTest {
         val store = InMemoryStateFlowStore()

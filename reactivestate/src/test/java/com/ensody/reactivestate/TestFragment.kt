@@ -20,7 +20,7 @@ class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val state = TestState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
 }
 
-class TestFragment : Fragment() {
+internal class TestFragment : Fragment() {
     internal val model by stateViewModel { TestViewModel(it) }
     internal val state get() = model.state
 

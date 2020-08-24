@@ -11,7 +11,7 @@ import androidx.lifecycle.*
  * The [provider] should instantiate the `ViewModel` directly.
  */
 @Suppress("UNCHECKED_CAST")
-inline fun <reified T : ViewModel> Fragment.viewModel(crossinline provider: () -> T) =
+inline fun <reified T : ViewModel> Fragment.buildViewModel(crossinline provider: () -> T) =
     viewModels<T> {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T

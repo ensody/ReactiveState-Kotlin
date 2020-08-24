@@ -11,7 +11,7 @@ import kotlinx.coroutines.CoroutineScope
  * Since the lifetime is bound to [scope] you can depend on automatic cleanups e.g. when using
  * [autoRun] or [workQueue].
  */
-abstract class Scoped(val scope: CoroutineScope) : Disposable {
+public abstract class Scoped(public val scope: CoroutineScope) : Disposable {
     private val disposable = disposeOnCompletionOf(scope)
 
     override fun dispose() {

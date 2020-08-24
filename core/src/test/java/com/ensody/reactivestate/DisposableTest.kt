@@ -4,7 +4,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.Test
 
-class DisposableTest {
+internal class DisposableTest {
     @Test
     fun disposableGroup() {
         val disposable1 = mockk<Disposable>(relaxed = true)
