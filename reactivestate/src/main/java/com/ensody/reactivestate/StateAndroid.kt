@@ -5,7 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 
 /** A [StateFlowStore] that wraps a `SavedStateHandle`. */
-class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
+public class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
     StateFlowStore {
 
     private val store = InMemoryStateFlowStore()

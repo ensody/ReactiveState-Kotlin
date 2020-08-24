@@ -59,7 +59,7 @@ private class OnStartObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onStart(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onStart(block: () -> Unit): Disposable =
     addObserver(OnStartObserver(lifecycle, false, block))
 
 /**
@@ -67,7 +67,7 @@ fun LifecycleOwner.onStart(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onStartOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onStartOnce(block: () -> Unit): Disposable =
     addObserver(OnStartObserver(lifecycle, true, block))
 
 private class OnStopObserver(
@@ -89,7 +89,7 @@ private class OnStopObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onStop(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onStop(block: () -> Unit): Disposable =
     addObserver(OnStopObserver(lifecycle, false, block))
 
 /**
@@ -97,7 +97,7 @@ fun LifecycleOwner.onStop(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onStopOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onStopOnce(block: () -> Unit): Disposable =
     addObserver(OnStopObserver(lifecycle, true, block))
 
 private class OnCreateObserver(
@@ -119,7 +119,7 @@ private class OnCreateObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onCreate(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onCreate(block: () -> Unit): Disposable =
     addObserver(OnCreateObserver(lifecycle, false, block))
 
 /**
@@ -127,7 +127,7 @@ fun LifecycleOwner.onCreate(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onCreateOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onCreateOnce(block: () -> Unit): Disposable =
     addObserver(OnCreateObserver(lifecycle, true, block))
 
 private class OnDestroyObserver(
@@ -149,7 +149,7 @@ private class OnDestroyObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onDestroy(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onDestroy(block: () -> Unit): Disposable =
     addObserver(OnDestroyObserver(lifecycle, false, block))
 
 /**
@@ -157,7 +157,7 @@ fun LifecycleOwner.onDestroy(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun Fragment.onCreateView(block: () -> Unit): Disposable =
+public fun Fragment.onCreateView(block: () -> Unit): Disposable =
     addViewLifecycleObserver { it.onCreate(block) }
 
 /**
@@ -165,7 +165,7 @@ fun Fragment.onCreateView(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun Fragment.onCreateViewOnce(block: () -> Unit): Disposable =
+public fun Fragment.onCreateViewOnce(block: () -> Unit): Disposable =
     addViewLifecycleObserver(once = true) { it.onCreateOnce(block) }
 
 /**
@@ -173,7 +173,7 @@ fun Fragment.onCreateViewOnce(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onDestroyOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onDestroyOnce(block: () -> Unit): Disposable =
     addObserver(OnDestroyObserver(lifecycle, true, block))
 
 /**
@@ -181,7 +181,7 @@ fun LifecycleOwner.onDestroyOnce(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun Fragment.onDestroyView(block: () -> Unit): Disposable =
+public fun Fragment.onDestroyView(block: () -> Unit): Disposable =
     addViewLifecycleObserver { it.onDestroy(block) }
 
 /**
@@ -189,7 +189,7 @@ fun Fragment.onDestroyView(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun Fragment.onDestroyViewOnce(block: () -> Unit): Disposable =
+public fun Fragment.onDestroyViewOnce(block: () -> Unit): Disposable =
     addViewLifecycleObserver(once = true) { it.onDestroyOnce(block) }
 
 private class OnResumeObserver(
@@ -211,7 +211,7 @@ private class OnResumeObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onResume(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onResume(block: () -> Unit): Disposable =
     addObserver(OnResumeObserver(lifecycle, false, block))
 
 /**
@@ -219,7 +219,7 @@ fun LifecycleOwner.onResume(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onResumeOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onResumeOnce(block: () -> Unit): Disposable =
     addObserver(OnResumeObserver(lifecycle, true, block))
 
 private class OnPauseObserver(
@@ -241,7 +241,7 @@ private class OnPauseObserver(
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onPause(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onPause(block: () -> Unit): Disposable =
     addObserver(OnPauseObserver(lifecycle, false, block))
 
 /**
@@ -249,7 +249,7 @@ fun LifecycleOwner.onPause(block: () -> Unit): Disposable =
  *
  * @return [Disposable] that allows removing the observer.
  */
-fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
+public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
     addObserver(OnPauseObserver(lifecycle, true, block))
 
 /**
@@ -262,7 +262,7 @@ fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
  * The returned `Job` will be canceled when the `Lifecycle` is stopped (`Lifecycle.Event.ON_STOP`).
  * This means you should usually call this function in e.g. `Fragment.onStart()`.
  */
-fun LifecycleOwner.launchWhileStarted(block: suspend CoroutineScope.() -> Unit): Job {
+public fun LifecycleOwner.launchWhileStarted(block: suspend CoroutineScope.() -> Unit): Job {
     val job = lifecycleScope.launchWhenStarted {
         block()
     }
@@ -280,7 +280,7 @@ fun LifecycleOwner.launchWhileStarted(block: suspend CoroutineScope.() -> Unit):
  * The returned `Job` will be canceled when the `Lifecycle` is paused (`Lifecycle.Event.ON_PAUSE`).
  * This means you should usually call this function in e.g. `Fragment.onResume()`.
  */
-fun LifecycleOwner.launchWhileResumed(block: suspend CoroutineScope.() -> Unit): Job {
+public fun LifecycleOwner.launchWhileResumed(block: suspend CoroutineScope.() -> Unit): Job {
     val job = lifecycleScope.launchWhenResumed {
         block()
     }

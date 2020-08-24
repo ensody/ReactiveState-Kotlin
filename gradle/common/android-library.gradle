@@ -8,6 +8,10 @@ ext.androidLibrary = { minVersion, targetVersion = 29 ->
             consumerProguardFiles 'consumer-rules.pro'
         }
 
+        kotlinOptions {
+            freeCompilerArgs = ["-Xexplicit-api=strict"]
+        }
+
         buildTypes {
             release {
                 minifyEnabled false

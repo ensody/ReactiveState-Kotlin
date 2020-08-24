@@ -11,12 +11,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.CoroutineScope
 
-class TestState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
+internal class TestState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
     val name = store.getData("name", "")
     val count = store.getData("count", 0)
 }
 
-class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+internal class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val state = TestState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
 }
 

@@ -16,10 +16,10 @@ import androidx.lifecycle.*
  * manually call [run].
  * @param [observer] The callback which is used to track the observables.
  */
-fun ViewModel.autoRun(
+public fun ViewModel.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
-) = viewModelScope.autoRun(onChange, observer)
+): AutoRunner<Unit> = viewModelScope.autoRun(onChange, observer)
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
@@ -39,7 +39,7 @@ fun ViewModel.autoRun(
  * manually call [run].
  * @param [observer] The callback which is used to track the observables.
  */
-fun LifecycleOwner.autoRun(
+public fun LifecycleOwner.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>
 ): AutoRunner<Unit> {
@@ -60,7 +60,7 @@ fun LifecycleOwner.autoRun(
 }
 
 /** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
+public fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
 
 private fun <T, D : LiveData<T>> Resolver.track(data: D): D =
     track(data) { LiveDataObservable(data, autoRunner) }
