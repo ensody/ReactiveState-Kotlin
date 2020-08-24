@@ -43,7 +43,7 @@ inline fun <reified T : ViewModel> Fragment.stateViewModel(crossinline provider:
             override fun <T : ViewModel?> create(
                 key: String,
                 modelClass: Class<T>,
-                handle: SavedStateHandle
+                handle: SavedStateHandle,
             ): T = provider(handle) as T
         }
     }
@@ -54,13 +54,15 @@ inline fun <reified T : ViewModel> Fragment.stateViewModel(crossinline provider:
  * The [provider] should instantiate the `ViewModel` directly.
  */
 @Suppress("UNCHECKED_CAST")
-inline fun <reified T : ViewModel> Fragment.activityStateViewModel(crossinline provider: (handle: SavedStateHandle) -> T) =
+inline fun <reified T : ViewModel> Fragment.activityStateViewModel(
+    crossinline provider: (handle: SavedStateHandle) -> T,
+) =
     activityViewModels<T> {
         object : AbstractSavedStateViewModelFactory(requireActivity(), null) {
             override fun <T : ViewModel?> create(
                 key: String,
                 modelClass: Class<T>,
-                handle: SavedStateHandle
+                handle: SavedStateHandle,
             ): T = provider(handle) as T
         }
     }

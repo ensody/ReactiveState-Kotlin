@@ -60,15 +60,6 @@ fun LifecycleOwner.autoRun(
 }
 
 /** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: MutableLiveDataNonNull<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: DerivedLiveData<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: LiveDataNonNullProxy<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
 fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
 
 private fun <T, D : LiveData<T>> Resolver.track(data: D): D =

@@ -10,13 +10,11 @@ This library is split into two separate modules for Kotlin ([`core`](https://ens
 
 ### Keeping UI in sync with state
 
-Note: While this is an Android example, `autoRun` (`core`) also has experimental support for `StateFlow` which is multi-platform compatible.
-
 ```kotlin
 class MainViewModel : ViewModel() {
-    // You can also use the normal MutableLiveData, but then you'll have to deal with null.
-    val name = MutableLiveDataNonNull("")
-    val counter = MutableLiveDataNonNull(0)
+    // You can also use MutableLiveData, but then you'll have to deal with null.
+    val name = MutableStateFlow("")
+    val counter = MutableStateFlow(0)
 
     fun increment() {
         counter.value += 1
@@ -34,7 +32,7 @@ class MainFragment : Fragment() {
         bindTwoWay(model.name, nameInputField)
 
         autoRun {
-            // get() returns the LiveData.value and tells autoRun to re-execute
+            // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to re-execute
             // this code block whenever model.name or model.counter is changed.
             // Result: isEnabled changes while you type.
             incrementButton.isEnabled = get(model.name).isNotEmpty() && get(model.counter) < 100
@@ -53,7 +51,7 @@ On Android you can use this to keeping the UI in sync with your ViewModel. Of co
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
 
 With [`bind`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind/)
-and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind-two-way/) you can easily create one-way or two-way bindings between `LiveData` and your views.
+and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind-two-way/) you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to prevent accidental memory leaks and unnecessary resource consumption.
 This means you have to create your bindings and `AutoRunner`s in `onStart()`.
 
@@ -67,7 +65,7 @@ class MainViewModel : ViewModel() {
     val queue = conflatedWorkQueue(200)
     // This queue can be used to execute a response on the MainFragment (latest
     // instance passed in as `this`).
-    // Note: In most cases you'll want to store the result in LiveData.
+    // Note: In most cases you'll want to store the result in StateFlow/LiveData.
     // This is only meant for actual events/navigation instead of state.
     // XXX: You'll probably want to use an interface instead of MainFragment.
     val responses = thisWorkQueue<MainFragment>()
@@ -161,36 +159,6 @@ Also, an `Activity` only receives `onStop()`. In order to make the API consisten
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
 
-### Non-nullable LiveData
-
-```kotlin
-val livedata = MutableLiveData(1)
-val fixed = livedata.fixValueType()
-val nonnull = MutableLiveDataNonNull(1)
-nullable.value // => Type: Int?
-fixed.value    // => Type: Int
-nonnull.value  // => Type: Int
-
-autoRun {
-    get(livedata) // => Type: Int?
-    get(fixed)    // => Type: Int
-    get(nonnull)  // => Type: Int
-}
-
-```
-
-Android's `LiveData<T>.value` is unfortunately nullable (type `T?`).
-This leads to unnecessary null checks and complicates code even if `value` is guaranteed to never be `null`.
-
-ReactiveState provides a [`MutableLiveDataNonNull<T>`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/-mutable-live-data-non-null/)
-which fixes the type of `value` to be `T` instead of `T?`.
-In contrast to `MutableLiveData`, the constructor requires an initial value.
-When using `MutableLiveDataNonNull` with `autoRun`, the [`get`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/get/)
-function returns a non-null value (`T`) while `get()` on a normal `LiveData` returns a nullable value (`T?`).
-
-With [`LiveData.fixValueType`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-live-data/)
-you can convert an existing nullable `LiveData` into a non-nullable one.
-
 ### Flexible ViewModel instantiation
 
 ```kotlin
@@ -260,13 +228,13 @@ class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     val state = MainState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
 }
 
-class MainState(scope: CoroutineScope, store: LiveDataStore) : Scoped(scope) {
-    val count = store.getLiveData("count", 0)
+class MainState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
+    val count = store.getData("count", 0)
 
     // These store form data
-    val username = store.getLiveData("username", "")
-    val password = store.getLiveData("password", "")
-    val usernameError = MutableLiveDataNonNull("")
+    val username = store.getData("username", "")
+    val password = store.getData("password", "")
+    val usernameError = MutableStateFlow("")
     val passwordError = derived {
         validatePassword(get(password))
     }
@@ -279,7 +247,7 @@ class MainState(scope: CoroutineScope, store: LiveDataStore) : Scoped(scope) {
 
     init {
         // Instead of derived you can also use autoRun for more complex
-        // cases (e.g. if you need to set multiple LiveData values or
+        // cases (e.g. if you need to set multiple StateFlow/LiveData values or
         // you want to deal with coroutines and throttling/debouncing).
         autoRun {
             usernameError.value = validateUsername(get(username))

@@ -1,5 +1,14 @@
 # Changelog
 
+## Next release
+
+This release makes the final migration to `StateFlow` and removes unnecessary LiveData APIs:
+
+* Removed `MutableLiveDataNonNull` and other non-null LiveData helpers.
+* Removed `DerivedLiveData`. Use `DerivedStateFlow`/`derived` instead.
+* Switched all code examples to `StateFlow`.
+* Upgraded to Kotlin 1.4.
+
 ## 0.12.0
 
 Breaking changes (migration to `StateFlow`):
@@ -16,7 +25,7 @@ Other changes:
 
 ## 0.11.4
 
-* Switched to api instead of implementation for most dependencies.
+* Switched to `api` instead of `implementation` for most dependencies.
 
 ## 0.11.3
 
