@@ -39,22 +39,22 @@ public fun <T> Flow<T>.addDelay(timeoutMillis: Long): Flow<T> {
 }
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-public fun <T> CoroutineScope.workQueue(): WorkQueue<T> = WorkQueue<T>(this)
+public fun <T> CoroutineScope.workQueue(): WorkQueue<T> = WorkQueue(this)
 
 /** Creates a [WorkQueue]. You have to manually call `consume()`. */
-public fun <T> Scoped.workQueue(): WorkQueue<T> = scope.workQueue<T>()
+public fun <T> Scoped.workQueue(): WorkQueue<T> = scope.workQueue()
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
-public fun <T> CoroutineScope.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = WorkQueue<suspend (T) -> Unit>(this)
+public fun <T> CoroutineScope.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = WorkQueue(this)
 
 /** Creates a [WorkQueue] for lambdas taking an argument. You have to manually call `consume()`. */
-public fun <T> Scoped.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = scope.argWorkQueue<T>()
+public fun <T> Scoped.argWorkQueue(): WorkQueue<suspend (T) -> Unit> = scope.argWorkQueue()
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
-public fun <T> CoroutineScope.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = WorkQueue<suspend T.() -> Unit>(this)
+public fun <T> CoroutineScope.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = WorkQueue(this)
 
 /** Creates a [WorkQueue] for lambdas taking a `this` argument. You have to manually call `consume()`. */
-public fun <T> Scoped.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = scope.thisWorkQueue<T>()
+public fun <T> Scoped.thisWorkQueue(): WorkQueue<suspend T.() -> Unit> = scope.thisWorkQueue()
 
 /** Creates a [WorkQueue] and starts consuming it with the given [config]. */
 public fun <T> CoroutineScope.workQueue(workers: Int = 1, config: WorkQueueConfigCallback<T>): WorkQueue<T> =
@@ -66,19 +66,19 @@ public fun <T> Scoped.workQueue(workers: Int = 1, config: WorkQueueConfigCallbac
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
 public fun CoroutineScope.simpleWorkQueue(workers: Int = 1): WorkQueue<suspend () -> Unit> =
-    workQueue<WorkQueueEntry>(workers = workers) { worker() }
+    workQueue(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [worker]. */
 public fun Scoped.simpleWorkQueue(workers: Int = 1): WorkQueue<suspend () -> Unit> =
-    workQueue<WorkQueueEntry>(workers = workers) { worker() }
+    workQueue(workers = workers) { worker() }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
 public fun CoroutineScope.conflatedWorkQueue(timeoutMillis: Long = 0L): WorkQueue<suspend () -> Unit> =
-    workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
+    workQueue { conflatedWorker(timeoutMillis) }
 
 /** Creates a [WorkQueue] of simple lambdas and starts consuming it with [conflatedWorker]. */
 public fun Scoped.conflatedWorkQueue(timeoutMillis: Long = 0L): WorkQueue<suspend () -> Unit> =
-    workQueue<WorkQueueEntry> { conflatedWorker(timeoutMillis) }
+    workQueue { conflatedWorker(timeoutMillis) }
 
 /**
  * Executes tasks, allowing to conflate/debounce/sample/etc. the execution.
