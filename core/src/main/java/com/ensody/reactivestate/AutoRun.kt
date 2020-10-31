@@ -24,7 +24,7 @@ public typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
  */
 public fun CoroutineScope.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
+    observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> =
     AutoRunner(this, onChange, observer).apply {
         disposeOnCompletionOf(this@autoRun)
@@ -47,7 +47,7 @@ public fun CoroutineScope.autoRun(
  */
 public fun CoroutineScopeOwner.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
+    observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> =
     scope.autoRun(onChange, observer)
 
@@ -78,7 +78,7 @@ public abstract class BaseAutoRunner : AttachedDisposables {
 public class AutoRunner<T>(
     override val autoRunnerScope: CoroutineScope,
     onChange: AutoRunOnChangeCallback<T>? = null,
-    private val observer: AutoRunCallback<T>
+    private val observer: AutoRunCallback<T>,
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     public val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
@@ -130,7 +130,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
      */
     public fun <S : Any, T : AutoRunnerObservable> track(
         underlyingObservable: S,
-        getObservable: () -> T
+        getObservable: () -> T,
     ): S {
         if (underlyingObservable !in observables) {
             val existing = autoRunner.resolver.observables[underlyingObservable]

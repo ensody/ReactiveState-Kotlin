@@ -26,7 +26,7 @@ private fun Fragment.addViewLifecycleObserver(
     val onDestroyDisposable = DisposableGroup()
     group.add(onDestroyDisposable)
     // We have to use lifecycleScope.autoRun because LifecycleOwner.autoRun only runs within one
-    // single onStart/onStop cycle. Here we want to execute autoRun during the whole lifetime.
+    // single onCreateView/onDestroyView cycle. Here we want to execute autoRun during the whole lifetime.
     group.add(lifecycleScope.autoRun {
         onDestroyDisposable.dispose()
         get(viewLifecycleOwnerLiveData)?.let {

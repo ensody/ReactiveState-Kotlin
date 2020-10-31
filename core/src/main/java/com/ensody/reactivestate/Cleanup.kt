@@ -93,11 +93,11 @@ public class DisposableGroup : Disposable {
 }
 
 /** Helper for adding a completion handler to a [CoroutineContext]. */
-internal fun CoroutineContext.invokeOnCompletion(handler: CompletionHandler): Disposable =
+public fun CoroutineContext.invokeOnCompletion(handler: CompletionHandler): Disposable =
     this[Job]!!.invokeOnCompletion(handler)
 
 /** Helper for adding a completion handler to a [CoroutineScope]. */
-internal fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disposable =
+public fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disposable =
     coroutineContext.invokeOnCompletion(handler)
 
 /** Disposes the [Disposable] when [Job] completes (including cancellation). */
@@ -142,15 +142,10 @@ public fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
  *         savedInstanceState: Bundle?
  *     ): View {
  *         binding = MainFragmentBinding.inflate(inflater, container, false)
+ *         val username = binding.username
+ *         // ...
  *         return binding.root
  *     }
- * }
- *
- * override fun onStart() {
- *     // ...
- *
- *     val username = binding.username
- *     // ...
  * }
  * ```
  */

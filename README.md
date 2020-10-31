@@ -24,7 +24,10 @@ class MainViewModel : ViewModel() {
 class MainFragment : Fragment() {
     private val viewModel by viewModels<MainViewModel>()
 
-    override fun onStart() {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         // ...
         // val nameInputField = ...
         // val incrementButton = ...
@@ -41,6 +44,8 @@ class MainFragment : Fragment() {
         incrementButton.setOnClickListener {
             viewModel.increment()
         }
+        
+        // ...
     }
 }
 ```
@@ -48,12 +53,11 @@ class MainFragment : Fragment() {
 With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`Scoped`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-scoped/), `CoroutineScope`, etc.)
 you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
 On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
-Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle.
+Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle in order to prevent accidental crashes and unnecessary resource consumption.
 
 With [`bind`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind/)
 and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind-two-way/) you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
-These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` in order to prevent accidental memory leaks and unnecessary resource consumption.
-This means you have to create your bindings and `AutoRunner`s in `onStart()`.
+These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` (same as with `autoRun`).
 
 Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
 
@@ -93,13 +97,18 @@ class MainFragment : Fragment(), MainView {
 
     // ...
 
-    override fun onStart() {
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         // ...
         // val button = ...
 
         button.setOnClickListener {
             viewModel.someAction()
         }
+
+        // ...
     }
 
     fun showMessage(message: String) {
@@ -133,11 +142,6 @@ Also, you can use extension functions like
 and [`launchWhileResumed`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-resumed/)
 to only execute a coroutine as long as the UI is not stopped. Once stopped, the coroutine is canceled.
 In contrast to Android's `launchWhenStarted` this terminates the coroutine instead of suspending it.
-
-Since the start/stop (and resume/pause) lifecycle matches most closely to a `LifecycleOwner`'s visibility/usage, most of ReactiveState's Android extension functions require launching in `onStart()` and then the code auto-terminates/disposes when the lifecycle triggers an `onStop()`.
-Normally, you only want to update the UI when it's visible (in the foreground), anyway. For any other background processing you can still use e.g. `autoRun` on `ViewModel` or `lifecycleScope` and have the UI re-sync in `onStart()` once it becomes visible again.
-The `onCreateView()`/`onDestroyView()` cycle (via `viewLifecycleOwner`) isn't used because when the `Fragment`'s `Activity` moves to the back stack you only receive an `onStop()` without `onDestroyView()`.
-Also, an `Activity` only receives `onStop()`. In order to make the API consistent and prevent surprises we just use `onStart()`/`onStop()`.
 
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
@@ -250,13 +254,6 @@ class MainFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         binding = MainFragmentBinding.inflate(inflater, container, false)
-        return binding.root
-    }
-
-    // All bindings and autoRun calls get disposed during onStop(), so
-    // we always re-create them in onStart()
-    override fun onStart() {
-        super.onStart()
 
         // Two-way bindings (String/TextView or Bool/CompoundButton)
         bindTwoWay(viewModel.username, binding.username)
@@ -288,6 +285,8 @@ class MainFragment : Fragment() {
         binding.increment.setOnClickListener {
             viewModel.increment()
         }
+
+        return binding.root
     }
 }
 ```

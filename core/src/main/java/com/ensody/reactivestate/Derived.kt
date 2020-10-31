@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 
 public class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: AutoRunCallback<T>) : StateFlow<T> {
     private var initialized = false
-    private val autoRunner = AutoRunner<T>(scope) {
+    private val autoRunner = AutoRunner(scope) {
         val result = observer()
         if (initialized) {
             updateValue(result)

@@ -23,7 +23,7 @@ internal class BindingTest {
         lateinit var fragment: TestFragment
         scenario.onFragment { fragment = it }
 
-        fragment.apply {
+        fragment.run {
             bindTwoWay(viewModel.name, textView)
             viewModel.count.value = 1
             viewModel.name.value = "test"
@@ -34,7 +34,7 @@ internal class BindingTest {
 
         // Bindings should auto-dispose themselves
         scenario.moveToState(Lifecycle.State.CREATED)
-        fragment.apply {
+        fragment.run {
             viewModel.name.value = "test"
             assertThat(textView.text.toString()).isNotEqualTo(viewModel.name.value)
         }
@@ -43,7 +43,7 @@ internal class BindingTest {
         scenario.recreate()
         scenario.onFragment { fragment = it }
         scenario.moveToState(Lifecycle.State.RESUMED)
-        fragment.apply {
+        fragment.run {
             bindTwoWay(viewModel.name, textView)
             assertThat(viewModel.name.value).isEqualTo("test")
             assertThat(textView.text.toString()).isEqualTo(viewModel.name.value)

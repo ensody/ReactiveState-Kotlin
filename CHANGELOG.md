@@ -2,12 +2,16 @@
 
 ## Next release
 
-This release makes the final migration to `StateFlow` and removes unnecessary LiveData APIs:
+This release makes the final migration to `StateFlow`/`ValueFlow` and removes unnecessary LiveData APIs:
 
+* `autoRun` should now be launched in `Activity.onCreate()`/`Fragment.onCreateView()` instead of `onStart()`. It will automatically only observe between `onStart()`/`onStop()`.
 * Removed `MutableLiveDataNonNull` and other non-null LiveData helpers.
 * Removed `DerivedLiveData`. Use `DerivedStateFlow`/`derived` instead.
+* Removed `workQueue`.
+* Added `MutableValueFlow` which, unlike `MutableStateFlow`, doesn't compare value changes and offers an in-place `update { ... }` method. This makes it easier to use with mutable values.
+* Added `EventNotifier` which allows sending one-time events to the UI.
 * Switched all code examples to `StateFlow`.
-* Upgraded to Kotlin 1.4.
+* Upgraded to Kotlin 1.4.10.
 
 ## 0.12.0
 

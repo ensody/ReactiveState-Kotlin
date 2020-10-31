@@ -146,7 +146,7 @@ internal class LifecycleTest {
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_START)
         assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
-        assertThat(run).isEqualTo(1)
+        assertThat(run).isEqualTo(2)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
         assertThat(stop).isEqualTo(1)
@@ -158,7 +158,7 @@ internal class LifecycleTest {
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_RESUME)
         assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
-        assertThat(run).isEqualTo(1)
+        assertThat(run).isEqualTo(2)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
         assertThat(stop).isEqualTo(1)
@@ -170,7 +170,7 @@ internal class LifecycleTest {
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_PAUSE)
         assertThat(owner.lifecycleValue).isEqualTo("I have a value!")
-        assertThat(run).isEqualTo(1)
+        assertThat(run).isEqualTo(2)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
         assertThat(stop).isEqualTo(1)
@@ -184,7 +184,7 @@ internal class LifecycleTest {
         assertThat {
             owner.lifecycleValue
         }.isFailure().isInstanceOf(IllegalStateException::class)
-        assertThat(run).isEqualTo(1)
+        assertThat(run).isEqualTo(2)
         assertThat(start).isEqualTo(2)
         assertThat(startOnce).isEqualTo(1)
         assertThat(stop).isEqualTo(2)
