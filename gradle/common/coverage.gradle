@@ -6,7 +6,7 @@ ext.installCoverageDeps = {
     }
 }
 
-ext.trackCoverage = {
+ext.trackCoverage = { enableTestCoverage ->
     apply plugin: 'jacoco'
 
     tasks.withType(Test) {
@@ -20,7 +20,7 @@ ext.trackCoverage = {
         android {
             buildTypes {
                 debug {
-                    testCoverageEnabled = hasInstrumentationTests && System.getenv("RUNNING_ON_CI") == "true"
+                    testCoverageEnabled = enableTestCoverage
                 }
             }
 

@@ -25,6 +25,8 @@ public class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: Au
         data.value = value
     }
 
+    override val replayCache: List<T> get() = data.replayCache
+
     override val value: T get() = data.value
 
     @InternalCoroutinesApi
@@ -35,5 +37,5 @@ public class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: Au
 public fun <T> CoroutineScope.derived(observer: AutoRunCallback<T>): StateFlow<T> =
     DerivedStateFlow(this, observer)
 
-public fun <T> Scoped.derived(observer: AutoRunCallback<T>): StateFlow<T> =
+public fun <T> CoroutineScopeOwner.derived(observer: AutoRunCallback<T>): StateFlow<T> =
     scope.derived(observer)

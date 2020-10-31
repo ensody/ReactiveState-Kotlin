@@ -22,24 +22,24 @@ class MainViewModel : ViewModel() {
 }
 
 class MainFragment : Fragment() {
-    private val model by viewModels<MainViewModel>()
+    private val viewModel by viewModels<MainViewModel>()
 
     override fun onStart() {
         // ...
         // val nameInputField = ...
         // val incrementButton = ...
 
-        bindTwoWay(model.name, nameInputField)
+        bindTwoWay(viewModel.name, nameInputField)
 
         autoRun {
             // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to re-execute
             // this code block whenever model.name or model.counter is changed.
             // Result: isEnabled changes while you type.
-            incrementButton.isEnabled = get(model.name).isNotEmpty() && get(model.counter) < 100
+            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.counter) < 100
         }
 
         incrementButton.setOnClickListener {
-            model.increment()
+            viewModel.increment()
         }
     }
 }
@@ -65,14 +65,12 @@ interface MainView {
 }
 
 class MainViewModel : ViewModel() {
-    // This queue can be used to throttle actions using 200ms windows
-    val queue = conflatedWorkQueue(200)
     // This queue can be used to send events to the MainView in the STARTED lifecycle state.
     // Instead of boilerplaty event classes we use a simple MainView interface with methods.
-    val viewExecutor = thisWorkQueue<MainView>()
+    val viewExecutor = EventNotifier<MainView>()
 
     fun someAction() {
-        queue.launch {
+        viewModelScope.launch {
             val result = api.requestSomeAction()
 
             // Switch back to MainFragment (the latest visible instance).
@@ -113,17 +111,7 @@ class MainFragment : Fragment(), MainView {
 On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
 To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
 
-In order to simplify this pattern, ReactiveState provides [`WorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-work-queue/) and helpers like
-[conflatedWorkQueue](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/conflated-work-queue/)
-(available for `LifecycleOwner`, `ViewModel`, `CoroutineScope`, [`Scoped`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-scoped/), etc.).
-A `WorkQueue` is just a `Channel` and a `Flow` consuming that channel.
-You get full access to the `Flow` to configure it however you want (`debounce()`, `conflate()`, `mapLatest()`, etc.).
-
-Usually, you'd use a `WorkQueue` to throttle UI events and execute event handlers in a `ViewModel`.
-Also, you can build an event pipeline between the UI and the `ViewModel` with helpers like [`thisWorkQueue`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-view-model/this-work-queue/) (see example above).
-Of course, you can also throttle UI events with [FlowBinding](https://github.com/ReactiveCircus/FlowBinding) and only use a `WorkQueue` to serialize the event execution or handle request-response-style messaging.
-
-While you can process any type of event in a `WorkQueue`, most helper methods are built around processing lambda functions, so you don't need to write boilerplate (defining event classes and dispatching on them in huge `when` statements):
+In order to simplify this pattern, ReactiveState provides [`EventNotifier`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-event-notifier/).
 
 ### Automatic cleanups based on lifecycle state
 
@@ -216,14 +204,9 @@ allprojects {
 Example `ViewModel`:
 
 ```kotlin
-// We separate the actual state object from ViewModel because this
-// makes most of our code platform-independent (e.g. works on Android and iOS)
-// and allows writing unit tests without Robolectric.
 class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val state = MainState(viewModelScope, SavedStateHandleStore(viewModelScope, savedStateHandle))
-}
+    val store = SavedStateHandleStore(viewModelScope, savedStateHandle)
 
-class MainState(scope: CoroutineScope, store: StateFlowStore) : Scoped(scope) {
     val count = store.getData("count", 0)
 
     // These store form data
@@ -259,8 +242,7 @@ Example `Fragment` (using view bindings for type safety):
 
 ```kotlin
 class MainFragment : Fragment() {
-    private val model by stateViewModel { MainViewModel(it) }
-    private val state get() = model.state
+    private val viewModel by stateViewModel { MainViewModel(it) }
     private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
 
     override fun onCreateView(
@@ -277,34 +259,34 @@ class MainFragment : Fragment() {
         super.onStart()
 
         // Two-way bindings (String/TextView or Bool/CompoundButton)
-        bindTwoWay(state.username, binding.username)
-        bindTwoWay(state.password, binding.password)
+        bindTwoWay(viewModel.username, binding.username)
+        bindTwoWay(viewModel.password, binding.password)
 
         // One-way bindings (also possible in the other direction)
-        bind(binding.usernameError, state.usernameError)
-        bind(binding.passwordError, state.passwordError)
+        bind(binding.usernameError, viewModel.usernameError)
+        bind(binding.passwordError, viewModel.passwordError)
 
         // One-way binding using more flexible autoRun callback style.
         bind(binding.count) {
             // NOTE: You'll probably want to localize this string.
-            "${get(state.count)}"
+            "${get(viewModel.count)}"
         }
 
         // Even more complicated cases can use autoRun directly.
         autoRun {
             // Only enable submit button if form is valid
-            binding.submitButton.isEnabled = get(state.isFormValid)
+            binding.submitButton.isEnabled = get(viewModel.isFormValid)
         }
 
         autoRun {
-            val invalid = get(state.usernameError).isNotEmpty()
+            val invalid = get(viewModel.usernameError).isNotEmpty()
             // Show username error TextView only when there is an error
             binding.usernameError.visibility =
                 if (invalid) View.VISIBLE else View.GONE
         }
 
         binding.increment.setOnClickListener {
-            state.increment()
+            viewModel.increment()
         }
     }
 }
