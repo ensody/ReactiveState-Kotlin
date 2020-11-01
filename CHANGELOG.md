@@ -1,16 +1,17 @@
 # Changelog
 
-## Next release
+## 0.13.0
 
-This release makes the final migration to `StateFlow`/`ValueFlow` and removes unnecessary LiveData APIs:
+After a long period of tuning the API and use at several companies this release introduces the hopefully last set of major breaking changes.
 
-* `autoRun` should now be launched in `Activity.onCreate()`/`Fragment.onCreateView()` instead of `onStart()`. It will automatically only observe between `onStart()`/`onStop()`.
-* Removed `MutableLiveDataNonNull` and other non-null LiveData helpers.
+This is the final migration to `Flow`-based APIs like `StateFlow`/`SharedFlow`/`ValueFlow` and removal of obsolete APIs.
+
+* `autoRun` now auto-disposes in `Activity.onDestroy`/`Fragment.onDestroyView`, so usually it should be launched in `Activity.onCreate()`/`Fragment.onCreateView()` (previously `onStart()`). It still automatically observes only between `onStart()`/`onStop()`.
+* Removed `MutableLiveDataNonNull` and other non-null LiveData helpers. Use `MutableStateFlow` and `MutableValueFlow` instead.
+* Added `MutableValueFlow` which implements `MutableStateFlow`, but doesn't have `distinctUntilChanged` behavior and offers an in-place `update { it.attr = ... }` method. This makes it safer and easier to use with mutable values.
 * Removed `DerivedLiveData`. Use `DerivedStateFlow`/`derived` instead.
-* Removed `workQueue`.
-* Added `MutableValueFlow` which, unlike `MutableStateFlow`, doesn't compare value changes and offers an in-place `update { ... }` method. This makes it easier to use with mutable values.
-* Added `EventNotifier` which allows sending one-time events to the UI.
-* Switched all code examples to `StateFlow`.
+* Replaced `workQueue` with the much simpler `EventNotifier` which allows sending one-time events to the UI.
+* Replaced `Scoped` with a simple `CoroutineScopeOwner` interface.
 * Upgraded to Kotlin 1.4.10.
 
 ## 0.12.0
