@@ -2,7 +2,7 @@
 // * https://gist.github.com/Robyer/a6578e60127418b380ca133a1291f017
 // * https://stackoverflow.com/questions/26874498/publish-an-android-library-to-maven-with-aar-and-source-jar
 
-ext.publish = { publishUrl, publishUsername, publishPassword ->
+ext.publish = { publishUrl, publishUsername, publishPassword, publishWithSources = true ->
     apply plugin: "maven-publish"
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
@@ -19,7 +19,9 @@ ext.publish = { publishUrl, publishUsername, publishPassword ->
                 publications {
                     release(MavenPublication) {
                         from components.java
-                        artifact sourcesJar
+                        if (publishWithSources) {
+                            artifact sourcesJar
+                        }
                     }
                 }
             }
@@ -36,7 +38,9 @@ ext.publish = { publishUrl, publishUsername, publishPassword ->
                 publications {
                     release(MavenPublication) {
                         from components.release
-                        artifact androidSourcesJar
+                        if (publishWithSources) {
+                            artifact androidSourcesJar
+                        }
                     }
                 }
             }

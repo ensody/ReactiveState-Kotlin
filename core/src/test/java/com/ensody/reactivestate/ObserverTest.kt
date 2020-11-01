@@ -4,18 +4,17 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class ObserverTest {
+internal class ObserverTest {
     @Test
     fun autoRunOnCoroutineScope() = runBlockingTest {
-        val source = MutableStateFlow(0)
-        val target = MutableStateFlow(-1)
+        val source = MutableValueFlow(0)
+        val target = MutableValueFlow(-1)
         val job = launch {
             val runner = autoRun { target.value = 2 * get(source) }
 
@@ -49,8 +48,8 @@ class ObserverTest {
 
     @Test
     fun derivedObservableOnCoroutineScope() = runBlockingTest {
-        val source = MutableStateFlow(0)
-        var target: StateFlow<Int> = MutableStateFlow(-1)
+        val source = MutableValueFlow(0)
+        var target: StateFlow<Int> = MutableValueFlow(-1)
         val job = launch {
             target = derived { 2 * get(source) }
 

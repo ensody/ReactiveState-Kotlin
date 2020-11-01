@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.13.0
+
+After a long period of tuning the API and use at several companies this release introduces the hopefully last set of major breaking changes.
+
+This is the final migration to `Flow`-based APIs like `StateFlow`/`SharedFlow`/`ValueFlow` and removal of obsolete APIs.
+
+* `autoRun` now auto-disposes in `Activity.onDestroy`/`Fragment.onDestroyView`, so usually it should be launched in `Activity.onCreate()`/`Fragment.onCreateView()` (previously `onStart()`). It still automatically observes only between `onStart()`/`onStop()`.
+* Removed `MutableLiveDataNonNull` and other non-null LiveData helpers. Use `MutableStateFlow` and `MutableValueFlow` instead.
+* Added `MutableValueFlow` which implements `MutableStateFlow`, but doesn't have `distinctUntilChanged` behavior and offers an in-place `update { it.attr = ... }` method. This makes it safer and easier to use with mutable values.
+* Removed `DerivedLiveData`. Use `DerivedStateFlow`/`derived` instead.
+* Replaced `workQueue` with the much simpler `EventNotifier` which allows sending one-time events to the UI.
+* Replaced `Scoped` with a simple `CoroutineScopeOwner` interface.
+* Upgraded to Kotlin 1.4.10.
+
 ## 0.12.0
 
 Breaking changes (migration to `StateFlow`):
@@ -16,7 +30,7 @@ Other changes:
 
 ## 0.11.4
 
-* Switched to api instead of implementation for most dependencies.
+* Switched to `api` instead of `implementation` for most dependencies.
 
 ## 0.11.3
 

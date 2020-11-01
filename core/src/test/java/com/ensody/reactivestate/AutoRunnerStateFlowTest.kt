@@ -10,9 +10,9 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-class AutoRunnerStateFlowTest {
+internal class AutoRunnerStateFlowTest {
     @Test
-    fun `autoRun with StateFlow`() = runBlockingTest {
+    fun `autoRun with StateFlow`(): Unit = runBlockingTest {
         val source = MutableStateFlow(0)
         val target = MutableStateFlow(-1)
         val finished = CompletableDeferred<Unit>()

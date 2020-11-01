@@ -1,28 +1,15 @@
 ext.androidLibrary = { minVersion, targetVersion = 29 ->
     apply plugin: 'com.android.library'
-    apply plugin: 'kotlin-android'
-    apply plugin: 'kotlin-android-extensions'
+    apply from: "$rootDir/gradle/common/android-common.gradle"
+    androidCommon(minVersion, targetVersion)
 
     android {
-        compileSdkVersion targetVersion
-
-        compileOptions {
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+        defaultConfig {
+            consumerProguardFiles 'consumer-rules.pro'
         }
 
         kotlinOptions {
-            jvmTarget = "1.8"
-        }
-
-        defaultConfig {
-            minSdkVersion minVersion
-            targetSdkVersion targetVersion
-            versionCode 1
-            versionName version
-
-            testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-            consumerProguardFiles 'consumer-rules.pro'
+            freeCompilerArgs = ["-Xexplicit-api=strict"]
         }
 
         buildTypes {
@@ -30,17 +17,6 @@ ext.androidLibrary = { minVersion, targetVersion = 29 ->
                 minifyEnabled false
                 proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             }
-        }
-
-        testOptions {
-            // Needed for Robolectric
-            unitTests {
-                includeAndroidResources = true
-            }
-        }
-
-        packagingOptions {
-            pickFirst 'META-INF/*.kotlin_module'
         }
     }
 }

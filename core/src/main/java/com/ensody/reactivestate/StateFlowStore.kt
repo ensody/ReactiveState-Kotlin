@@ -8,14 +8,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * This is useful for multi-platform projects and in general for abstracting away `SavedStateHandle`,
  * so you can write unit tests (instead of instrumentation tests) without using Robolectric.
  */
-interface StateFlowStore {
-    fun contains(key: String): Boolean
+public interface StateFlowStore {
+    public fun contains(key: String): Boolean
 
-    fun <T> getData(key: String, default: T): MutableStateFlow<T>
+    public fun <T> getData(key: String, default: T): MutableStateFlow<T>
 }
 
 /** A [StateFlowStore] that can be used for unit tests or non-Android parts of multi-platform projects. */
-class InMemoryStateFlowStore : StateFlowStore {
+public class InMemoryStateFlowStore : StateFlowStore {
     private val store = mutableMapOf<String, MutableStateFlow<*>>()
 
     override fun contains(key: String): Boolean = key in store

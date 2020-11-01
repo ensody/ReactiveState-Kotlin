@@ -6,9 +6,9 @@ import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
-class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: AutoRunCallback<T>) : StateFlow<T> {
+public class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: AutoRunCallback<T>) : StateFlow<T> {
     private var initialized = false
-    private val autoRunner = AutoRunner<T>(scope) {
+    private val autoRunner = AutoRunner(scope) {
         val result = observer()
         if (initialized) {
             updateValue(result)
@@ -25,15 +25,17 @@ class DerivedStateFlow<T>(scope: CoroutineScope, private val observer: AutoRunCa
         data.value = value
     }
 
+    override val replayCache: List<T> get() = data.replayCache
+
     override val value: T get() = data.value
 
     @InternalCoroutinesApi
-    override suspend fun collect(collector: FlowCollector<T>) =
+    override suspend fun collect(collector: FlowCollector<T>): Unit =
         data.collect(collector)
 }
 
-fun <T> CoroutineScope.derived(observer: AutoRunCallback<T>) =
+public fun <T> CoroutineScope.derived(observer: AutoRunCallback<T>): StateFlow<T> =
     DerivedStateFlow(this, observer)
 
-fun <T> Scoped.derived(observer: AutoRunCallback<T>) =
+public fun <T> CoroutineScopeOwner.derived(observer: AutoRunCallback<T>): StateFlow<T> =
     scope.derived(observer)

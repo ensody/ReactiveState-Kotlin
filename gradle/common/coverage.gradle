@@ -6,7 +6,7 @@ ext.installCoverageDeps = {
     }
 }
 
-ext.trackCoverage = {
+ext.trackCoverage = { enableTestCoverage ->
     apply plugin: 'jacoco'
 
     tasks.withType(Test) {
@@ -14,12 +14,13 @@ ext.trackCoverage = {
     }
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+    def hasInstrumentationTests = isAndroidProject && project.file('src/androidTest').exists()
 
     if (isAndroidProject) {
         android {
             buildTypes {
                 debug {
-                    testCoverageEnabled = System.getenv("RUNNING_ON_CI") == "true"
+                    testCoverageEnabled = enableTestCoverage
                 }
             }
 
@@ -30,7 +31,11 @@ ext.trackCoverage = {
         }
     }
 
-    def taskDeps = isAndroidProject ? ['testDebugUnitTest', 'createDebugCoverageReport'] : ['test']
+    def androidTaskDeps = ['testDebugUnitTest']
+    if (hasInstrumentationTests) {
+        androidTaskDeps.add('createDebugCoverageReport')
+    }
+    def taskDeps = isAndroidProject ? androidTaskDeps : ['test']
     task jacocoTestReportDefault(type: JacocoReport, dependsOn: taskDeps, group: 'verification') {
         reports {
             xml.enabled = true

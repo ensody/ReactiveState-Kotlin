@@ -4,10 +4,8 @@ import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 
-// TODO: Add SavedStateHandle-like object for View
-
 /** A [StateFlowStore] that wraps a `SavedStateHandle`. */
-class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
+public class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
     StateFlowStore {
 
     private val store = InMemoryStateFlowStore()
@@ -21,9 +19,9 @@ class SavedStateHandleStore(private val scope: CoroutineScope, private val saved
         if (tracked) {
             return data
         }
-        val liveData = savedStateHandle.getLiveDataNonNull(key, default)
+        val liveData = savedStateHandle.getLiveData(key, default)
         scope.autoRun {
-            data.value = get(liveData)
+            data.value = get(liveData)!!
         }
         scope.autoRun {
             liveData.postValue(get(data))

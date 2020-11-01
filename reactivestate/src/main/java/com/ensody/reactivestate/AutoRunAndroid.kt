@@ -1,6 +1,9 @@
 package com.ensody.reactivestate
 
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 /**
  * Watches observables for changes. Often useful to keep things in sync.
@@ -16,22 +19,18 @@ import androidx.lifecycle.*
  * manually call [run].
  * @param [observer] The callback which is used to track the observables.
  */
-fun ViewModel.autoRun(
+public fun ViewModel.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
-) = viewModelScope.autoRun(onChange, observer)
+    observer: AutoRunCallback<Unit>,
+): AutoRunner<Unit> = viewModelScope.autoRun(onChange, observer)
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
- * IMPORTANT: Unlike the other `autoRun` variants this only runs between a single `onStart`/`onStop`
- * lifecycle. This is safe for use in `Fragment.onStart()`.
- * Use `lifecycleScope.autoRun` to observe during the whole object lifetime, instead.
- *
- * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ * This only executes the observer between `onStart`/`onStop`.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
- * The [AutoRunner] is automatically disposed when the `Livecycle` stops.
+ * The [AutoRunner] is automatically disposed on `Activity.onDestroy`/`Fragment.onDestroyView`.
  *
  * See [AutoRunner] for more details.
  *
@@ -39,44 +38,44 @@ fun ViewModel.autoRun(
  * manually call [run].
  * @param [observer] The callback which is used to track the observables.
  */
-fun LifecycleOwner.autoRun(
+public fun LifecycleOwner.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>
+    observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> {
-    var hasOnStop = false
-    val clearHasOnStop = OnDispose { hasOnStop = false }
-    val autoRunner = AutoRunner(lifecycleScope, onChange) {
-        if (!hasOnStop) {
-            hasOnStop = true
+    var active = false
+    lateinit var autoRunner: AutoRunner<Unit>
+    autoRunner = AutoRunner(lifecycleScope, onChange) {
+        if (!active) {
+            active = true
             autoRunner.attachedDisposables.apply {
-                add(clearHasOnStop)
-                add(onStopOnce { autoRunner.dispose() })
+                add(OnDispose { active = false })
+                add(onStopOnce {
+                    autoRunner.dispose()
+                    add(onStartOnce { autoRunner.run() })
+                    if (this@autoRun is Fragment) {
+                        add(onDestroyView { autoRunner.dispose() })
+                    } else {
+                        add(onDestroy { autoRunner.dispose() })
+                    }
+                })
             }
         }
         observer()
     }
-    autoRunner.attachedDisposables.add(onStartOnce { autoRunner.run() })
-    return autoRunner
+    return autoRunner.apply {
+        attachedDisposables.add(onStartOnce { autoRunner.run() })
+    }
 }
 
 /** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: MutableLiveDataNonNull<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: DerivedLiveData<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: LiveDataNonNullProxy<T>): T = track(data).value
-
-/** Returns [LiveData.getValue] and tracks the observable. */
-fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
+public fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
 
 private fun <T, D : LiveData<T>> Resolver.track(data: D): D =
     track(data) { LiveDataObservable(data, autoRunner) }
 
 private class LiveDataObservable(
     private val data: LiveData<*>,
-    autoRunner: BaseAutoRunner
+    autoRunner: BaseAutoRunner,
 ) : AutoRunnerObservable {
     private var ignore = false
     private val observer = Observer<Any> {
