@@ -5,7 +5,8 @@ import androidx.lifecycle.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
-private abstract class DisposableObserver(private val lifecycle: Lifecycle) : LifecycleObserver,
+private abstract class DisposableObserver(private val lifecycle: Lifecycle) :
+    LifecycleObserver,
     Disposable {
 
     override fun dispose() {
@@ -27,16 +28,18 @@ private fun Fragment.addViewLifecycleObserver(
     group.add(onDestroyDisposable)
     // We have to use lifecycleScope.autoRun because LifecycleOwner.autoRun only runs within one
     // single onCreateView/onDestroyView cycle. Here we want to execute autoRun during the whole lifetime.
-    group.add(lifecycleScope.autoRun {
-        onDestroyDisposable.dispose()
-        get(viewLifecycleOwnerLiveData)?.let {
-            onDestroyDisposable.add(create(it))
-            if (once) {
-                autoRunner.dispose()
-                group.dispose()
+    group.add(
+        lifecycleScope.autoRun {
+            onDestroyDisposable.dispose()
+            get(viewLifecycleOwnerLiveData)?.let {
+                onDestroyDisposable.add(create(it))
+                if (once) {
+                    autoRunner.dispose()
+                    group.dispose()
+                }
             }
         }
-    })
+    )
     return group
 }
 

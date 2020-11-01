@@ -131,7 +131,7 @@ public fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
  * }
  * ```
  *
- * Android-specific example (requires `reactivestate` module):
+ * Android-specific example:
  *
  * ```kotlin
  * class MainFragment : Fragment() {

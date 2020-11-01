@@ -2,8 +2,6 @@ package com.ensody.reactivestate
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 
 /**
  * Watches observables for changes. Often useful to keep things in sync.
@@ -49,15 +47,17 @@ public fun LifecycleOwner.autoRun(
             active = true
             autoRunner.attachedDisposables.apply {
                 add(OnDispose { active = false })
-                add(onStopOnce {
-                    autoRunner.dispose()
-                    add(onStartOnce { autoRunner.run() })
-                    if (this@autoRun is Fragment) {
-                        add(onDestroyView { autoRunner.dispose() })
-                    } else {
-                        add(onDestroy { autoRunner.dispose() })
+                add(
+                    onStopOnce {
+                        autoRunner.dispose()
+                        add(onStartOnce { autoRunner.run() })
+                        if (this@autoRun is Fragment) {
+                            add(onDestroyView { autoRunner.dispose() })
+                        } else {
+                            add(onDestroy { autoRunner.dispose() })
+                        }
                     }
-                })
+                )
             }
         }
         observer()
