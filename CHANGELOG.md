@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0
+
+* Fixed `MutableValueFlow.value` assignment to have `distinctUntilChanged` behavior. This should provide the best of both worlds:
+  * `emit`/`tryEmit`/`update` always emit
+  * `.value` behaves exactly like with `MutableStateFlow`
+
 ## 0.13.0
 
 After a long period of tuning the API and use at several companies this release introduces the hopefully last set of major breaking changes.

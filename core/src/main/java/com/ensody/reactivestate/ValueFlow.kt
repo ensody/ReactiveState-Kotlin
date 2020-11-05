@@ -9,10 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 public interface ValueFlow<T> : StateFlow<T>
 
 /**
- * A version of [MutableStateFlow] that doesn't compare against previous values and provides better support for
- * mutable values via the [update] operation.
+ * A version of [MutableStateFlow] that provides better support for mutable values via the [update] operation.
+ * Assigning to `.value` still has `distinctUntilChanged` behavior, but `emit`/`tryEmit` and [update] always trigger
+ * a change event.
  *
- * Example of mutating the flow.value in-place:
+ * Example of mutating the `value` in-place:
  *
  * ```
  * flow.update {
@@ -50,9 +51,8 @@ public interface ValueFlow<T> : StateFlow<T>
  * }
  * ```
  *
- * Kotlin just isn't a pure functional language with built-in lens support and it's a fact we have to deal with
- * mutable values, so a good API should prevent overly complicated code with nested copy() and stupid mistakes like
- * missing UI updates.
+ * Kotlin just isn't a pure functional language with built-in lens support and we have to deal with mutable values,
+ * so we should prevent overly complicated code with nested copy() and stupid mistakes like missing UI updates.
  *
  * That's why [MutableValueFlow] tries to make working with mutable values easy and safe.
  */
@@ -96,7 +96,11 @@ private class ValueFlowImpl<T>(initial: T) :
     override var value: T
         get() = replayCache.first()
         set(value) {
-            tryEmit(value)
+            synchronized(this) {
+                if (this.value != value) {
+                    tryEmit(value)
+                }
+            }
         }
 
     override fun compareAndSet(expect: T, update: T): Boolean {

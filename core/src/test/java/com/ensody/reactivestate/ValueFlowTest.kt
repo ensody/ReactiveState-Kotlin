@@ -18,6 +18,25 @@ internal class ValueFlowTest {
     }
 
     @Test
+    fun `ValueFlow distinctUntilChanged behavior when assigning to value`() = runBlockingTest {
+        val flow = MutableValueFlow(0)
+        val collected = mutableListOf<Int>()
+        var job = launch {
+            flow.collect { collected.add(it) }
+        }
+        advanceUntilIdle()
+
+        flow.value = 1
+        advanceUntilIdle()
+        assertThat(collected).isEqualTo(listOf(0, 1))
+        flow.value = 1
+        advanceUntilIdle()
+        assertThat(collected).isEqualTo(listOf(0, 1))
+
+        job.cancel()
+    }
+
+    @Test
     fun `ValueFlow collect emits values continuously and without equality check`() = runBlockingTest {
         val flow = MutableValueFlow(0)
         val collected = mutableListOf<Int>()
