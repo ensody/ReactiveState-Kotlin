@@ -90,14 +90,17 @@ public class AutoRunner<T>(
         attachedDisposables.dispose()
     }
 
-    /** Calls [observer] and tracks its dependencies. */
-    public fun run(): T = observe(observer)
+    /** Calls [observer] and tracks its dependencies if [track] is `true` (the default). */
+    public fun run(track: Boolean = true): T = observe(track = track, observer = observer)
 
     override fun triggerChange() {
         listener(this)
     }
 
-    private fun <T> observe(observer: AutoRunCallback<T>): T {
+    private fun <T> observe(track: Boolean = true, observer: AutoRunCallback<T>): T {
+        if (!track) {
+            return Resolver(this, track = false).observer()
+        }
         val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
@@ -116,7 +119,7 @@ public class AutoRunner<T>(
 }
 
 /** Tracks observables for [AutoRunner]. */
-public class Resolver(public val autoRunner: BaseAutoRunner) {
+public class Resolver(public val autoRunner: BaseAutoRunner, private val track: Boolean = true) {
     private val observables = mutableMapOf<Any, AutoRunnerObservable>()
 
     /**
@@ -132,7 +135,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
         underlyingObservable: S,
         getObservable: () -> T,
     ): S {
-        if (underlyingObservable !in observables) {
+        if (track && underlyingObservable !in observables) {
             val existing = autoRunner.resolver.observables[underlyingObservable]
             val observable = existing ?: getObservable()
             observables[underlyingObservable] = observable
