@@ -52,10 +52,9 @@ public fun CoroutineScopeOwner.autoRun(
     scope.autoRun(onChange, observer)
 
 /** Just the minimum interface needed for [Resolver]. No generic types. */
-public abstract class BaseAutoRunner : AttachedDisposables {
+public abstract class BaseAutoRunner : AttachedDisposables, CoroutineScopeOwner {
     internal abstract val resolver: Resolver
 
-    public abstract val autoRunnerScope: CoroutineScope
     public abstract fun triggerChange()
 }
 
@@ -76,7 +75,7 @@ public abstract class BaseAutoRunner : AttachedDisposables {
  * @param [observer] The callback which is used to track the observables.
  */
 public class AutoRunner<T>(
-    override val autoRunnerScope: CoroutineScope,
+    override val scope: CoroutineScope,
     onChange: AutoRunOnChangeCallback<T>? = null,
     private val observer: AutoRunCallback<T>,
 ) : BaseAutoRunner() {

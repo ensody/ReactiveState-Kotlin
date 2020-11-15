@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
 /** Interface for a common set of [CoroutineDispatcher]s. */
-public interface DispatcherConfig {
+public interface CoroutineDispatcherConfig {
     /** A coroutine dispatcher that behaves like [Dispatchers.Main] (i.e. confined to the main UI thread). */
     public val main: CoroutineDispatcher
     /** A coroutine dispatcher that behaves like [Dispatchers.Default]. */
@@ -15,13 +15,13 @@ public interface DispatcherConfig {
     public val unconfined: CoroutineDispatcher
 }
 
-/** The default [DispatcherConfig], mapping to [Dispatchers]. */
-public object DefaultDispatcherConfig : DispatcherConfig {
+/** The default [CoroutineDispatcherConfig], mapping to [Dispatchers]. */
+public object DefaultCoroutineDispatcherConfig : CoroutineDispatcherConfig {
     override val main: CoroutineDispatcher get() = Dispatchers.Main
     override val default: CoroutineDispatcher get() = Dispatchers.Default
     override val io: CoroutineDispatcher get() = Dispatchers.IO
     override val unconfined: CoroutineDispatcher get() = Dispatchers.Unconfined
 }
 
-/** The currently active [DispatcherConfig]. */
-public var dispatchers: DispatcherConfig = DefaultDispatcherConfig
+/** The currently active [CoroutineDispatcherConfig]. */
+public var dispatchers: CoroutineDispatcherConfig = DefaultCoroutineDispatcherConfig

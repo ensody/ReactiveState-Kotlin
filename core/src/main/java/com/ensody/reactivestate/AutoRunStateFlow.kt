@@ -19,7 +19,7 @@ private class StateFlowObservable(
 
     override fun addObserver() {
         if (observer == null) {
-            observer = autoRunner.autoRunnerScope.launch {
+            observer = autoRunner.scope.launch {
                 var ignore = true
                 data.collect {
                     if (!ignore) {
