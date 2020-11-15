@@ -28,6 +28,7 @@ subprojects {
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
     def isPlatformProject = project.name == 'dependency-versions-bom'
+    def isTestProject = project.name.endsWith('-test')
 
     repositories {
         google()
@@ -43,13 +44,29 @@ subprojects {
 
             dependencies {
                 base()
+                if (isTestProject) {
+                    baseTestLib()
+                }
             }
         } else {
             apply from: "$rootDir/gradle/common/android-library.gradle"
             androidLibrary(19)
 
+            android {
+                // Resolve build conflicts for test modules
+                if (isTestProject) {
+                    packagingOptions {
+                        pickFirst 'META-INF/AL2.0'
+                        pickFirst 'META-INF/LGPL2.1'
+                    }
+                }
+            }
+
             dependencies {
                 baseAndroid()
+                if (isTestProject) {
+                    androidTestLib()
+                }
             }
         }
 

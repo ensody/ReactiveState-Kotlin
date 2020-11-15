@@ -52,3 +52,16 @@ dependencies.ext.baseAndroid = {
         testImplementation 'org.robolectric:robolectric:4.3.1'
     }
 }
+
+dependencies.ext.baseTestLib = {
+    dependencies {
+        api 'junit:junit:4.13.1'
+        api 'org.jetbrains.kotlinx:kotlinx-coroutines-test'
+    }
+}
+
+dependencies.ext.androidTestLib = {
+    dependencies {
+        baseTestLib()
+    }
+}
