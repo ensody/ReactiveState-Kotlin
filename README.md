@@ -6,6 +6,35 @@ An easy to understand reactive state management solution for Kotlin and Android.
 
 This library is split into two separate modules for Kotlin ([`core`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/)) and Android ([`reactivestate`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/)).
 
+## Installation
+
+Add the package to your `build.gradle`'s `dependencies {}`:
+
+```groovy
+dependencies {
+    // Add the BOM using the desired ReactiveState version
+    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
+
+    // Now you can leave out the version number from all other ReactiveState modules:
+    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
+    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
+
+    implementation "com.ensody.reactivestate:core-test" // Utils for unit tests that want to use coroutines
+}
+```
+
+Also, make sure you've integrated the JCenter repo, e.g. in your root `build.gradle`:
+
+```groovy
+allprojects {
+    repositories {
+        // ...
+        jcenter()
+        // ...
+    }
+}
+```
+
 ## Use-cases
 
 ### Keeping UI in sync with state
@@ -78,7 +107,7 @@ class MainViewModel : ViewModel() {
             val result = api.requestSomeAction()
 
             // Switch back to MainFragment (the latest visible instance).
-            viewExecutor.launch {
+            viewExecutor {
                 // If the screen got rotated in the meantime, `this` would point
                 // to the new MainFragment instance instead of the destroyed one
                 // that did the initial `someAction` call above.
@@ -92,7 +121,10 @@ class MainFragment : Fragment(), MainView {
     private val viewModel: MainViewModel by viewModels()
 
     init {
-        viewModel.viewExecutor.consume(this, this)
+        // Safely execute the MainViewModel's events in the >=STARTED state
+        lifecycleScope.launchWhenStarted {
+            viewModel.viewExecutor.collect { it() }
+        }
     }
 
     // ...
@@ -137,12 +169,6 @@ These are the building blocks for your own lifecycle-aware components which can 
 [`LifecycleOwner.autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/)
 does.
 
-Also, you can use extension functions like
-[`LifecycleOwner.launchWhileStarted`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-started/)
-and [`launchWhileResumed`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/launch-while-resumed/)
-to only execute a coroutine as long as the UI is not stopped. Once stopped, the coroutine is canceled.
-In contrast to Android's `launchWhenStarted` this terminates the coroutine instead of suspending it.
-
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
 
@@ -171,29 +197,30 @@ This results in more natural code and allows passing arguments to the `ViewModel
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
 
-## Installation
+### Unit tests with coroutines
 
-Add the package to your `build.gradle`'s `dependencies {}` where `VERSION` should be replaced with the current ReactiveState version:
+```kotlin
+class MyTest : CoroutineTest() {
+    // This works because Dispatchers.Main is automatically set up correctly by CoroutineTest
+    val viewModel = MyViewModel()
 
-```groovy
-dependencies {
-    // Add the platform project, using the desired ReactiveState version.
-    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
+    // Let's use a mock to test the events emitted by MyViewModel
+    val view: MyView = mock()
 
-    // Now you can leave out the version number from all other dependencies:
-    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
-    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
-}
-```
+    @Before
+    fun setup() {
+        // You can access the TestCoroutineScope directly to launch some background processing.
+        // In this case, let's process MyViewModel's events.
+        coroutinesTestRule.testCoroutineScope.launch {
+            viewModel.viewExecutor.collect { view.it() }
+        }
+    }
 
-Also, make sure you've integrated the JCenter repo, e.g. in your root `build.gradle`:
-
-```groovy
-allprojects {
-    repositories {
-        // ...
-        jcenter()
-        // ...
+    @Test
+    fun `some test`() = runBlockingTest {
+        viewModel.doSomething()
+        advanceUntilIdle()
+        verify(view).someEvent()
     }
 }
 ```

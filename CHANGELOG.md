@@ -3,16 +3,20 @@
 ## 0.15.0
 
 * `derived` supports an optional `lazy = true` argument to observe lazily.
+* Added coroutine unit test helpers in the `com.ensody.reactivestate:core-test` module.
+* Removed `launchWhileStarted` and `launchWhileResumed`.
 * Added `dependency-versions-bom` platform project. You can now include the versions of all modules like this:
 
 ```groovy
 dependencies {
-    // Add the platform project, using the desired ReactiveState version.
+    // Add the BOM using the desired ReactiveState version
     api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
 
-    // Now you can leave out the version number from all other dependencies:
+    // Now you can leave out the version number from all other ReactiveState modules:
     implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
     implementation "com.ensody.reactivestate:reactivestate" // For Android projects
+
+    implementation "com.ensody.reactivestate:core-test" // Utils for unit tests that want to use coroutines
 }
 ```
 
