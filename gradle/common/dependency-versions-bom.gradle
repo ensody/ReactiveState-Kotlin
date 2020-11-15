@@ -1,0 +1,31 @@
+apply plugin: 'java-platform'
+apply plugin: "maven-publish"
+
+javaPlatform {
+    allowDependencies()
+}
+
+dependencies {
+    constraints {
+        for (subproject in rootProject.subprojects) {
+            if (!subproject.plugins.hasPlugin('maven-publish') || subproject.plugins.hasPlugin('java-platform')) {
+                continue
+            }
+            evaluationDependsOn(subproject.path)
+            subproject.publishing.publications.all {
+                if (it.artifactId.endsWith("-metadata") || it.artifactId.endsWith("-kotlinMultiplatform")) {
+                    return
+                }
+                api(group: it.groupId, name: it.artifactId, version: it.version)
+            }
+        }
+    }
+}
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            from components.javaPlatform
+        }
+    }
+}

@@ -16,6 +16,10 @@ buildscript {
 
 def isOnCI = System.getenv('RUNNING_ON_CI') == 'true'
 
+apply from: "$rootDir/secrets.gradle"
+def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
+def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
+
 // Base package setup
 group 'com.ensody.reactivestate'
 subprojects {
@@ -23,6 +27,7 @@ subprojects {
     version = rootProject.version
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+    def isPlatformProject = project.name == 'dependency-versions-bom'
 
     repositories {
         google()
@@ -31,37 +36,30 @@ subprojects {
 
     apply from: "$rootDir/dependencies.gradle"
 
-    if (!isAndroidProject) {
-        apply from: "$rootDir/gradle/common/kotlin-library.gradle"
-        kotlinLibrary()
+    if (!isPlatformProject) {
+        if (!isAndroidProject) {
+            apply from: "$rootDir/gradle/common/kotlin-library.gradle"
+            kotlinLibrary()
 
-        dependencies {
-            base()
-        }
-    } else {
-        apply from: "$rootDir/gradle/common/android-library.gradle"
-        androidLibrary(19)
+            dependencies {
+                base()
+            }
+        } else {
+            apply from: "$rootDir/gradle/common/android-library.gradle"
+            androidLibrary(19)
 
-        dependencies {
-            baseAndroid()
+            dependencies {
+                baseAndroid()
+            }
         }
+
+        apply from: "$rootDir/gradle/common/dokka.gradle"
+
+        apply from: "$rootDir/gradle/common/coverage.gradle"
+        trackCoverage(isOnCI)
     }
 
-    apply from: "$rootDir/gradle/common/dokka.gradle"
-
-    apply from: "$rootDir/gradle/common/coverage.gradle"
-    trackCoverage(isOnCI)
-}
-
-// Publishing packages
-apply from: "$rootDir/secrets.gradle"
-def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
-def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
-def licenses = ['MIT']
-def repoUrl = 'https://github.com/ensody/ReactiveState-Kotlin'
-def vcsUrl = "${repoUrl}.git"
-def website = repoUrl
-subprojects {
-    apply from: "$rootDir/gradle/publish-bintray.gradle"
-    publishBintray('ensody', 'maven', group, project.name, bintrayUsername, bintrayApiKey, licenses, vcsUrl, website)
+    apply from: "$rootDir/gradle/common/publish.gradle"
+    def publishUrl = "https://api.bintray.com/maven/ensody/maven/${group}:${project.name}/;publish=1"
+    publish(publishUrl, bintrayUsername, bintrayApiKey, true, !isPlatformProject)
 }

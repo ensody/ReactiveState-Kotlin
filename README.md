@@ -176,18 +176,13 @@ They just reduce the amount of boilerplate for common use-cases.
 Add the package to your `build.gradle`'s `dependencies {}` where `VERSION` should be replaced with the current ReactiveState version:
 
 ```groovy
-// For Kotlin-only projects
 dependencies {
-    // ...
-    implementation "com.ensody.reactivestate:core:VERSION"
-    // ...
-}
+    // Add the platform project, using the desired ReactiveState version.
+    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
 
-// For Android projects
-dependencies {
-    // ...
-    implementation "com.ensody.reactivestate:reactivestate:VERSION"
-    // ...
+    // Now you can leave out the version number from all other dependencies:
+    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
+    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
 }
 ```
 

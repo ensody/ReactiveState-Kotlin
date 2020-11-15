@@ -2,44 +2,46 @@
 // * https://gist.github.com/Robyer/a6578e60127418b380ca133a1291f017
 // * https://stackoverflow.com/questions/26874498/publish-an-android-library-to-maven-with-aar-and-source-jar
 
-ext.publish = { publishUrl, publishUsername, publishPassword, publishWithSources = true ->
+ext.publish = { publishUrl, publishUsername, publishPassword, publishWithSources = true, withPublication = true ->
     apply plugin: "maven-publish"
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
 
-    if (!isAndroidProject) {
-        task sourcesJar(type: Jar) {
-            archiveClassifier.set('sources')
-            from sourceSets.main.java.srcDirs
-        }
+    if (withPublication) {
+        if (!isAndroidProject) {
+            task sourcesJar(type: Jar) {
+                archiveClassifier.set('sources')
+                from sourceSets.main.java.srcDirs
+            }
 
-        // Some components are only available in the afterEvaluate phase
-        afterEvaluate {
-            publishing {
-                publications {
-                    release(MavenPublication) {
-                        from components.java
-                        if (publishWithSources) {
-                            artifact sourcesJar
+            // Some components are only available in the afterEvaluate phase
+            afterEvaluate {
+                publishing {
+                    publications {
+                        release(MavenPublication) {
+                            from components.java
+                            if (publishWithSources) {
+                                artifact sourcesJar
+                            }
                         }
                     }
                 }
             }
-        }
-    } else {
-        task androidSourcesJar(type: Jar) {
-            archiveClassifier.set('sources')
-            from android.sourceSets.main.java.srcDirs
-        }
+        } else {
+            task androidSourcesJar(type: Jar) {
+                archiveClassifier.set('sources')
+                from android.sourceSets.main.java.srcDirs
+            }
 
-        // Some components are only available in the afterEvaluate phase
-        afterEvaluate {
-            publishing {
-                publications {
-                    release(MavenPublication) {
-                        from components.release
-                        if (publishWithSources) {
-                            artifact androidSourcesJar
+            // Some components are only available in the afterEvaluate phase
+            afterEvaluate {
+                publishing {
+                    publications {
+                        release(MavenPublication) {
+                            from components.release
+                            if (publishWithSources) {
+                                artifact androidSourcesJar
+                            }
                         }
                     }
                 }

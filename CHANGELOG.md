@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.15.0
+
+* `derived` supports an optional `lazy = true` argument to observe lazily.
+* Added `dependency-versions-bom` platform project. You can now include the versions of all modules like this:
+
+```groovy
+dependencies {
+    // Add the platform project, using the desired ReactiveState version.
+    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
+
+    // Now you can leave out the version number from all other dependencies:
+    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
+    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
+}
+```
+
 ## 0.14.0
 
 * Fixed `MutableValueFlow.value` assignment to have `distinctUntilChanged` behavior. This should provide the best of both worlds:
