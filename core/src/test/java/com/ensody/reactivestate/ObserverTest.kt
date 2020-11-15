@@ -5,6 +5,7 @@ import assertk.assertions.isEqualTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
@@ -49,18 +50,42 @@ internal class ObserverTest {
     @Test
     fun derivedObservableOnCoroutineScope() = runBlockingTest {
         val source = MutableValueFlow(0)
-        var target: StateFlow<Int> = MutableValueFlow(-1)
+        lateinit var target: StateFlow<Int>
+        lateinit var lazyTarget: StateFlow<Int>
         val job = launch {
             target = derived { 2 * get(source) }
+            lazyTarget = derived(lazy = true) { 2 * get(source) }
 
             // Right after creation of the derived observable the values should be in sync
             assertThat(target.value).isEqualTo(0)
+            assertThat(lazyTarget.value).isEqualTo(0)
 
             // Setting value multiple times should work
             listOf(2, 5, 10).forEach {
                 source.value = it
                 assertThat(target.value).isEqualTo(2 * it)
+                assertThat(lazyTarget.value).isEqualTo(0)
             }
+
+            val lazyJob = launch { lazyTarget.collect() }
+            advanceUntilIdle()
+
+            // Once somebody collects the lazy derived flow, the value gets updated continuously
+            assertThat(lazyTarget.value).isEqualTo(2 * 10)
+            listOf(2, 5, 10).forEach {
+                source.value = it
+                assertThat(lazyTarget.value).isEqualTo(2 * it)
+            }
+
+            lazyJob.cancel()
+
+            // Even when nobody is listening anymore, we continue updating
+            assertThat(lazyTarget.value).isEqualTo(2 * 10)
+            listOf(2, 5, 10).forEach {
+                source.value = it
+                assertThat(lazyTarget.value).isEqualTo(2 * it)
+            }
+
             cancel()
         }
         job.join()
