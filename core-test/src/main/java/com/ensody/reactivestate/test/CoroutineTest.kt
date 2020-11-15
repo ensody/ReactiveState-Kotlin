@@ -10,13 +10,13 @@ import org.junit.Rule
  * On every test run this class automatically sets [dispatchers] to the [TestCoroutineDispatcherConfig].
  *
  * Internally, this uses a [CoroutineTestRule] which does the actual [dispatchers] setup.
- * You can access the rule via [coroutinesTestRule] in order to e.g. use the [TestCoroutineScope] in your
+ * You can access the rule via [coroutineTestRule] in order to e.g. use the [TestCoroutineScope] in your
  * `@Before` setup method.
  */
 public abstract class CoroutineTest {
     @get:Rule
-    public var coroutinesTestRule: CoroutineTestRule = CoroutineTestRule()
+    public val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 
     public open fun runBlockingTest(block: suspend TestCoroutineScope.() -> Unit): Unit =
-        coroutinesTestRule.runBlockingTest(block)
+        coroutineTestRule.runBlockingTest(block)
 }

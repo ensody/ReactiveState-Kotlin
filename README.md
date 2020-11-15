@@ -199,6 +199,8 @@ They just reduce the amount of boilerplate for common use-cases.
 
 ### Unit tests with coroutines
 
+The `CoroutineTest` base class provides some often useful helpers for working with coroutines.
+
 ```kotlin
 class MyTest : CoroutineTest() {
     // This works because Dispatchers.Main is automatically set up correctly by CoroutineTest
@@ -221,6 +223,35 @@ class MyTest : CoroutineTest() {
         viewModel.doSomething()
         advanceUntilIdle()
         verify(view).someEvent()
+    }
+}
+```
+
+This also sets up a global `dispatchers` variable which you can use in all of your code instead of passing a `CoroutineDispatcher` around as arguments:
+
+```kotlin
+// Use this instead of Dispatchers.IO. In unit tests this will automatically use
+// the TestCoroutineScope instead. Outside of unit tests it points to Dispatchers.IO.
+// You can also define your own overrides if you want.
+withContext(dispatchers.io) {
+    // do some IO
+}
+```
+
+As an alternative to `CoroutineTest`, you can also just use the `CoroutineTestRule` (e.g. if you have some existing base class):
+
+```kotlin
+class MyTest {
+    @get:Rule
+    override val coroutineTestRule = CoroutineTestRule()
+
+    // It can be useful to define this helper, so you don't always have to write coroutineTestRule.runBlockingTest
+    fun runBlockingTest(block: suspend TestCoroutineScope.() -> Unit): Unit =
+        coroutineTestRule.runBlockingTest(block)
+
+    @Test
+    fun `some test`() = runBlockingTest {
+        // ...
     }
 }
 ```
