@@ -3,7 +3,11 @@
 ## 0.15.0
 
 * `derived` supports an optional `lazy = true` argument to observe lazily.
-* Added coroutine unit test helpers in the `com.ensody.reactivestate:core-test` module.
+* Added a global `dispatchers` API for replacing `Dispatchers` (`Main`, `IO`, etc.) in a way that allows switching to `TestCoroutineDispatcher` in unit tests.
+* Added coroutine unit test helpers in the `com.ensody.reactivestate:core-test` module:
+  * `CoroutineTest` base class for tests that use coroutines. This sets up  `MainScope`, `dispatchers.io`, etc. to use `TestCoroutineDispatcher`.
+  * `CoroutineTestRule` a test rule for setting up coroutines.
+  * `CoroutineTestRuleOwner` a helper interface in case you can't use `CoroutineTest`, but still want minimal boilerplate.
 * Removed `launchWhileStarted` and `launchWhileResumed`.
 * Added `dependency-versions-bom` platform project. You can now include the versions of all modules like this:
 

@@ -195,7 +195,7 @@ The `CoroutineTest` base class provides some often useful helpers for working wi
 
 ```kotlin
 class MyTest : CoroutineTest() {
-    // This works because Dispatchers.Main is automatically set up correctly by CoroutineTest
+    // This works because MainScope/Dispatchers.Main is automatically set up correctly by CoroutineTest
     val viewModel = MyViewModel()
 
     // Let's use a mock to test the events emitted by MyViewModel
