@@ -1,5 +1,4 @@
 apply plugin: 'java-platform'
-apply plugin: "maven-publish"
 
 javaPlatform {
     allowDependencies()
@@ -18,14 +17,6 @@ dependencies {
                 }
                 api(group: it.groupId, name: it.artifactId, version: it.version)
             }
-        }
-    }
-}
-
-publishing {
-    publications {
-        release(MavenPublication) {
-            from components.javaPlatform
         }
     }
 }

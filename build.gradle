@@ -4,10 +4,9 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.1.0'
+        classpath 'com.android.tools.build:gradle:4.1.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.10"
-        classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.10.1'
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.5'
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
     }
 
     apply from: "$rootDir/gradle/common/coverage.gradle"
@@ -37,7 +36,9 @@ subprojects {
 
     apply from: "$rootDir/dependencies.gradle"
 
-    if (!isPlatformProject) {
+    if (isPlatformProject) {
+        apply from: "$rootDir/gradle/common/dependency-versions-bom.gradle"
+    } else {
         if (!isAndroidProject) {
             apply from: "$rootDir/gradle/common/kotlin-library.gradle"
             kotlinLibrary()
@@ -77,6 +78,14 @@ subprojects {
     }
 
     apply from: "$rootDir/gradle/common/publish.gradle"
-    def publishUrl = "https://api.bintray.com/maven/ensody/maven/${group}:${project.name}/;publish=1"
-    publish(publishUrl, bintrayUsername, bintrayApiKey, true, !isPlatformProject)
+    publish(
+        url: "https://api.bintray.com/maven/ensody/maven/${group}:${project.name}/;publish=1",
+        username: bintrayUsername,
+        password: bintrayApiKey,
+        name: "ReactiveState: ${project.name}",
+        description: "An easy to understand reactive state management solution for Kotlin and Android.",
+        licenses: [licenses.MIT],
+        website: "https://ensody.github.io/ReactiveState-Kotlin/",
+        repoUrl: "https://github.com/ensody/ReactiveState-Kotlin",
+    )
 }
