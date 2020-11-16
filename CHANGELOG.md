@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.2
+
+* Added `buildViewModel` and `stateViewModel` extension functions for `Activity`.
+
 ## 0.15.0
 
 * `derived` supports an optional `lazy = true` argument to observe lazily.
