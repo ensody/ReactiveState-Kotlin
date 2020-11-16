@@ -4,7 +4,7 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
-This library is split into two separate modules for Kotlin ([`core`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/)) and Android ([`reactivestate`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/)).
+This library is split into separate modules for Kotlin (`core` and `core-test`) and Android (`reactivestate`).
 
 ## Installation
 
@@ -79,13 +79,11 @@ class MainFragment : Fragment() {
 }
 ```
 
-With [`autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/) (available on `LifecycleOwner`, `ViewModel`, [`Scoped`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-scoped/), `CoroutineScope`, etc.)
-you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
+With `autoRun` (available on `LifecycleOwner`, `ViewModel`, `CoroutineScope`, etc.) you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
 On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle in order to prevent accidental crashes and unnecessary resource consumption.
 
-With [`bind`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind/)
-and [`bindTwoWay`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/bind-two-way/) you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
+With `bind` and `bindTwoWay` you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` (same as with `autoRun`).
 
 Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
@@ -152,22 +150,18 @@ class MainFragment : Fragment(), MainView {
 On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
 To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
 
-In order to simplify this pattern, ReactiveState provides [`EventNotifier`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-event-notifier/).
+In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
 
 ### Automatic cleanups based on lifecycle state
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
-ReactiveState provides a [`Disposable`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-disposable/) interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
-You can also use [`disposable.disposeOnCompletionOf`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/kotlinx.coroutines.-disposable-handle/dispose-on-completion-of/) to auto-dispose your disposables.
-For more complex use-cases you can use [`DisposableGroup`](https://ensody.github.io/ReactiveState-Kotlin/reference/core/com.ensody.reactivestate/-disposable-group/) (which is a `Disposable`) to group multiple disposables into a single disposable object.
+ReactiveState provides a `Disposable` interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
+You can also use `disposable.disposeOnCompletionOf` to auto-dispose your disposables.
+For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single disposable object.
 
-With extension functions like [`LifecycleOwner.onResume`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/on-resume/)
-or [`LifecycleOwner.onStopOnce`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/on-stop-once/)
-you can easily add long-running or one-time observers to a `Lifecycle`.
-These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like
-[`LifecycleOwner.autoRun`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.lifecycle.-lifecycle-owner/auto-run/)
-does.
+With extension functions like `LifecycleOwner.onResume` or `LifecycleOwner.onStopOnce` you can easily add long-running or one-time observers to a `Lifecycle`.
+These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like `LifecycleOwner.autoRun` does.
 
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
@@ -190,10 +184,8 @@ class MainFragment : Fragment() {
 }
 ```
 
-ReactiveState's [`buildViewModel`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/build-view-model/),
-[`stateViewModel`](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/state-view-model/),
-[and other](https://ensody.github.io/ReactiveState-Kotlin/reference/reactivestate/com.ensody.reactivestate/androidx.fragment.app.-fragment/) extension functions allow creating a `ViewModel` by directly instantiating it.
-This results in more natural code and allows passing arguments to the `ViewModel`.
+ReactiveState's `buildViewModel`, `stateViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
+This results in more natural code and allows passing arguments to the `ViewModel` (e.g. for dependency injection).
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
 
@@ -238,19 +230,28 @@ withContext(dispatchers.io) {
 }
 ```
 
-As an alternative to `CoroutineTest`, you can also just use the `CoroutineTestRule` (e.g. if you have some existing base class):
+As an alternative to `CoroutineTest`, you can also implement the `CoroutineTestRuleOwner` interface (e.g. if you have some existing base class):
+
+```kotlin
+class MyTest : SomeBaseTestClass(), CoroutineTestRuleOwner {
+    override val coroutineTestRule = CoroutineTestRule()
+
+    @Test
+    fun `some test`() = runBlockingTest {
+        // ...
+    }
+}
+```
+
+If you want to go even lower-level there's also `CoroutineTestRule`:
 
 ```kotlin
 class MyTest {
     @get:Rule
     override val coroutineTestRule = CoroutineTestRule()
 
-    // It can be useful to define this helper, so you don't always have to write coroutineTestRule.runBlockingTest
-    fun runBlockingTest(block: suspend TestCoroutineScope.() -> Unit): Unit =
-        coroutineTestRule.runBlockingTest(block)
-
     @Test
-    fun `some test`() = runBlockingTest {
+    fun `some test`() = coroutineTestRule.runBlockingTest {
         // ...
     }
 }
