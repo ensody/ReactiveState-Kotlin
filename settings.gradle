@@ -1,3 +1,5 @@
 rootProject.name='ReactiveState-Kotlin'
 include ':core'
+include ':core-test'
+include ':dependency-versions-bom'
 include ':reactivestate'

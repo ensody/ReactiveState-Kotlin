@@ -254,39 +254,3 @@ public fun LifecycleOwner.onPause(block: () -> Unit): Disposable =
  */
 public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
     addObserver(OnPauseObserver(lifecycle, true, block))
-
-/**
- * Launches and runs the given block when and as long as the `Lifecycle` controlling this
- * `LifecycleCoroutineScope` is at least in the `Lifecycle.State.STARTED` state.
- *
- * This is useful for e.g. processing a `Flow` or `Channel` of events only while the Fragment is
- * started.
- *
- * The returned `Job` will be canceled when the `Lifecycle` is stopped (`Lifecycle.Event.ON_STOP`).
- * This means you should usually call this function in e.g. `Fragment.onStart()`.
- */
-public fun LifecycleOwner.launchWhileStarted(block: suspend CoroutineScope.() -> Unit): Job {
-    val job = lifecycleScope.launchWhenStarted {
-        block()
-    }
-    onStopOnce { job.cancel() }.disposeOnCompletionOf(job)
-    return job
-}
-
-/**
- * Launches and runs the given block when and as long as the `Lifecycle` controlling this
- * `LifecycleCoroutineScope` is at least in the `Lifecycle.State.RESUMED` state.
- *
- * This is useful for e.g. processing a `Flow` or `Channel` of events only while the Fragment is
- * resumed.
- *
- * The returned `Job` will be canceled when the `Lifecycle` is paused (`Lifecycle.Event.ON_PAUSE`).
- * This means you should usually call this function in e.g. `Fragment.onResume()`.
- */
-public fun LifecycleOwner.launchWhileResumed(block: suspend CoroutineScope.() -> Unit): Job {
-    val job = lifecycleScope.launchWhenResumed {
-        block()
-    }
-    onPauseOnce { job.cancel() }.disposeOnCompletionOf(job)
-    return job
-}

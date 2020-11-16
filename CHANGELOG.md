@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.15.0
+
+* `derived` supports an optional `lazy = true` argument to observe lazily.
+* Added a global `dispatchers` API for replacing `Dispatchers` (`Main`, `IO`, etc.) in a way that allows switching to `TestCoroutineDispatcher` in unit tests.
+* Added coroutine unit test helpers in the `com.ensody.reactivestate:core-test` module:
+  * `CoroutineTest` base class for tests that use coroutines. This sets up  `MainScope`, `dispatchers.io`, etc. to use `TestCoroutineDispatcher`.
+  * `CoroutineTestRule` a test rule for setting up coroutines.
+  * `CoroutineTestRuleOwner` a helper interface in case you can't use `CoroutineTest`, but still want minimal boilerplate.
+* Removed `launchWhileStarted` and `launchWhileResumed`.
+* Added `dependency-versions-bom` platform project. You can now include the versions of all modules like this:
+
+```groovy
+dependencies {
+    // Add the BOM using the desired ReactiveState version
+    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
+
+    // Now you can leave out the version number from all other ReactiveState modules:
+    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
+    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
+
+    implementation "com.ensody.reactivestate:core-test" // Utils for unit tests that want to use coroutines
+}
+```
+
 ## 0.14.0
 
 * Fixed `MutableValueFlow.value` assignment to have `distinctUntilChanged` behavior. This should provide the best of both worlds:
