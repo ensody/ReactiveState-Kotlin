@@ -23,16 +23,13 @@ dependencies {
 }
 ```
 
-Also, make sure you've integrated the Maven repos, e.g. in your root `build.gradle`:
+Also, make sure you've integrated the JCenter repo, e.g. in your root `build.gradle`:
 
 ```groovy
-allprojects {
+subprojects {
     repositories {
         // ...
         jcenter()
-        maven {
-            url "https://dl.bintray.com/ensody/maven/"
-        }
         // ...
     }
 }
@@ -76,7 +73,7 @@ class MainFragment : Fragment() {
         incrementButton.setOnClickListener {
             viewModel.increment()
         }
-        
+
         // ...
     }
 }

@@ -1,12 +1,16 @@
 root = true
 
 [*]
-end_of_line = lf
-indent_style = space
 max_line_length = 120
-
-[*.{js,jsx,json,ts,tsx,yaml,yml}]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
 indent_size = 2
 
-[*.{gradle,kt,kts,py,pyw}]
+[*.{gradle,java,kt,kts,py,pyw}]
 indent_size = 4
+
+[*.{kt,kts}]
+# Configure linters to match default Android Studio behavior
+disabled_rules=import-ordering,no-wildcard-imports
