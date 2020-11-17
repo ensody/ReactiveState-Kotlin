@@ -230,12 +230,10 @@ withContext(dispatchers.io) {
 }
 ```
 
-As an alternative to `CoroutineTest`, you can also implement the `CoroutineTestRuleOwner` interface (e.g. if you have some existing base class):
+If you can't derive from `CoroutineTest` directly (e.g. because you have some other base test class), you can alternatively use delegation with the `CoroutineTestRuleOwner` interface:
 
 ```kotlin
-class MyTest : SomeBaseTestClass(), CoroutineTestRuleOwner {
-    override val coroutineTestRule = CoroutineTestRule()
-
+class MyTest : SomeBaseTestClass(), CoroutineTestRuleOwner by CoroutineTest() {
     @Test
     fun `some test`() = runBlockingTest {
         // ...

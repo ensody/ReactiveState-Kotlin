@@ -12,6 +12,6 @@ import kotlinx.coroutines.test.TestCoroutineScope
  * You can access the rule via [coroutineTestRule] in order to e.g. use the [TestCoroutineScope] in your
  * `@Before` setup method.
  */
-public abstract class CoroutineTest : CoroutineTestRuleOwner {
+public open class CoroutineTest : CoroutineTestRuleOwner {
     public override val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 }
