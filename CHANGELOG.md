@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.15.4
+
+* Fixed `CoroutineTest`.
+
 ## 0.15.3
 
 * Added support for using `CoroutineTest` by delegation (preventing multiple inheritance situations).

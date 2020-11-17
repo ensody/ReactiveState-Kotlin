@@ -2,6 +2,7 @@ package com.ensody.reactivestate.test
 
 import com.ensody.reactivestate.dispatchers
 import kotlinx.coroutines.test.TestCoroutineScope
+import org.junit.Rule
 
 /**
  * Base class for unit testing coroutine based code.
@@ -13,5 +14,6 @@ import kotlinx.coroutines.test.TestCoroutineScope
  * `@Before` setup method.
  */
 public open class CoroutineTest : CoroutineTestRuleOwner {
+    @get:Rule
     public override val coroutineTestRule: CoroutineTestRule = CoroutineTestRule()
 }
