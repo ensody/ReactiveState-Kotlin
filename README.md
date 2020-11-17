@@ -223,7 +223,7 @@ This also sets up a global `dispatchers` variable which you can use in all of yo
 
 ```kotlin
 // Use this instead of Dispatchers.IO. In unit tests this will automatically use
-// the TestCoroutineScope instead. Outside of unit tests it points to Dispatchers.IO.
+// the TestCoroutineDispatcher instead. Outside of unit tests it points to Dispatchers.IO.
 // You can also define your own overrides if you want.
 withContext(dispatchers.io) {
     // do some IO
