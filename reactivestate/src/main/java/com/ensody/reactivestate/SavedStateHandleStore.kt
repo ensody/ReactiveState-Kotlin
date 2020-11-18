@@ -29,3 +29,6 @@ public class SavedStateHandleStore(private val scope: CoroutineScope, private va
         return data
     }
 }
+
+public fun SavedStateHandle.stateFlowStore(scope: CoroutineScope): SavedStateHandleStore =
+    SavedStateHandleStore(scope, this)

@@ -6,18 +6,18 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CoroutineScope
 
-internal class TestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val store = SavedStateHandleStore(viewModelScope, savedStateHandle)
+internal class TestViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
+    val store = createStore(viewModelScope)
     val name = store.getData("name", "")
     val count = store.getData("count", 0)
 }
 
 internal class TestFragment : Fragment() {
-    internal val viewModel by stateViewModel { TestViewModel(it) }
+    internal val viewModel by stateViewModel { TestViewModel(it::stateFlowStore) }
 
     internal lateinit var textView: TextView
 

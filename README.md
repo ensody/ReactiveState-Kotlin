@@ -189,6 +189,37 @@ This results in more natural code and allows passing arguments to the `ViewModel
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
 
+### StateFlowStore - StateFlow based SavedStateHandle
+
+```kotlin
+class MainViewModel(handle: SavedStateHandle) : ViewModel() {
+    val store = handle.stateFlowStore(viewModelScope)
+    val count: StateFlow<Int> = store.getData("count", 0)
+}
+```
+
+A `StateFlowStore` provides a similar API to `SavedStateHandle`, but based on `StateFlow` instead of `LiveData`.
+
+With `InMemoryStateFlowStore` you can do e.g. unit testing or abstract away platform differences in multi-platform projects.
+
+On Android you'll often want `SavedStateHandleStore` to convert `SavedStateHandle` to a `StateFlowStore`. There is also a convenient extension function: `SavedStateHandle.stateFlowStore(CoroutineScope)`
+
+In practice, you'll want to make your ViewModel testable without Robolectric using a tiny indirection:
+
+```kotlin
+class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
+    // This indirection makes it possible to unit test with InMemoryStateFlowStore instead of SavedStateHandle
+    val store = createStore(viewModelScope)
+    val count = store.getData("count", 0)
+}
+
+class MainFragment : Fragment() {
+    private val viewModel by stateViewModel { MainViewModel(it::stateFlowStore) }
+
+    // ...
+}
+```
+
 ### Unit tests with coroutines
 
 The `CoroutineTest` base class provides some often useful helpers for working with coroutines.
@@ -260,8 +291,9 @@ class MyTest {
 Example `ViewModel`:
 
 ```kotlin
-class MainViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    val store = SavedStateHandleStore(viewModelScope, savedStateHandle)
+class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
+    // This indirection makes it possible to unit test with InMemoryStateFlowStore instead of SavedStateHandle
+    val store = createStore(viewModelScope)
 
     val count = store.getData("count", 0)
 
@@ -298,7 +330,7 @@ Example `Fragment` (using view bindings for type safety):
 
 ```kotlin
 class MainFragment : Fragment() {
-    private val viewModel by stateViewModel { MainViewModel(it) }
+    private val viewModel by stateViewModel { MainViewModel(it::stateFlowStore) }
     private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
 
     override fun onCreateView(
