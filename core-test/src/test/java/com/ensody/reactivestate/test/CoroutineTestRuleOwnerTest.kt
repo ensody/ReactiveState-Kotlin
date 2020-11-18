@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import org.junit.Before
 import org.junit.Test
 
-internal class CoroutineTestTest : CoroutineTest() {
+internal class CoroutineTestRuleOwnerTest : CoroutineTestRuleOwner by CoroutineTest() {
     var initializedSetup = false
     val mainScope = MainScope()
     var initializedMain = false
