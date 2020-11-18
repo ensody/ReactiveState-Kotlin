@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.0
+
+* `derived` now takes a mandatory `started: SharingStarted` argument - similar to `stateIn`/`shareIn` (`WhileSubscribed()`, `Lazily`, `Eagerly`, etc.)
+
 ## 0.15.4
 
 * Fixed `CoroutineTest`.
