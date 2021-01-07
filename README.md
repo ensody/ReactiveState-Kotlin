@@ -44,6 +44,7 @@ class MainViewModel : ViewModel() {
     // You can also use MutableLiveData, but then you'll have to deal with null.
     val name = MutableStateFlow("")
     val counter = MutableStateFlow(0)
+    val doubledCounter = derived(WhileSubscribed()) { 2 * get(counter) }
 
     fun increment() {
         counter.value += 1
@@ -82,6 +83,8 @@ class MainFragment : Fragment() {
 With `autoRun` (available on `LifecycleOwner`, `ViewModel`, `CoroutineScope`, etc.) you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
 On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
 Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle in order to prevent accidental crashes and unnecessary resource consumption.
+
+With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
 
 With `bind` and `bindTwoWay` you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
 These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` (same as with `autoRun`).
@@ -301,12 +304,12 @@ class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel
     val username = store.getData("username", "")
     val password = store.getData("password", "")
     val usernameError = MutableStateFlow("")
-    val passwordError = derived {
+    val passwordError = derived(Eagerly) {
         validatePassword(get(password))
     }
 
     // Simple form validation with multiple fields
-    val isFormValid = derived {
+    val isFormValid = derived(WhileSubscribed()) {
         get(username).isNotEmpty() && get(usernameError).isEmpty() &&
         get(password).isNotEmpty() && get(passwordError).isEmpty()
     }
