@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+* `StateFlowStore.getData()` now returns a `MutableValueFlow`
+
 ## 1.0.0
 
 * `derived` now takes a mandatory `started: SharingStarted` argument - similar to `stateIn`/`shareIn` (`WhileSubscribed()`, `Lazily`, `Eagerly`, etc.)

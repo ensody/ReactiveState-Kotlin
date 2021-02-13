@@ -2,7 +2,6 @@ package com.ensody.reactivestate
 
 import androidx.lifecycle.SavedStateHandle
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 
 /** A [StateFlowStore] that wraps a `SavedStateHandle`. */
 public class SavedStateHandleStore(private val scope: CoroutineScope, private val savedStateHandle: SavedStateHandle) :
@@ -13,7 +12,7 @@ public class SavedStateHandleStore(private val scope: CoroutineScope, private va
     override fun contains(key: String): Boolean =
         savedStateHandle.contains(key)
 
-    override fun <T> getData(key: String, default: T): MutableStateFlow<T> {
+    override fun <T> getData(key: String, default: T): MutableValueFlow<T> {
         val tracked = store.contains(key)
         val data = store.getData(key, default)
         if (tracked) {

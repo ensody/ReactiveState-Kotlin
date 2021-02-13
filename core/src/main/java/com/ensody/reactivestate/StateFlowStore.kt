@@ -1,7 +1,5 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.flow.MutableStateFlow
-
 /**
  * Base interface for a temporary observable key-value store.
  *
@@ -11,20 +9,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 public interface StateFlowStore {
     public fun contains(key: String): Boolean
 
-    public fun <T> getData(key: String, default: T): MutableStateFlow<T>
+    public fun <T> getData(key: String, default: T): MutableValueFlow<T>
 }
 
 /** A [StateFlowStore] that can be used for unit tests or non-Android parts of multi-platform projects. */
 public class InMemoryStateFlowStore : StateFlowStore {
-    private val store = mutableMapOf<String, MutableStateFlow<*>>()
+    private val store = mutableMapOf<String, MutableValueFlow<*>>()
 
     override fun contains(key: String): Boolean = key in store
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T> getData(key: String, default: T): MutableStateFlow<T> =
+    override fun <T> getData(key: String, default: T): MutableValueFlow<T> =
         store.getOrPut(key) {
-            val data = MutableStateFlow(default)
+            val data = MutableValueFlow(default)
             store[key] = data
             data
-        } as MutableStateFlow<T>
+        } as MutableValueFlow<T>
 }
