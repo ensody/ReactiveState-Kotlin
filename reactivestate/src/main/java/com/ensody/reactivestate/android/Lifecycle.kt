@@ -1,9 +1,10 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
+import com.ensody.reactivestate.Disposable
+import com.ensody.reactivestate.DisposableGroup
+import com.ensody.reactivestate.autoRun
 
 private abstract class DisposableObserver(private val lifecycle: Lifecycle) :
     LifecycleObserver,

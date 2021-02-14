@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0
+
+Breaking changes:
+
+* Moved all Android-related code to the `com.ensody.reactivestate.android` package to avoid method resolution ambiguity.
+* Removed `CoroutineScopeOwner` (replaced by `CoroutineLauncher`).
+
+Non-breaking changes:
+
+* Added `CoroutineLauncher` interface to allow overriding how `autoRun`/`derived` launch their coroutines (e.g. to include custom error handling or a loading state).
+* Added `coAutoRun` and `CoAutoRunner` and `derived` variants which take suspension functions and use `mapLatest`.
+
 ## 1.1.0
 
 * `StateFlowStore.getData()` now returns a `MutableValueFlow`

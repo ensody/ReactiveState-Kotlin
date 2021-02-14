@@ -100,6 +100,10 @@ public fun CoroutineContext.invokeOnCompletion(handler: CompletionHandler): Disp
 public fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disposable =
     coroutineContext.invokeOnCompletion(handler)
 
+/** Helper for adding a completion handler to a [CoroutineLauncher]. */
+public fun CoroutineLauncher.invokeOnCompletion(handler: CompletionHandler): Disposable =
+    launcherScope.invokeOnCompletion(handler)
+
 /** Disposes the [Disposable] when [Job] completes (including cancellation). */
 public fun Disposable.disposeOnCompletionOf(job: Job): Disposable =
     job.invokeOnCompletion { dispose() }
@@ -111,6 +115,10 @@ public fun Disposable.disposeOnCompletionOf(context: CoroutineContext): Disposab
 /** Disposes the [Disposable] when [CoroutineScope] completes (including cancellation). */
 public fun Disposable.disposeOnCompletionOf(scope: CoroutineScope): Disposable =
     scope.invokeOnCompletion { dispose() }
+
+/** Disposes the [Disposable] when [CoroutineLauncher] completes (including cancellation). */
+public fun Disposable.disposeOnCompletionOf(launcher: CoroutineLauncher): Disposable =
+    launcher.invokeOnCompletion { dispose() }
 
 /**
  * Creates an automatically invalidated property.

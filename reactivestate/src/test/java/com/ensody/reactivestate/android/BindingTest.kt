@@ -1,4 +1,4 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.Lifecycle

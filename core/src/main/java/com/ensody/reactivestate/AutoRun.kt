@@ -1,15 +1,72 @@
 package com.ensody.reactivestate
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-
-/** Observer callback used by [autoRun] and [AutoRunner]. */
-public typealias AutoRunCallback<T> = Resolver.() -> T
-
-/** onChange callback used by [autoRun] and [AutoRunner]. */
-public typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.withContext
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineScopeOwner] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineLauncher] -> UI).
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [CoroutineLauncher]'s scope completes.
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param [observer] The callback which is used to track the observables.
+ */
+public fun CoroutineLauncher.autoRun(
+    onChange: AutoRunOnChangeCallback<Unit>? = null,
+    observer: AutoRunCallback<Unit>,
+): AutoRunner<Unit> =
+    AutoRunner(launcher = this, onChange = onChange, observer = observer).apply {
+        disposeOnCompletionOf(this@autoRun)
+        run()
+    }
+
+/**
+ * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineLauncher] -> UI).
+ *
+ * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
+ *
+ * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
+ * The [AutoRunner] is automatically disposed when the [CoroutineLauncher]'s scope completes.
+ *
+ * See [AutoRunner] for more details.
+ *
+ * @param onChange Gets called when the observables change. If you provide a handler you have to
+ * manually call [run].
+ * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param observer The callback which is used to track the observables.
+ */
+public fun CoroutineLauncher.coAutoRun(
+    onChange: CoAutoRunOnChangeCallback<Unit>? = null,
+    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    dispatcher: CoroutineDispatcher = dispatchers.default,
+    withLoading: Boolean = true,
+    observer: CoAutoRunCallback<Unit>,
+): CoAutoRunner<Unit> =
+    CoAutoRunner(
+        launcher = this,
+        onChange = onChange,
+        flowTransformer = flowTransformer,
+        dispatcher = dispatcher,
+        withLoading = withLoading,
+        observer = observer,
+    ).apply {
+        disposeOnCompletionOf(this@coAutoRun)
+        launch { run() }
+    }
+
+/**
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
@@ -18,48 +75,66 @@ public typealias AutoRunOnChangeCallback<T> = (AutoRunner<T>) -> Unit
  *
  * See [AutoRunner] for more details.
  *
- * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * @param launcher The [CoroutineLauncher] to use.
+ * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param [observer] The callback which is used to track the observables.
+ * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineScope.autoRun(
+    launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> =
-    AutoRunner(this, onChange, observer).apply {
-        disposeOnCompletionOf(this@autoRun)
-        run()
-    }
+    launcher.autoRun(onChange = onChange, observer = observer)
 
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineScopeOwner] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
  *
  * This is a convenience function that immediately starts the [AutoRunner.run] cycle for you.
  *
  * Returns the underlying [AutoRunner]. To stop watching, you should call [AutoRunner.dispose].
- * The [AutoRunner] is automatically disposed when the [CoroutineScopeOwner.scope] completes.
+ * The [AutoRunner] is automatically disposed when the [CoroutineScope] completes.
  *
  * See [AutoRunner] for more details.
  *
- * @param [onChange] Gets called when the observables change. If you provide a handler you have to
+ * @param launcher The [CoroutineLauncher] to use.
+ * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param [observer] The callback which is used to track the observables.
+ * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param observer The callback which is used to track the observables.
  */
-public fun CoroutineScopeOwner.autoRun(
-    onChange: AutoRunOnChangeCallback<Unit>? = null,
-    observer: AutoRunCallback<Unit>,
-): AutoRunner<Unit> =
-    scope.autoRun(onChange, observer)
+public fun CoroutineScope.coAutoRun(
+    launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
+    onChange: CoAutoRunOnChangeCallback<Unit>? = null,
+    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    observer: CoAutoRunCallback<Unit>,
+): CoAutoRunner<Unit> =
+    launcher.coAutoRun(onChange = onChange, flowTransformer = flowTransformer, observer = observer)
 
 /** Just the minimum interface needed for [Resolver]. No generic types. */
-public abstract class BaseAutoRunner : AttachedDisposables, CoroutineScopeOwner {
+public abstract class BaseAutoRunner : AttachedDisposables {
     internal abstract val resolver: Resolver
+    public abstract val launcher: CoroutineLauncher
 
     public abstract fun triggerChange()
 }
 
+public abstract class InternalBaseAutoRunner : BaseAutoRunner() {
+    override val attachedDisposables: DisposableGroup = DisposableGroup()
+    override var resolver: Resolver = Resolver(this)
+
+    /** Stops watching observables. */
+    override fun dispose() {
+        resolver = Resolver(this).also {
+            resolver.switchTo(it)
+        }
+        attachedDisposables.dispose()
+    }
+}
+
 /**
- * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineScopeOwner] -> UI).
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
+ * This is the synchronous version. See [CoAutoRunner] for the suspension function based version.
  *
  * Given an [observer], this class will automatically register itself as a listener and keep track
  * of the observables which [observer] depends on.
@@ -70,24 +145,17 @@ public abstract class BaseAutoRunner : AttachedDisposables, CoroutineScopeOwner 
  *
  * Instead of instantiating an `AutoRunner` directly you'll usually want to use an [autoRun] helper.
  *
- * @param [onChange] Gets called when the observables change. Your onChange handler has to
+ * @param launcher The [CoroutineLauncher] to use.
+ * @param onChange Gets called when the observables change. Your onChange handler has to
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
- * @param [observer] The callback which is used to track the observables.
+ * @param observer The callback which is used to track the observables.
  */
 public class AutoRunner<T>(
-    override val scope: CoroutineScope,
+    override val launcher: CoroutineLauncher,
     onChange: AutoRunOnChangeCallback<T>? = null,
     private val observer: AutoRunCallback<T>,
-) : BaseAutoRunner() {
-    override val attachedDisposables: DisposableGroup = DisposableGroup()
+) : InternalBaseAutoRunner() {
     public val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
-    override var resolver: Resolver = Resolver(this)
-
-    /** Stops watching observables. */
-    override fun dispose() {
-        observe {}
-        attachedDisposables.dispose()
-    }
 
     /** Calls [observer] and tracks its dependencies if [track] is `true` (the default). */
     public fun run(track: Boolean = true): T = observe(track = track, observer = observer)
@@ -97,6 +165,87 @@ public class AutoRunner<T>(
     }
 
     private fun <T> observe(track: Boolean = true, observer: AutoRunCallback<T>): T {
+        if (!track) {
+            return Resolver(this, track = false).observer()
+        }
+        val previousResolver = resolver
+        val nextResolver = Resolver(this)
+        try {
+            return nextResolver.observer()
+        } finally {
+            // Detect if we had a recursion (e.g. due to dispose() being called within observer)
+            if (resolver === previousResolver) {
+                resolver.switchTo(nextResolver)
+                resolver = nextResolver
+            } else {
+                // The resolver has changed in the meantime, so nextResolver is outdated.
+                nextResolver.switchTo(resolver)
+            }
+        }
+    }
+}
+
+/**
+ * Watches observables for changes. Often useful to keep things in sync (e.g. ViewModel -> UI).
+ * This is the suspension function based version. See [AutoRunner] for the synchronous version.
+ *
+ * Given an [observer], this class will automatically register itself as a listener and keep track
+ * of the observables which [observer] depends on.
+ *
+ * You have to call [run] once to start watching.
+ *
+ * To stop watching, you should call [dispose].
+ *
+ * Instead of instantiating an `AutoRunner` directly you'll usually want to use an [autoRun] helper.
+ *
+ * @param launcher The [CoroutineLauncher] to use.
+ * @param onChange Gets called when the observables change. Your onChange handler has to
+ * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
+ * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param observer The callback which is used to track the observables.
+ */
+public class CoAutoRunner<T>(
+    override val launcher: CoroutineLauncher,
+    onChange: CoAutoRunOnChangeCallback<T>? = null,
+    private val flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    private val dispatcher: CoroutineDispatcher = dispatchers.default,
+    private val withLoading: Boolean = true,
+    private val observer: CoAutoRunCallback<T>,
+) : InternalBaseAutoRunner() {
+    override val attachedDisposables: DisposableGroup = DisposableGroup()
+    public val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
+    override var resolver: Resolver = Resolver(this)
+    private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+
+    init {
+        launcher.launch(withLoading = false) {
+            changeFlow.flowTransformer().collect {
+                // Launch a new coroutine, so the loading state can be tracked if necessary
+                val job = launcher.launch(withLoading = withLoading) {
+                    listener(this@CoAutoRunner)
+                }
+                try {
+                    job.join()
+                } catch (e: CancellationException) {
+                    job.cancel()
+                }
+            }
+        }
+    }
+
+    /** Calls [observer] and tracks its dependencies if [track] is `true` (the default). */
+    public suspend fun run(track: Boolean = true): T =
+        withContext(dispatcher) {
+            observe(track = track, observer = observer)
+        }
+
+    override fun triggerChange() {
+        changeFlow.tryEmit(Unit)
+    }
+
+    private suspend fun <T> observe(track: Boolean = true, observer: CoAutoRunCallback<T>): T {
         if (!track) {
             return Resolver(this, track = false).observer()
         }

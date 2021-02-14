@@ -1,4 +1,4 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import androidx.activity.ComponentActivity
 import androidx.activity.viewModels

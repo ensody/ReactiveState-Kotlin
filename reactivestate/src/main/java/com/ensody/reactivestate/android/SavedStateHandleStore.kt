@@ -1,6 +1,7 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import androidx.lifecycle.SavedStateHandle
+import com.ensody.reactivestate.*
 import kotlinx.coroutines.CoroutineScope
 
 /** A [StateFlowStore] that wraps a `SavedStateHandle`. */

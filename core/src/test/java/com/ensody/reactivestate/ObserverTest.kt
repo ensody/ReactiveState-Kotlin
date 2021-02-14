@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
@@ -58,11 +59,16 @@ internal class ObserverTest {
             target = derived(Eagerly) { 2 * get(source) }
             val lazyTarget = derived(Lazily) { 2 * get(source) }
             val superLazyTarget = derived(WhileSubscribed()) { 2 * get(source) }
+            val asyncTarget = derived(-1, Eagerly) { delay(100); 2 * get(source) }
 
             // Right after creation of the derived observable the values should be in sync
             assertThat(target.value).isEqualTo(0)
             assertThat(lazyTarget.value).isEqualTo(0)
             assertThat(superLazyTarget.value).isEqualTo(0)
+            assertThat(asyncTarget.value).isEqualTo(-1)
+
+            advanceTimeBy(120)
+            assertThat(asyncTarget.value).isEqualTo(0)
 
             // Setting value multiple times should work
             listOf(2, 5, 10).forEach {
@@ -71,6 +77,11 @@ internal class ObserverTest {
                 assertThat(lazyTarget.value).isEqualTo(0)
                 assertThat(superLazyTarget.value).isEqualTo(0)
             }
+
+            // We react with a delay
+            assertThat(asyncTarget.value).isEqualTo(0)
+            advanceTimeBy(120)
+            assertThat(asyncTarget.value).isEqualTo(2 * 10)
 
             val lazyJob = launch { lazyTarget.collect() }
             val superLazyJob = launch { superLazyTarget.collect() }

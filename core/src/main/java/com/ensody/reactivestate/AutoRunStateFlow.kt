@@ -3,7 +3,6 @@ package com.ensody.reactivestate
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 
 /** Returns [StateFlow.value] and tracks the observable (on the `MainScope`). */
 public fun <T> Resolver.get(data: StateFlow<T>): T = track(data).value
@@ -19,7 +18,7 @@ private class StateFlowObservable(
 
     override fun addObserver() {
         if (observer == null) {
-            observer = autoRunner.scope.launch {
+            observer = autoRunner.launcher.launch(withLoading = false) {
                 var ignore = true
                 data.collect {
                     if (!ignore) {

@@ -1,4 +1,4 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ensody.reactivestate.StateFlowStore
 import kotlinx.coroutines.CoroutineScope
 
 internal class TestViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {

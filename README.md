@@ -363,10 +363,8 @@ class MainFragment : Fragment() {
         }
 
         autoRun {
-            val invalid = get(viewModel.usernameError).isNotEmpty()
             // Show username error TextView only when there is an error
-            binding.usernameError.visibility =
-                if (invalid) View.VISIBLE else View.GONE
+            binding.usernameError.isVisible = get(viewModel.usernameError).isNotEmpty()
         }
 
         binding.increment.setOnClickListener {

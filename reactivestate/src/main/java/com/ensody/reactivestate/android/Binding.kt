@@ -1,4 +1,4 @@
-package com.ensody.reactivestate
+package com.ensody.reactivestate.android
 
 import android.widget.Checkable
 import android.widget.CompoundButton
@@ -7,6 +7,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import com.ensody.reactivestate.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 

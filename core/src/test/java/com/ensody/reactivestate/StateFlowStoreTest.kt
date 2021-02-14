@@ -11,7 +11,9 @@ import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-internal class SampleState(override val scope: CoroutineScope, store: StateFlowStore) : CoroutineScopeOwner {
+internal class SampleState(scope: CoroutineScope, store: StateFlowStore) :
+    CoroutineLauncher by SimpleCoroutineLauncher(scope) {
+
     val counter = store.getData("counter", 0)
 
     fun increment() {
