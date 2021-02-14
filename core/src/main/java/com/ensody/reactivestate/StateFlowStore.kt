@@ -1,5 +1,7 @@
 package com.ensody.reactivestate
 
+import kotlinx.coroutines.CoroutineScope
+
 /**
  * Base interface for a temporary observable key-value store.
  *
@@ -26,3 +28,6 @@ public class InMemoryStateFlowStore : StateFlowStore {
             data
         } as MutableValueFlow<T>
 }
+
+/** A factory function creating a StateFlowStore. */
+public typealias StateFlowStoreFactory = (CoroutineScope) -> StateFlowStore
