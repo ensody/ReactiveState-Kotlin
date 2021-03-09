@@ -1,3 +1,5 @@
+apply from: "$rootDir/gradle/common/dependency-versions-bom.gradle"
+
 dependencies {
     versionConstraints()
 }

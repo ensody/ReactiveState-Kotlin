@@ -36,9 +36,7 @@ subprojects {
 
     apply from: "$rootDir/dependencies.gradle"
 
-    if (isPlatformProject) {
-        apply from: "$rootDir/gradle/common/dependency-versions-bom.gradle"
-    } else {
+    if (!isPlatformProject) {
         if (!isAndroidProject) {
             apply from: "$rootDir/gradle/common/kotlin-library.gradle"
             kotlinLibrary()
@@ -87,5 +85,6 @@ subprojects {
         licenses: [licenses.MIT],
         website: "https://ensody.github.io/ReactiveState-Kotlin/",
         repoUrl: "https://github.com/ensody/ReactiveState-Kotlin",
+        isPlatformProject: isPlatformProject,
     )
 }

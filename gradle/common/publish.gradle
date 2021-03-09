@@ -19,6 +19,7 @@ class PublishingConfig {
     List<License> licenses = []
     Boolean withSources = true
     Boolean withPublication = true
+    Boolean isPlatformProject = false
 }
 
 ext.licenses = [
@@ -35,11 +36,10 @@ ext.publish = { args ->
         config.name = project.name
     }
 
-    def isPlatformProject = project.plugins.hasPlugin('java-platform')
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
 
     if (config.withPublication) {
-        if (!isPlatformProject && config.withSources) {
+        if (!config.isPlatformProject && config.withSources) {
             task sourcesJar(type: Jar) {
                 archiveClassifier.set('sources')
                 if (isAndroidProject) {
@@ -57,12 +57,12 @@ ext.publish = { args ->
                     release(MavenPublication) {
                         if (isAndroidProject) {
                             from components.release
-                        } else if (isPlatformProject) {
+                        } else if (config.isPlatformProject) {
                             from components.javaPlatform
                         } else {
                             from components.java
                         }
-                        if (!isPlatformProject && config.withSources) {
+                        if (!config.isPlatformProject && config.withSources) {
                             artifact sourcesJar
                         }
                         pom.withXml {

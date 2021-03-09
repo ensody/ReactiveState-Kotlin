@@ -77,10 +77,8 @@ jobs:
         run: sudo chown -R "$(whoami):$(whoami)" .
       - name: Install common deps
         run: sudo scripts/build-common.sh
-      - name: Fix permissions
-        run: sudo chown -R "$(whoami):$(whoami)" ~/.poetry
       - name: Install Python deps
-        run: PATH="~/.poetry/bin:$PATH" poetry install
+        run: poetry install
       - name: Deploy docs
         run: ./deploy-docs.sh
         env:
