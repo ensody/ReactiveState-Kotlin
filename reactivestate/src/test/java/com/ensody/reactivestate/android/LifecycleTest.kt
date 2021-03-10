@@ -1,5 +1,6 @@
 package com.ensody.reactivestate.android
 
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
@@ -7,34 +8,19 @@ import assertk.assertThat
 import assertk.assertions.isEqualTo
 import assertk.assertions.isFailure
 import assertk.assertions.isInstanceOf
-import com.ensody.reactivestate.*
-import kotlinx.coroutines.Dispatchers
+import com.ensody.reactivestate.test.CoroutineTest
+import com.ensody.reactivestate.validUntil
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runBlockingTest
-import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 
 @ExperimentalCoroutinesApi
-internal class LifecycleTest {
-    private val testDispatcher = TestCoroutineDispatcher()
-
-    @Before
-    fun setup() {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    @After
-    fun cleanUp() {
-        Dispatchers.resetMain()
-        testDispatcher.cleanupTestCoroutines()
-    }
+internal class LifecycleTest : CoroutineTest() {
+    @get:Rule
+    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     @Test
-    fun lifecycleObservers() = testDispatcher.runBlockingTest {
+    fun lifecycleObservers() = runBlockingTest {
         val owner = object : LifecycleOwner {
             val lifecycle = LifecycleRegistry(this)
             var lifecycleValue: String by validUntil(::onStop)
