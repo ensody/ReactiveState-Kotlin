@@ -1,7 +1,5 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.CoroutineScope
-
 /**
  * Base interface for a temporary observable key-value store.
  *
