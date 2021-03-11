@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.4
+
+* Upgraded dependencies
+
 ## 2.0.2
 
 * Fixed BOM (reactivestate was missing).
