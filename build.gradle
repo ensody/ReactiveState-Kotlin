@@ -80,7 +80,6 @@ subprojects {
         url: "https://api.bintray.com/maven/ensody/maven/${group}:${project.name}/;publish=1",
         username: bintrayUsername,
         password: bintrayApiKey,
-        name: "ReactiveState: ${project.name}",
         description: "An easy to understand reactive state management solution for Kotlin and Android.",
         licenses: [licenses.MIT],
         website: "https://ensody.github.io/ReactiveState-Kotlin/",
