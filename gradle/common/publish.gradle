@@ -33,7 +33,7 @@ ext.publish = { args ->
 
     PublishingConfig config = new PublishingConfig(args)
     if (!config.name) {
-        config.name = project.name
+        config.name = "$rootProject.name: $project.name"
     }
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
