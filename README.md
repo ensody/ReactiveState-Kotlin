@@ -101,14 +101,14 @@ interface MainView {
 class MainViewModel : ViewModel() {
     // This queue can be used to send events to the MainView in the STARTED lifecycle state.
     // Instead of boilerplaty event classes we use a simple MainView interface with methods.
-    val viewExecutor = EventNotifier<MainView>()
+    val eventNotifier = EventNotifier<MainView>()
 
     fun someAction() {
         viewModelScope.launch {
             val result = api.requestSomeAction()
 
             // Switch back to MainFragment (the latest visible instance).
-            viewExecutor {
+            eventNotifier {
                 // If the screen got rotated in the meantime, `this` would point
                 // to the new MainFragment instance instead of the destroyed one
                 // that did the initial `someAction` call above.
@@ -124,7 +124,7 @@ class MainFragment : Fragment(), MainView {
     init {
         // Safely execute the MainViewModel's events in the >=STARTED state
         lifecycleScope.launchWhenStarted {
-            viewModel.viewExecutor.collect { it() }
+            viewModel.eventNotifier.collect { it() }
         }
     }
 
@@ -240,7 +240,7 @@ class MyTest : CoroutineTest() {
         // You can access the TestCoroutineScope directly to launch some background processing.
         // In this case, let's process MyViewModel's events.
         coroutinesTestRule.testCoroutineScope.launch {
-            viewModel.viewExecutor.collect { view.it() }
+            viewModel.eventNotifier.collect { view.it() }
         }
     }
 
