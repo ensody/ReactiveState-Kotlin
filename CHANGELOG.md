@@ -1,5 +1,9 @@
 # Changelog
 
+## Next release
+
+* `MutableFlow.tryEmit` now returns a `Boolean`.
+
 ## 2.0.4
 
 * Upgraded dependencies
