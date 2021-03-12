@@ -2,6 +2,12 @@
 
 ## Next release
 
+Breaking changes:
+
+* Removed bindings because they turned out to not be useful enough.
+
+Non-breaking changes:
+
 * Added `WhileUsed` for reference-counted singletons that get garbage-collected when all consumers' `CoroutineScope`s end.
 * `MutableFlow.tryEmit` now returns a `Boolean`.
 

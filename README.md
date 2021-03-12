@@ -62,13 +62,15 @@ class MainFragment : Fragment() {
         // val nameInputField = ...
         // val incrementButton = ...
 
-        bindTwoWay(viewModel.name, nameInputField)
+        nameInputField.addTextChangedListener {
+            viewModel.name.value = nameInputField.text.toString()
+        }
 
         autoRun {
             // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to re-execute
             // this code block whenever model.name or model.counter is changed.
             // Result: isEnabled changes while you type.
-            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.counter) < 100
+            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.doubledCounter) < 100
         }
 
         incrementButton.setOnClickListener {
@@ -86,10 +88,7 @@ Depending on the context in which `autoRun` is executed, this observer is automa
 
 With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
 
-With `bind` and `bindTwoWay` you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
-These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` (same as with `autoRun`).
-
-Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
+Note that `autoRun` can be extended to support observables other than `StateFlow` and `LiveData`.
 
 ### Correct lifecycle handling
 
@@ -304,93 +303,6 @@ class MyTest {
     @Test
     fun `some test`() = coroutineTestRule.runBlockingTest {
         // ...
-    }
-}
-```
-
-## Examples
-
-Example `ViewModel`:
-
-```kotlin
-class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
-    // This indirection makes it possible to unit test with InMemoryStateFlowStore instead of SavedStateHandle
-    val store = createStore(viewModelScope)
-
-    val count = store.getData("count", 0)
-
-    // These store form data
-    val username = store.getData("username", "")
-    val password = store.getData("password", "")
-    val usernameError = MutableStateFlow("")
-    val passwordError = derived(Eagerly) {
-        validatePassword(get(password))
-    }
-
-    // Simple form validation with multiple fields
-    val isFormValid = derived(WhileSubscribed()) {
-        get(username).isNotEmpty() && get(usernameError).isEmpty() &&
-        get(password).isNotEmpty() && get(passwordError).isEmpty()
-    }
-
-    init {
-        // Instead of derived you can also use autoRun for more complex
-        // cases (e.g. if you need to set multiple StateFlow/LiveData values or
-        // you want to deal with coroutines and throttling/debouncing).
-        autoRun {
-            usernameError.value = validateUsername(get(username))
-        }
-    }
-
-    fun increment() {
-        count.value += 1
-    }
-}
-```
-
-Example `Fragment` (using view bindings for type safety):
-
-```kotlin
-class MainFragment : Fragment() {
-    private val viewModel by stateViewModel { MainViewModel(it::stateFlowStore) }
-    private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = MainFragmentBinding.inflate(inflater, container, false)
-
-        // Two-way bindings (String/TextView or Bool/CompoundButton)
-        bindTwoWay(viewModel.username, binding.username)
-        bindTwoWay(viewModel.password, binding.password)
-
-        // One-way bindings (also possible in the other direction)
-        bind(binding.usernameError, viewModel.usernameError)
-        bind(binding.passwordError, viewModel.passwordError)
-
-        // One-way binding using more flexible autoRun callback style.
-        bind(binding.count) {
-            // NOTE: You'll probably want to localize this string.
-            "${get(viewModel.count)}"
-        }
-
-        // Even more complicated cases can use autoRun directly.
-        autoRun {
-            // Only enable submit button if form is valid
-            binding.submitButton.isEnabled = get(viewModel.isFormValid)
-        }
-
-        autoRun {
-            // Show username error TextView only when there is an error
-            binding.usernameError.isVisible = get(viewModel.usernameError).isNotEmpty()
-        }
-
-        binding.increment.setOnClickListener {
-            viewModel.increment()
-        }
-
-        return binding.root
     }
 }
 ```
