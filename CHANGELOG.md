@@ -2,6 +2,7 @@
 
 ## Next release
 
+* Added `WhileUsed` for reference-counted singletons that get garbage-collected when all consumers' `CoroutineScope`s end.
 * `MutableFlow.tryEmit` now returns a `Boolean`.
 
 ## 2.0.4

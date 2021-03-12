@@ -155,13 +155,32 @@ To work around this, you'll usually launch a coroutine in `ViewModel.viewModelSc
 
 In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
 
+### Reference-counted singletons
+
+```kotlin
+val sharedCache = WhileUsed { mutableMapOf<String, Entity>() }
+
+class MainViewModel : ViewModel() {
+    private val cache = sharedCache(viewModelScope)
+
+    fun load(id: String) = cache[id]
+
+    fun save(id: String, value: Entity) {
+        cache[id] = value
+    }
+}
+```
+
+The `WhileUsed` class allows you to create an on-demand computed singleton that gets garbage collected as soon as nobody is using it, anymore.
+This can be used to e.g. share the same cache between all ViewModels within a certain screen flow, but free up the memory as soon as the user leaves the screen flow.
+
 ### Automatic cleanups based on lifecycle state
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
 ReactiveState provides a `Disposable` interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
 You can also use `disposable.disposeOnCompletionOf` to auto-dispose your disposables.
-For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single disposable object.
+For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single `Disposable` object.
 
 With extension functions like `LifecycleOwner.onResume` or `LifecycleOwner.onStopOnce` you can easily add long-running or one-time observers to a `Lifecycle`.
 These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like `LifecycleOwner.autoRun` does.
