@@ -5,6 +5,7 @@
 Breaking changes:
 
 * IMPORTANT: In order to overcome a limitation, the `flowTransformer` argument of `derived`/`coAutoRun`/`CoAutoRunner` must now map over lambda functions and execute them. E.g.: `mapLatest { it() }`. Without the `it()` no value will ever be recomputed!
+* The default `flowTransformer` has changed from `{ mapLatest { } }` to `{ conflatedWorker() }`.
 * Removed bindings because they turned out to not be useful enough.
 
 Non-breaking changes:
