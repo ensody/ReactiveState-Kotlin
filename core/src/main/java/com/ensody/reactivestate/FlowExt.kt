@@ -10,13 +10,33 @@ import kotlinx.coroutines.flow.*
  * away all intermediate changes until the computation is finished and then recompute again for the last change that
  * happened in the meantime.
  *
- * This is useful e.g. when you have a constant stream of events (e.g. WebSocket change notifications, keyboard input, mouse moved, etc.) and you
- * want to show intermediate results.
+ * This is useful e.g. when you have a constant stream of events (e.g. WebSocket change notifications, keyboard input,
+ * mouse moved, etc.) and you want to show intermediate results.
+ *
+ * If you only want to show the latest result you can use [latestWorker].
  *
  * @param timeoutMillis Additional delay before the last element is computed (throwing away intermediate elements).
  */
 public fun Flow<suspend () -> Unit>.conflatedWorker(timeoutMillis: Long = 0): Flow<Unit> =
     conflatedMap(timeoutMillis) { it() }
+
+/**
+ * Executes each lambda in a [Flow] using [debounce] and [mapLatest].
+ *
+ * Warning: This will not compute anything if new entries keep coming in at a rate faster than [timeoutMillis]!
+ * This also adds a delay before the first execution!
+ *
+ * Especially in UIs you'll usually want to:
+ *
+ * - execute as quickly as possible, so that the UI feels snappy
+ * - get intermediate results to provide some feedback
+ *
+ * This is why you'll usually want to use [conflatedWorker].
+ *
+ * @param timeoutMillis The [debounce] timeout.
+ */
+public fun Flow<suspend () -> Unit>.latestWorker(timeoutMillis: Long = 0): Flow<Unit> =
+    debounce(timeoutMillis).mapLatest { it() }
 
 /**
  * Executes each lambda in a [Flow] using [debounce] and [map].

@@ -11,7 +11,7 @@ Breaking changes:
 Non-breaking changes:
 
 * Added `WhileUsed` for reference-counted singletons that get garbage-collected when all consumers' `CoroutineScope`s end.
-* Added `conflatedWorker` and `debouncedWorker`` as simple `flowTransformer`s for the suspend-based `derived`/`coAutoRun`.
+* Added `conflatedWorker`, `latestWorker` and `debouncedWorker` as simple `flowTransformer`s for the suspend-based `derived`/`coAutoRun`.
 * Added `conflatedMap` helper for mapping first and last elements and - whenever possible - intermediate elements.
 * Added simple `ErrorEvents` interface and `withErrorReporting(eventNotifier) { ... }` for easy error handling.
 * `MutableFlow.tryEmit` now returns a `Boolean`.
