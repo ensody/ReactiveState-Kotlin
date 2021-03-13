@@ -154,13 +154,17 @@ To work around this, you'll usually launch a coroutine in `ViewModel.viewModelSc
 
 In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
 
-### Reference-counted singletons
+### Reference-counted / demand-driven singletons
 
 ```kotlin
-val sharedCache = WhileUsed { mutableMapOf<String, Entity>() }
+val getCache = WhileUsed { mutableMapOf<String, Entity>() }
+val getCacheProxy = WhileUsed { getCache(it) }  // example how to access other WhileUsed values
 
 class MainViewModel : ViewModel() {
-    private val cache = sharedCache(viewModelScope)
+    // The cache is created here and disposed once the ViewModel is destroyed. If multiple ViewModels use the cache
+    // at the same time then one single instance is shared between all of them and freed once the last ViewModel is
+    // destroyed.
+    private val cache: MutableMap<String, Entity> = getCacheProxy(viewModelScope)
 
     fun load(id: String) = cache[id]
 
@@ -170,10 +174,12 @@ class MainViewModel : ViewModel() {
 }
 ```
 
-The `WhileUsed` class allows you to create an on-demand computed singleton that gets garbage collected as soon as nobody is using it, anymore.
+`WhileUsed` allows you to create an on-demand computed singleton that gets disposed as soon as nobody is using it, anymore.
 This can be used to e.g. share the same cache between all ViewModels within a certain screen flow, but free up the memory as soon as the user leaves the screen flow.
 
-As an alternative to the `CoroutineScope` based reference counting you can also use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
+As an alternative to the `CoroutineScope` based reference counting you can also pass a `DisposableGroup` or use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
+
+This is also a nice combination with `WhileSubscribed`.
 
 ### Automatic cleanups based on lifecycle state
 
@@ -342,7 +348,7 @@ This library is based on [reactive_state](https://github.com/ensody/reactive_sta
 ## License
 
 ```
-Copyright 2020 Ensody GmbH, Waldemar Kornewald
+Copyright 2020-2021 Ensody GmbH, Waldemar Kornewald
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

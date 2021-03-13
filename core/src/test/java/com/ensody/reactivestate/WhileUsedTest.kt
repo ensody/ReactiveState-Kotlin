@@ -11,7 +11,8 @@ import org.junit.Test
 internal class WhileUsedTest {
     @Test
     fun `WhileUsed tracks the usages`() = runBlockingTest {
-        val someValue = WhileUsed { SomeData("hello") }
+        val nestedValue = WhileUsed { SomeData("hello") }
+        val someValue = WhileUsed { nestedValue(it) }
 
         lateinit var data1: SomeData
         lateinit var data2: SomeData
