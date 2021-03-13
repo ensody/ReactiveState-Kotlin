@@ -4,6 +4,17 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
+ReactiveState-Kotlin provides you with the foundation for automatically correct and simple code:
+
+* reactive programming: everything is recomputed/updated automatically based on straightforward code
+* demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
+* event handling: simple events based on interfaces (more composable and less boilerplaty than sealed classes)
+* automatic error handling: no more forgotten try-catch or copy-pasted error handling logic all over the place
+* automatic cleanup/dispose logic (e.g. dispose something once a `CoroutineScope` is canceled)
+* coroutine-based unit tests: worry no more about `CoroutineDispatcher`s
+* lifecycle handling (esp. Android)
+* state restoration (esp. Android)
+
 This library is split into separate modules for Kotlin (`core` and `core-test`) and Android (`reactivestate`).
 
 ## Installation
@@ -93,14 +104,14 @@ Note that `autoRun` can be extended to support observables other than `StateFlow
 ### Correct lifecycle handling
 
 ```kotlin
-interface MainView {
+interface MainEvents {
     fun showMessage(message: String)
 }
 
 class MainViewModel : ViewModel() {
-    // This queue can be used to send events to the MainView in the STARTED lifecycle state.
-    // Instead of boilerplaty event classes we use a simple MainView interface with methods.
-    val eventNotifier = EventNotifier<MainView>()
+    // This queue can be used to send events to the MainEvents in the STARTED lifecycle state.
+    // Instead of boilerplaty event sealed classes we use a simple MainEvents interface with methods.
+    val eventNotifier = EventNotifier<MainEvents>()
 
     fun someAction() {
         viewModelScope.launch {
@@ -117,7 +128,7 @@ class MainViewModel : ViewModel() {
     }
 }
 
-class MainFragment : Fragment(), MainView {
+class MainFragment : Fragment(), MainEvents {
     private val viewModel: MainViewModel by viewModels()
 
     init {
@@ -274,6 +285,39 @@ Since it's a common pattern, we provide `ErrorEvents` and `withErrorHandling` to
 The `ErrorEvents` interface provides a simple `onError(error: Throwable)` method.
 
 This pattern is also useful in combination with `CoroutineLauncher` in order to automate error handling for all coroutines.
+
+### MutableValueFlow - the more flexible alternative to MutableStateFlow
+
+`MutableValueFlow` implements the same API as `MutableStateFlow`, but also provides an `update` method for working with mutable values:
+
+```kotlin
+// MutableValueFlow
+
+valueFlow.update {
+    it.subvalue1.deepsubvalue.somevalue += 3
+    it.subvalue2.state = SomeState.IN_PROGRESS
+    it.isLoading = true
+}
+
+// versus MutableStateFlow
+
+stateFlow.value = flow.value.let {
+    it.copy(
+        subvalue1 = it.subvalue1.copy(
+            deepsubvalue = it.subvalue1.deepsubvalue.copy(somevalue = it.subvalue1.deepsubvalue.somevalue + 3)
+         ),
+        subvalue2 = it.subvalue2.copy(state = SomeState.IN_PROGRESS),
+        isLoading = true,
+    )
+}
+```
+
+If you work with immutable data classes then you might know this problem. You can make immutable data less painful with [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/), but that can still result in complicated and inefficient code.
+
+Mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture.
+Usually, reactive code consciously puts data into `StateFlow`s in order to allow for observability.
+This results in a code structure where these `StateFlow`s are the single hosts of each piece of data and the mutations are limited around them or even around the observable database as the source of truth.
+So, in practice it can be quite safe to work with mutable data.
 
 ### Unit tests with coroutines
 
