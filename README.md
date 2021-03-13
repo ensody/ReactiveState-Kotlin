@@ -4,6 +4,17 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
+ReactiveState-Kotlin provides you with the foundation for automatically correct and simple code:
+
+* reactive programming: everything is recomputed/updated automatically based on straightforward code
+* demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
+* event handling: simple events based on interfaces (more composable and less boilerplaty than sealed classes)
+* automatic error handling: no more forgotten try-catch or copy-pasted error handling logic all over the place
+* automatic cleanup/dispose logic (e.g. dispose something once a `CoroutineScope` is canceled)
+* coroutine-based unit tests: worry no more about `CoroutineDispatcher`s
+* lifecycle handling (esp. Android)
+* state restoration (esp. Android)
+
 This library is split into separate modules for Kotlin (`core` and `core-test`) and Android (`reactivestate`).
 
 ## Installation
@@ -62,13 +73,15 @@ class MainFragment : Fragment() {
         // val nameInputField = ...
         // val incrementButton = ...
 
-        bindTwoWay(viewModel.name, nameInputField)
+        nameInputField.addTextChangedListener {
+            viewModel.name.value = nameInputField.text.toString()
+        }
 
         autoRun {
             // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to re-execute
             // this code block whenever model.name or model.counter is changed.
             // Result: isEnabled changes while you type.
-            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.counter) < 100
+            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.doubledCounter) < 100
         }
 
         incrementButton.setOnClickListener {
@@ -86,22 +99,19 @@ Depending on the context in which `autoRun` is executed, this observer is automa
 
 With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
 
-With `bind` and `bindTwoWay` you can easily create one-way or two-way bindings between `StateFlow`/`LiveData` and your views.
-These bindings are automatically tied to the `onStart()`/`onStop()` lifecycle of your `Fragment`/`Activity` (same as with `autoRun`).
-
-Note that `autoRun` and `bind` can be extended to support observables other than `StateFlow` and `LiveData`.
+Note that `autoRun` can be extended to support observables other than `StateFlow` and `LiveData`.
 
 ### Correct lifecycle handling
 
 ```kotlin
-interface MainView {
+interface MainEvents {
     fun showMessage(message: String)
 }
 
 class MainViewModel : ViewModel() {
-    // This queue can be used to send events to the MainView in the STARTED lifecycle state.
-    // Instead of boilerplaty event classes we use a simple MainView interface with methods.
-    val eventNotifier = EventNotifier<MainView>()
+    // This queue can be used to send events to the MainEvents in the STARTED lifecycle state.
+    // Instead of boilerplaty event sealed classes we use a simple MainEvents interface with methods.
+    val eventNotifier = EventNotifier<MainEvents>()
 
     fun someAction() {
         viewModelScope.launch {
@@ -118,11 +128,11 @@ class MainViewModel : ViewModel() {
     }
 }
 
-class MainFragment : Fragment(), MainView {
+class MainFragment : Fragment(), MainEvents {
     private val viewModel: MainViewModel by viewModels()
 
     init {
-        // Safely execute the MainViewModel's events in the >=STARTED state
+        // Execute the MainViewModel's events in the >=STARTED state to prevent crashes
         lifecycleScope.launchWhenStarted {
             viewModel.eventNotifier.collect { it() }
         }
@@ -155,13 +165,40 @@ To work around this, you'll usually launch a coroutine in `ViewModel.viewModelSc
 
 In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
 
+### Reference-counted / demand-driven singletons
+
+```kotlin
+val getCache = WhileUsed { mutableMapOf<String, Entity>() }
+val getCacheProxy = WhileUsed { getCache(it) }  // example how to access other WhileUsed values
+
+class MainViewModel : ViewModel() {
+    // The cache is created here and disposed once the ViewModel is destroyed. If multiple ViewModels use the cache
+    // at the same time then one single instance is shared between all of them and freed once the last ViewModel is
+    // destroyed.
+    private val cache: MutableMap<String, Entity> = getCacheProxy(viewModelScope)
+
+    fun load(id: String) = cache[id]
+
+    fun save(id: String, value: Entity) {
+        cache[id] = value
+    }
+}
+```
+
+`WhileUsed` allows you to create an on-demand computed singleton that gets disposed as soon as nobody is using it, anymore.
+This can be used to e.g. share the same cache between all ViewModels within a certain screen flow, but free up the memory as soon as the user leaves the screen flow.
+
+As an alternative to the `CoroutineScope` based reference counting you can also pass a `DisposableGroup` or use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
+
+This is also a nice combination with `WhileSubscribed`.
+
 ### Automatic cleanups based on lifecycle state
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
 
 ReactiveState provides a `Disposable` interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
 You can also use `disposable.disposeOnCompletionOf` to auto-dispose your disposables.
-For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single disposable object.
+For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single `Disposable` object.
 
 With extension functions like `LifecycleOwner.onResume` or `LifecycleOwner.onStopOnce` you can easily add long-running or one-time observers to a `Lifecycle`.
 These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like `LifecycleOwner.autoRun` does.
@@ -223,6 +260,65 @@ class MainFragment : Fragment() {
 }
 ```
 
+### Error handling
+
+```kotlin
+interface MyHandlerEvents : ErrorEvents {
+    fun onSomethingHappened()
+}
+
+class MyHandler {
+    val eventNotifier = EventNotifier<MyHandlerEvents>()
+
+    fun doSomething() {
+        withErrorHandling(eventNotifier) {
+            if (computeResult() > 5) {
+                eventNotifier { onSomethingHappened() }
+            }
+        }
+    }
+}
+```
+
+Since it's a common pattern, we provide `ErrorEvents` and `withErrorHandling` to automatically catch and report any errors within a code block to an `EventNotifier`.
+
+The `ErrorEvents` interface provides a simple `onError(error: Throwable)` method.
+
+This pattern is also useful in combination with `CoroutineLauncher` in order to automate error handling for all coroutines.
+
+### MutableValueFlow - the more flexible alternative to MutableStateFlow
+
+`MutableValueFlow` implements the same API as `MutableStateFlow`, but also provides an `update` method for working with mutable values:
+
+```kotlin
+// MutableValueFlow
+
+valueFlow.update {
+    it.subvalue1.deepsubvalue.somevalue += 3
+    it.subvalue2.state = SomeState.IN_PROGRESS
+    it.isLoading = true
+}
+
+// versus MutableStateFlow
+
+stateFlow.value = flow.value.let {
+    it.copy(
+        subvalue1 = it.subvalue1.copy(
+            deepsubvalue = it.subvalue1.deepsubvalue.copy(somevalue = it.subvalue1.deepsubvalue.somevalue + 3)
+         ),
+        subvalue2 = it.subvalue2.copy(state = SomeState.IN_PROGRESS),
+        isLoading = true,
+    )
+}
+```
+
+If you work with immutable data classes then you might know this problem. You can make immutable data less painful with [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/), but that can still result in complicated and inefficient code.
+
+Mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture.
+Usually, reactive code consciously puts data into `StateFlow`s in order to allow for observability.
+This results in a code structure where these `StateFlow`s are the single hosts of each piece of data and the mutations are limited around them or even around the observable database as the source of truth.
+So, in practice it can be quite safe to work with mutable data.
+
 ### Unit tests with coroutines
 
 The `CoroutineTest` base class provides some often useful helpers for working with coroutines.
@@ -233,14 +329,14 @@ class MyTest : CoroutineTest() {
     val viewModel = MyViewModel()
 
     // Let's use a mock to test the events emitted by MyViewModel
-    val view: MyView = mock()
+    val events: MyEvents = mock()
 
     @Before
     fun setup() {
         // You can access the TestCoroutineScope directly to launch some background processing.
         // In this case, let's process MyViewModel's events.
         coroutinesTestRule.testCoroutineScope.launch {
-            viewModel.eventNotifier.collect { view.it() }
+            viewModel.eventNotifier.collect { events.it() }
         }
     }
 
@@ -248,7 +344,7 @@ class MyTest : CoroutineTest() {
     fun `some test`() = runBlockingTest {
         viewModel.doSomething()
         advanceUntilIdle()
-        verify(view).someEvent()
+        verify(events).someEvent()
     }
 }
 ```
@@ -289,93 +385,24 @@ class MyTest {
 }
 ```
 
-## Examples
-
-Example `ViewModel`:
-
-```kotlin
-class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
-    // This indirection makes it possible to unit test with InMemoryStateFlowStore instead of SavedStateHandle
-    val store = createStore(viewModelScope)
-
-    val count = store.getData("count", 0)
-
-    // These store form data
-    val username = store.getData("username", "")
-    val password = store.getData("password", "")
-    val usernameError = MutableStateFlow("")
-    val passwordError = derived(Eagerly) {
-        validatePassword(get(password))
-    }
-
-    // Simple form validation with multiple fields
-    val isFormValid = derived(WhileSubscribed()) {
-        get(username).isNotEmpty() && get(usernameError).isEmpty() &&
-        get(password).isNotEmpty() && get(passwordError).isEmpty()
-    }
-
-    init {
-        // Instead of derived you can also use autoRun for more complex
-        // cases (e.g. if you need to set multiple StateFlow/LiveData values or
-        // you want to deal with coroutines and throttling/debouncing).
-        autoRun {
-            usernameError.value = validateUsername(get(username))
-        }
-    }
-
-    fun increment() {
-        count.value += 1
-    }
-}
-```
-
-Example `Fragment` (using view bindings for type safety):
-
-```kotlin
-class MainFragment : Fragment() {
-    private val viewModel by stateViewModel { MainViewModel(it::stateFlowStore) }
-    private var binding by validUntil<MainFragmentBinding>(::onDestroyView)
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        binding = MainFragmentBinding.inflate(inflater, container, false)
-
-        // Two-way bindings (String/TextView or Bool/CompoundButton)
-        bindTwoWay(viewModel.username, binding.username)
-        bindTwoWay(viewModel.password, binding.password)
-
-        // One-way bindings (also possible in the other direction)
-        bind(binding.usernameError, viewModel.usernameError)
-        bind(binding.passwordError, viewModel.passwordError)
-
-        // One-way binding using more flexible autoRun callback style.
-        bind(binding.count) {
-            // NOTE: You'll probably want to localize this string.
-            "${get(viewModel.count)}"
-        }
-
-        // Even more complicated cases can use autoRun directly.
-        autoRun {
-            // Only enable submit button if form is valid
-            binding.submitButton.isEnabled = get(viewModel.isFormValid)
-        }
-
-        autoRun {
-            // Show username error TextView only when there is an error
-            binding.usernameError.isVisible = get(viewModel.usernameError).isNotEmpty()
-        }
-
-        binding.increment.setOnClickListener {
-            viewModel.increment()
-        }
-
-        return binding.root
-    }
-}
-```
-
 ## See also
 
 This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Kotlin and Android patterns.
+
+## License
+
+```
+Copyright 2020-2021 Ensody GmbH, Waldemar Kornewald
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```

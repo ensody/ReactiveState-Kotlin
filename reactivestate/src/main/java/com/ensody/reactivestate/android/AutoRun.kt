@@ -4,7 +4,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import com.ensody.reactivestate.*
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.flow.mapLatest
 
 /**
  * Watches observables for changes. Often useful to keep things in sync.
@@ -106,7 +105,7 @@ public fun LifecycleOwner.autoRun(
  *
  * @param [onChange] Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
  * @param [observer] The callback which is used to track the observables.
@@ -114,7 +113,7 @@ public fun LifecycleOwner.autoRun(
 public fun LifecycleOwner.coAutoRun(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: Boolean = true,
     observer: AutoRunCallback<Unit>,

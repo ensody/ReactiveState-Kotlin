@@ -8,7 +8,6 @@ import com.ensody.reactivestate.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.mapLatest
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
@@ -25,7 +24,7 @@ public fun <T> ViewModel.derived(
  *
  * @param initial The initial value (until the first computation finishes).
  * @param launcher The [CoroutineLauncher] to use.
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
  * @param observer The callback which is used to track the observables.
@@ -34,7 +33,7 @@ public fun <T> ViewModel.derived(
     initial: T,
     started: SharingStarted,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
-    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: Boolean = true,
     observer: CoAutoRunCallback<T>,
@@ -63,7 +62,7 @@ public fun <T> LifecycleOwner.derived(
  *
  * @param initial The initial value (until the first computation finishes).
  * @param launcher The [CoroutineLauncher] to use.
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
  * @param observer The callback which is used to track the observables.
@@ -72,7 +71,7 @@ public fun <T> LifecycleOwner.derived(
     initial: T,
     started: SharingStarted,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
-    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: Boolean = true,
     observer: CoAutoRunCallback<T>,

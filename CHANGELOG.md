@@ -1,8 +1,28 @@
 # Changelog
 
+## Next release
+
+Breaking changes:
+
+* IMPORTANT: In order to overcome a limitation, the `flowTransformer` argument of `derived`/`coAutoRun`/`CoAutoRunner` must now map over lambda functions and execute them. E.g.: `mapLatest { it() }`. Without the `it()` no value will ever be recomputed!
+* The default `flowTransformer` has changed from `{ mapLatest { } }` to `{ conflatedWorker() }`.
+* Removed bindings because they turned out to not be useful enough.
+
+Non-breaking changes:
+
+* Added `WhileUsed` for reference-counted singletons that get garbage-collected when all consumers' `CoroutineScope`s end.
+* Added `conflatedWorker` and `debouncedWorker`` as simple `flowTransformer`s for the suspend-based `derived`/`coAutoRun`.
+* Added `conflatedMap` helper for mapping first and last elements and - whenever possible - intermediate elements.
+* Added simple `ErrorEvents` interface and `withErrorReporting(eventNotifier) { ... }` for easy error handling.
+* `MutableFlow.tryEmit` now returns a `Boolean`.
+
+Legal change:
+
+* Switched license to Apache 2.0.
+
 ## 2.0.4
 
-* Upgraded dependencies
+* Upgraded dependencies (coroutines 1.4.3, androidx.lifecycle 2.3.0, fragment-ktx 1.3.1)
 
 ## 2.0.2
 

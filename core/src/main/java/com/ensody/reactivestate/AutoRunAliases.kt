@@ -16,7 +16,7 @@ public typealias CoAutoRunCallback<T> = suspend Resolver.() -> T
 public typealias CoAutoRunOnChangeCallback<T> = suspend (CoAutoRunner<T>) -> Unit
 
 /** Collector of the change events used by [coAutoRun] and [CoAutoRunner]. */
-public typealias AutoRunFlowTransformer = suspend Flow<Unit>.() -> Flow<Unit>
+public typealias AutoRunFlowTransformer = suspend Flow<suspend () -> Unit>.() -> Flow<Unit>
 
 /** A factory function creating a StateFlowStore. */
 public typealias StateFlowStoreFactory = (CoroutineScope) -> StateFlowStore

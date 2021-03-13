@@ -11,8 +11,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
-private data class SomeData(val name: String)
-
 internal class ValueFlowTest {
     @Test
     fun `ValueFlow emits first value`() = runBlockingTest {

@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
  */
 public interface MutableFlow<T> : Flow<T> {
     /** Adds a value to this Flow if there's still capacity left. */
-    public fun tryEmit(value: T)
+    public fun tryEmit(value: T): Boolean
 
     /** Adds a value to this Flow if there's still capacity left or suspends until the value can be added. */
     public suspend fun emit(value: T)
@@ -33,9 +33,8 @@ private class MutableFlowImpl<T>(
     private val flow: Channel<T>,
 ) : MutableFlow<T>, Flow<T> by flow.receiveAsFlow() {
 
-    override fun tryEmit(value: T) {
+    override fun tryEmit(value: T): Boolean =
         flow.offer(value)
-    }
 
     override suspend fun emit(value: T) {
         flow.send(value)
