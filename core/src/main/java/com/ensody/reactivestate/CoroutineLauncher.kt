@@ -42,12 +42,8 @@ public class SimpleCoroutineLauncher(override val launcherScope: CoroutineScope)
         block: suspend CoroutineScope.() -> Unit
     ): Job =
         launcherScope.launch(context = context, start = start) {
-            try {
+            withErrorReporting({ onError?.invoke(it) ?: throw it }) {
                 block()
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Throwable) {
-                onError?.invoke(e) ?: throw e
             }
         }
 }

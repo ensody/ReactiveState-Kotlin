@@ -2,10 +2,14 @@ package com.ensody.reactivestate
 
 import assertk.assertThat
 import assertk.assertions.isEqualTo
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
+import java.lang.IllegalStateException
 
 internal class EventNotifierTest {
     @Test
@@ -47,6 +51,19 @@ internal class EventNotifierTest {
         advanceUntilIdle()
         assertThat(collected).isEqualTo(listOf(0, 1, 2, 3))
         job.cancel()
+    }
+
+    @Test
+    fun `withErrorReporting sends error events`() = runBlockingTest {
+        val eventNotifier = EventNotifier<ErrorEvents>()
+        val error = IllegalStateException()
+        withErrorReporting(eventNotifier) {
+            throw error
+        }
+        val observer: ErrorEvents = mockk(relaxed = true)
+        val event = eventNotifier.first()
+        observer.event()
+        verify { observer.onError(error) }
     }
 }
 

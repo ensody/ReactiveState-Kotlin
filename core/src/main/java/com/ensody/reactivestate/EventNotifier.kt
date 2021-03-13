@@ -4,12 +4,30 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 
 /**
- * This is used to send events to an observer.
+ * This is used to send events to an observer. All events are queued for later processing.
  *
- * The possible events are defined as method calls on an interface [T].
+ * The possible events are defined as method calls on an interface [T]. This allows for easy composition of multiple
+ * events. See [ErrorEvents] as an example:
  *
- * In case of overflow, this will drop the oldest entry by default (e.g. if you have 100s of events per second that
- * aren't processed by the view quickly enough).
+ * ```kotlin
+ * interface MyHandlerEvents : ErrorEvents, OtherEvents {
+ *     fun onSomethingHappened()
+ * }
+ *
+ * class MyHandler {
+ *     val eventNotifier = EventNotifier<MyHandlerEvents>()
+ *
+ *     fun doSomething() {
+ *         withErrorHandling(eventNotifier) {
+ *             if (computeResult() > 5) {
+ *                 eventNotifier { onSomethingHappened() }
+ *             } else {
+ *                 eventNotifier { onOtherEvent() }
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
  */
 public interface EventNotifier<T> : MutableFlow<suspend T.() -> Unit> {
     /** Adds a lambda function to the event stream. */

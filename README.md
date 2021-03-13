@@ -121,7 +121,7 @@ class MainFragment : Fragment(), MainView {
     private val viewModel: MainViewModel by viewModels()
 
     init {
-        // Safely execute the MainViewModel's events in the >=STARTED state
+        // Execute the MainViewModel's events in the >=STARTED state to prevent crashes
         lifecycleScope.launchWhenStarted {
             viewModel.eventNotifier.collect { it() }
         }
@@ -243,6 +243,32 @@ class MainFragment : Fragment() {
 }
 ```
 
+### Error handling
+
+```kotlin
+interface MyHandlerEvents : ErrorEvents {
+    fun onSomethingHappened()
+}
+
+class MyHandler {
+    val eventNotifier = EventNotifier<MyHandlerEvents>()
+
+    fun doSomething() {
+        withErrorHandling(eventNotifier) {
+            if (computeResult() > 5) {
+                eventNotifier { onSomethingHappened() }
+            }
+        }
+    }
+}
+```
+
+Since it's a common pattern, we provide `ErrorEvents` and `withErrorHandling` to automatically catch and report any errors within a code block to an `EventNotifier`.
+
+The `ErrorEvents` interface provides a simple `onError(error: Throwable)` method.
+
+This pattern is also useful in combination with `CoroutineLauncher` in order to automate error handling for all coroutines.
+
 ### Unit tests with coroutines
 
 The `CoroutineTest` base class provides some often useful helpers for working with coroutines.
@@ -253,14 +279,14 @@ class MyTest : CoroutineTest() {
     val viewModel = MyViewModel()
 
     // Let's use a mock to test the events emitted by MyViewModel
-    val view: MyView = mock()
+    val events: MyEvents = mock()
 
     @Before
     fun setup() {
         // You can access the TestCoroutineScope directly to launch some background processing.
         // In this case, let's process MyViewModel's events.
         coroutinesTestRule.testCoroutineScope.launch {
-            viewModel.eventNotifier.collect { view.it() }
+            viewModel.eventNotifier.collect { events.it() }
         }
     }
 
@@ -268,7 +294,7 @@ class MyTest : CoroutineTest() {
     fun `some test`() = runBlockingTest {
         viewModel.doSomething()
         advanceUntilIdle()
-        verify(view).someEvent()
+        verify(events).someEvent()
     }
 }
 ```
