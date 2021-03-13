@@ -7,6 +7,8 @@ import kotlinx.coroutines.*
  *
  * In order to request the value with [invoke] you need a [CoroutineScope].
  * This is used to track the requester's lifetime and in turn the reference count.
+ * As an alternative when you don't have a [CoroutineScope] you can also use [disposableValue], but this is more
+ * error-prone because it's easier to forget.
  *
  * Typically you'd place such values in your DI system and have one or more ViewModels or UI screens or widgets
  * requesting a value. Once these screens/widgets/ViewModels are destroyed (e.g. because the user pressed on the back
@@ -34,15 +36,24 @@ public class WhileUsed<T>(
      * When the given [userScope] is canceled the reference count is decremented.
      * Once the count is 0 the value is freed.
      */
-    public operator fun invoke(userScope: CoroutineScope): T {
+    public operator fun invoke(userScope: CoroutineScope): T =
+        disposableValue().apply {
+            disposeOnCompletionOf(userScope)
+        }.value
+
+    /**
+     * Creates or returns the existing value while incrementing the reference count. You really want [invoke] instead.
+     *
+     * IMPORTANT: You have to call `dispose()` on the returned value once you stop using it.
+     */
+    public fun disposableValue(): DisposableValue<T> {
         synchronized(this) {
             val result = value ?: Wrapped(builder())
             cleaner?.cancel()
             cleaner = null
             value = result
             references++
-            userScope.invokeOnCompletion { release() }
-            return result.value
+            return DisposableValue(result.value, ::release)
         }
     }
 

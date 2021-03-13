@@ -173,6 +173,8 @@ class MainViewModel : ViewModel() {
 The `WhileUsed` class allows you to create an on-demand computed singleton that gets garbage collected as soon as nobody is using it, anymore.
 This can be used to e.g. share the same cache between all ViewModels within a certain screen flow, but free up the memory as soon as the user leaves the screen flow.
 
+As an alternative to the `CoroutineScope` based reference counting you can also use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
+
 ### Automatic cleanups based on lifecycle state
 
 Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
