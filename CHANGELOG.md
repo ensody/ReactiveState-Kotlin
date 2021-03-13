@@ -16,6 +16,10 @@ Non-breaking changes:
 * Added simple `ErrorEvents` interface and `withErrorReporting(eventNotifier) { ... }` for easy error handling.
 * `MutableFlow.tryEmit` now returns a `Boolean`.
 
+Legal change:
+
+* Switched license to Apache 2.0.
+
 ## 2.0.4
 
 * Upgraded dependencies (coroutines 1.4.3, androidx.lifecycle 2.3.0, fragment-ktx 1.3.1)
