@@ -4,11 +4,14 @@
 
 Breaking changes:
 
+* IMPORTANT: In order to overcome a limitation, the `flowTransformer` argument of `derived`/`coAutoRun`/`CoAutoRunner` must now map over lambda functions and execute them. E.g.: `mapLatest { it() }`. Without the `it()` no value will ever be recomputed!
 * Removed bindings because they turned out to not be useful enough.
 
 Non-breaking changes:
 
 * Added `WhileUsed` for reference-counted singletons that get garbage-collected when all consumers' `CoroutineScope`s end.
+* Added `conflatedWorker` and `debouncedWorker`` as simple `flowTransformer`s for the suspend-based `derived`/`coAutoRun`.
+* Added `conflatedMap` helper for mapping first and last elements and - whenever possible - intermediate elements.
 * `MutableFlow.tryEmit` now returns a `Boolean`.
 
 ## 2.0.4

@@ -41,14 +41,14 @@ public fun CoroutineLauncher.autoRun(
  *
  * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineLauncher.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: Boolean = true,
     observer: CoAutoRunCallback<Unit>,
@@ -100,13 +100,13 @@ public fun CoroutineScope.autoRun(
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineScope.coAutoRun(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     launcher.coAutoRun(onChange = onChange, flowTransformer = flowTransformer, observer = observer)
@@ -201,7 +201,7 @@ public class AutoRunner<T>(
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. Your onChange handler has to
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
- * @param flowTransformer How changes should be collected. Defaults to `{ mapLatest { } }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
  * @param observer The callback which is used to track the observables.
@@ -209,7 +209,7 @@ public class AutoRunner<T>(
 public class CoAutoRunner<T>(
     override val launcher: CoroutineLauncher,
     onChange: CoAutoRunOnChangeCallback<T>? = null,
-    private val flowTransformer: AutoRunFlowTransformer = { mapLatest { } },
+    private val flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
     private val withLoading: Boolean = true,
     private val observer: CoAutoRunCallback<T>,
@@ -221,17 +221,19 @@ public class CoAutoRunner<T>(
 
     init {
         launcher.launch(withLoading = false) {
-            changeFlow.flowTransformer().collect {
-                // Launch a new coroutine, so the loading state can be tracked if necessary
-                val job = launcher.launch(withLoading = withLoading) {
-                    listener(this@CoAutoRunner)
-                }
-                try {
-                    job.join()
-                } catch (e: CancellationException) {
-                    job.cancel()
-                }
-            }
+            changeFlow.map { suspend { worker() } }.flowTransformer().collect()
+        }
+    }
+
+    private suspend fun worker() {
+        // Launch a new coroutine, so the loading state can be tracked if necessary
+        val job = launcher.launch(withLoading = withLoading) {
+            listener(this@CoAutoRunner)
+        }
+        try {
+            job.join()
+        } catch (e: CancellationException) {
+            job.cancel()
         }
     }
 
@@ -312,3 +314,6 @@ public interface AutoRunnerObservable {
     public fun addObserver()
     public fun removeObserver()
 }
+
+/** The default [CoAutoRunner]/[derived] flow transformer which is: `{ conflatedWorker() }` */
+public val defaultAutoRunFlowTransformer: AutoRunFlowTransformer = { conflatedWorker() }
