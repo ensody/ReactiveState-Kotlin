@@ -13,7 +13,7 @@ Non-breaking changes:
 
 ## 2.0.4
 
-* Upgraded dependencies
+* Upgraded dependencies (coroutines 1.4.3, androidx.lifecycle 2.3.0, fragment-ktx 1.3.1)
 
 ## 2.0.2
 
