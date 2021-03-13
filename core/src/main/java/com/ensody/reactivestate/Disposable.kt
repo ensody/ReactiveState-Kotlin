@@ -55,6 +55,8 @@ public class DisposableGroup : Disposable {
     private val disposables = mutableSetOf<Disposable>()
     private val jobs = mutableSetOf<Job>()
 
+    public val size: Int get() = disposables.size + jobs.size
+
     /** Add a [Disposable] to this group. */
     public fun add(disposable: Disposable) {
         if (disposable is JobDisposable) {
