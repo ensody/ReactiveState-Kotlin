@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## 3.0.0
 
 Breaking changes:
 
@@ -8,8 +8,8 @@ Breaking changes:
 * The default `flowTransformer` has changed from `{ mapLatest { } }` to `{ conflatedWorker() }`. There is also `latestWorker` if you want the old behavior.
 * The possible arguments to `derived` were changed a little bit in order to improve compatibility with `WhileUsed`. Either you must remove the `started: SharingStarted` argument or additionally pass an `initial` value.
   * If you leave out the `started` argument `derived` behaves like before when passing `Eagerly`: the value is computed immediately and synchronously and you can't call `suspend` functions within the observer.
-  * If you still want to pass a `started` argument you now also have to pass an `initial` value. In this case, `derived` is asynchronous and you can call `suspend` functions within the observer.
-  * The default value for `started` is now `Eagerly` because that has better safety guarantees. So, in most usages the whole argument can now be removed (except where you really need `WhileSubscribed()`).
+  * Otherwise, you have to pass an `initial` value. In this case, `derived` is asynchronous and you can call `suspend` functions within the observer.
+  * The default value for `started` is now `Eagerly` because that has better safety guarantees. So, in most usages the whole argument can now be removed (except where you really need `WhileSubscribed()`, for example).
 * Removed bindings because they turned out to not be useful enough.
 * `Resolver.track()` now returns the `AutoRunnerObservable` instead of the `underlyingObservable`.
 
