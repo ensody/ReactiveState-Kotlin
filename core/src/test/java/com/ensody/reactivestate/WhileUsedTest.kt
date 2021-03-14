@@ -4,6 +4,7 @@ import assertk.assertThat
 import assertk.assertions.isNotSameAs
 import assertk.assertions.isSameAs
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
@@ -16,9 +17,12 @@ internal class WhileUsedTest {
 
         lateinit var data1: SomeData
         lateinit var data2: SomeData
+
         val completion = CompletableDeferred<Unit>()
         var job1 = launch {
-            data1 = someValue(this)
+            derived {
+                data1 = get(someValue)
+            }
             completion.await()
         }
         val job2 = launch {

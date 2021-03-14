@@ -56,9 +56,9 @@ internal class ObserverTest : CoroutineTest() {
         val source = MutableValueFlow(0)
         lateinit var target: StateFlow<Int>
         val job = launch {
-            target = derived(Eagerly) { 2 * get(source) }
-            val lazyTarget = derived(Lazily) { 2 * get(source) }
-            val superLazyTarget = derived(WhileSubscribed()) { 2 * get(source) }
+            target = derived { 2 * get(source) }
+            val lazyTarget = derived(0, Lazily) { 2 * get(source) }
+            val superLazyTarget = derived(0, WhileSubscribed()) { 2 * get(source) }
             val asyncTarget = derived(-1, Eagerly) { delay(100); 2 * get(source) }
 
             // Right after creation of the derived observable the values should be in sync

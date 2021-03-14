@@ -152,17 +152,17 @@ public fun LifecycleOwner.coAutoRun(
 }
 
 /** Returns [LiveData.getValue] and tracks the observable. */
-public fun <T> Resolver.get(data: LiveData<T>): T? = track(data).value
-
-private fun <T, D : LiveData<T>> Resolver.track(data: D): D =
+public fun <T> Resolver.get(data: LiveData<T>): T? {
     track(data) { LiveDataObservable(data, autoRunner) }
+    return data.value
+}
 
-private class LiveDataObservable(
-    private val data: LiveData<*>,
+private class LiveDataObservable<T>(
+    private val data: LiveData<T>,
     autoRunner: BaseAutoRunner,
 ) : AutoRunnerObservable {
     private var ignore = false
-    private val observer = Observer<Any> {
+    private val observer = Observer<T> {
         if (!ignore) {
             autoRunner.triggerChange()
         }

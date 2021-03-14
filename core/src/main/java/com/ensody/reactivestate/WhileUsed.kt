@@ -1,8 +1,8 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.WhileSubscribed
-import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 
@@ -12,7 +12,8 @@ import kotlinx.coroutines.flow.stateIn
  * [WhileUsed] is useful for e.g. caches or other resource-consuming values that shouldn't live forever, but only
  * exist while they're in use. Sometimes this can also be helpful for dealing with security-critical data.
  *
- * This can be a great combination for [stateIn]/[shareIn] with [WhileSubscribed] on a [channelFlow], for example.
+ * This can be a great combination with [SharingStarted.WhileSubscribed] and either [derived] or
+ * [Flow.stateIn]/[Flow.shareIn], for example.
  *
  * In order to request the value with [invoke] you need a [CoroutineScope] or a [DisposableGroup].
  * Note: Your [builder] function is also passed a [DisposableGroup] for accessing other [WhileUsed] instances.
