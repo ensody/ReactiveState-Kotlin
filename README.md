@@ -4,7 +4,7 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
-ReactiveState-Kotlin provides you with the foundation for automatically correct and simple code:
+ReactiveState-Kotlin provides you with a foundation for automatically correct and simple code:
 
 * reactive programming: everything is recomputed/updated automatically based on straightforward code
 * demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
@@ -55,7 +55,12 @@ class MainViewModel : ViewModel() {
     // You can also use MutableLiveData, but then you'll have to deal with null.
     val name = MutableStateFlow("")
     val counter = MutableStateFlow(0)
-    val doubledCounter = derived(WhileSubscribed()) { 2 * get(counter) }
+
+    // This is automatically recomputed whenever counter's value is changed
+    val doubledCounter: StateFlow<Int> = derived { 2 * get(counter) }
+
+    // This is only computed while someone is subscribed to changes (autoRun, derived or collect)
+    val onDemandDoubledCounter = derived(initial = 0, started = WhileSubscribed()) { 2 * get(counter) }
 
     fun increment() {
         counter.value += 1
@@ -99,7 +104,7 @@ Depending on the context in which `autoRun` is executed, this observer is automa
 
 With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
 
-Note that `autoRun` can be extended to support observables other than `StateFlow` and `LiveData`.
+Note that `autoRun` can be extended to support observables other than `StateFlow`, `LiveData` and `WhileUsed` (see below).
 
 ### Correct lifecycle handling
 
@@ -182,6 +187,9 @@ class MainViewModel : ViewModel() {
     fun save(id: String, value: Entity) {
         cache[id] = value
     }
+
+    // You can even track WhileUsed (with reference counting) via derived/autoRun.
+    private val entities: StateFlow<Set<Entity>> = derived { get(getCacheProxy).keys }
 }
 ```
 
@@ -190,7 +198,9 @@ This can be used to e.g. share the same cache between all ViewModels within a ce
 
 As an alternative to the `CoroutineScope` based reference counting you can also pass a `DisposableGroup` or use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
 
-This is also a nice combination with `WhileSubscribed`.
+This is also a nice combination with `derived`/`stateIn`/`shareIn` and `WhileSubscribed`.
+
+Note that `autoRun`/`derived` allow resolving `WhileUsed` via `get(myWhileUsed)` like you can with `StateFlow` and this correctly tracks the reference count (important for `derived` with `WhileSubscribed`).
 
 ### Automatic cleanups based on lifecycle state
 

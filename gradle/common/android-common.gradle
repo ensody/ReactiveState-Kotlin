@@ -34,4 +34,8 @@ ext.androidCommon = { minVersion, targetVersion = 29 ->
             pickFirst 'META-INF/*.kotlin_module'
         }
     }
+
+    tasks.withType(Test) {
+        testLogging { exceptionFormat "full" }
+    }
 }

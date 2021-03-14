@@ -157,17 +157,14 @@ public class AutoRunner<T>(
 ) : InternalBaseAutoRunner() {
     public val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
 
-    /** Calls [observer] and tracks its dependencies if [track] is `true` (the default). */
-    public fun run(track: Boolean = true): T = observe(track = track, observer = observer)
+    /** Calls [observer] and tracks its dependencies. */
+    public fun run(): T = observe(observer = observer)
 
     override fun triggerChange() {
         listener(this)
     }
 
-    private fun <T> observe(track: Boolean = true, observer: AutoRunCallback<T>): T {
-        if (!track) {
-            return Resolver(this, track = false).observer()
-        }
+    private fun <T> observe(observer: AutoRunCallback<T>): T {
         val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
@@ -237,20 +234,17 @@ public class CoAutoRunner<T>(
         }
     }
 
-    /** Calls [observer] and tracks its dependencies if [track] is `true` (the default). */
-    public suspend fun run(track: Boolean = true): T =
+    /** Calls [observer] and tracks its dependencies. */
+    public suspend fun run(): T =
         withContext(dispatcher) {
-            observe(track = track, observer = observer)
+            observe(observer = observer)
         }
 
     override fun triggerChange() {
         changeFlow.tryEmit(Unit)
     }
 
-    private suspend fun <T> observe(track: Boolean = true, observer: CoAutoRunCallback<T>): T {
-        if (!track) {
-            return Resolver(this, track = false).observer()
-        }
+    private suspend fun <T> observe(observer: CoAutoRunCallback<T>): T {
         val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
@@ -268,8 +262,8 @@ public class CoAutoRunner<T>(
     }
 }
 
-/** Tracks observables for [AutoRunner]. */
-public class Resolver(public val autoRunner: BaseAutoRunner, private val track: Boolean = true) {
+/** Tracks observables for [AutoRunner] and [CoAutoRunner]. */
+public class Resolver(public val autoRunner: BaseAutoRunner) {
     private val observables = mutableMapOf<Any, AutoRunnerObservable>()
 
     /**
@@ -280,20 +274,19 @@ public class Resolver(public val autoRunner: BaseAutoRunner, private val track: 
      *
      * @param [underlyingObservable] The raw, underlying observable (e.g. Android's `LiveData`).
      * @param [getObservable] Used to create an [AutoRunnerObservable] wrapper around [underlyingObservable].
+     *
+     * @return The instantiated [AutoRunnerObservable] of type [T].
      */
-    public fun <S : Any, T : AutoRunnerObservable> track(
-        underlyingObservable: S,
-        getObservable: () -> T,
-    ): S {
-        if (track && underlyingObservable !in observables) {
-            val existing = autoRunner.resolver.observables[underlyingObservable]
-            val observable = existing ?: getObservable()
-            observables[underlyingObservable] = observable
-            if (existing == null) {
-                observable.addObserver()
-            }
+    public fun <S : Any, T : AutoRunnerObservable> track(underlyingObservable: S, getObservable: () -> T): T {
+        val existing = autoRunner.resolver.observables[underlyingObservable]
+        val castExisting = existing as? T
+        val observable = castExisting ?: getObservable()
+        observables[underlyingObservable] = observable
+        if (castExisting == null) {
+            observable.addObserver()
+            existing?.removeObserver()
         }
-        return underlyingObservable
+        return observable
     }
 
     internal fun switchTo(next: Resolver) {
