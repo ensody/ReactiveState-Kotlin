@@ -1,6 +1,5 @@
 ext.androidCommon = { minVersion, targetVersion = 29 ->
     apply plugin: 'kotlin-android'
-    apply plugin: 'kotlin-android-extensions'
 
     android {
         compileSdkVersion targetVersion

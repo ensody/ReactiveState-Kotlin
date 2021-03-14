@@ -231,6 +231,7 @@ public class CoAutoRunner<T>(
             job.join()
         } catch (e: CancellationException) {
             job.cancel()
+            throw e
         }
     }
 
