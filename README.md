@@ -4,14 +4,14 @@
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
-ReactiveState-Kotlin provides you with a foundation for automatically correct and simple code:
+ReactiveState-Kotlin provides you with these foundations:
 
 * reactive programming: everything is recomputed/updated automatically based on straightforward code
 * demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
-* event handling: simple events based on interfaces (more composable and less boilerplaty than sealed classes)
+* event handling: simple events based on interfaces (more composable and less boilerplate than sealed classes)
 * automatic error handling: no more forgotten try-catch or copy-pasted error handling logic all over the place
 * automatic cleanup/dispose logic (e.g. dispose something once a `CoroutineScope` is canceled)
-* coroutine-based unit tests: worry no more about `CoroutineDispatcher`s
+* coroutine-based unit tests: worry no more about passing around `CoroutineDispatcher`s everywhere
 * lifecycle handling (esp. Android)
 * state restoration (esp. Android)
 
@@ -322,12 +322,13 @@ stateFlow.value = flow.value.let {
 }
 ```
 
-If you work with immutable data classes then you might know this problem. You can make immutable data less painful with [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/), but that can still result in complicated and inefficient code.
+If you work with immutable data classes then you might know this problem. You can make immutable data less painful with functional lenses (e.g. [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/)), but that can still result in complicated and inefficient code.
 
-Mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture.
-Usually, reactive code consciously puts data into `StateFlow`s in order to allow for observability.
-This results in a code structure where these `StateFlow`s are the single hosts of each piece of data and the mutations are limited around them or even around the observable database as the source of truth.
-So, in practice it can be quite safe to work with mutable data.
+On the other hand, mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture and code structure.
+Usually, reactive code consciously puts data into observables (`StateFlow`s) in order to allow for reactivity.
+This results in a code structure where these `StateFlow`s are the primary hosts of each piece of data and the mutations are limited around each `StateFlow` or even around the observable database as the single source of truth.
+
+So, under these circumstances it can be quite safe to work with mutable data and `MutableValueFlow` makes such use-cases simpler than `MutableStateFlow`.
 
 ### Unit tests with coroutines
 
