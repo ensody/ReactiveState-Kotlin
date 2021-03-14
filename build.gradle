@@ -81,7 +81,7 @@ subprojects {
         username: bintrayUsername,
         password: bintrayApiKey,
         description: "An easy to understand reactive state management solution for Kotlin and Android.",
-        licenses: [licenses.MIT],
+        licenses: [licenses.APACHE2],
         website: "https://ensody.github.io/ReactiveState-Kotlin/",
         repoUrl: "https://github.com/ensody/ReactiveState-Kotlin",
         isPlatformProject: isPlatformProject,
