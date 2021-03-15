@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release
+## 3.2.0
 
 * `CoroutineTest` now implements `AttachedDisposables` and disposes at the end of `runBlockingTest`.
 * `CoroutineTest` provides `collectFlow` to easily collect a `derived` with `WhileSubscribed()` in background.
