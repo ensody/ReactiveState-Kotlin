@@ -128,7 +128,7 @@ public abstract class InternalBaseAutoRunner : BaseAutoRunner() {
         resolver = Resolver(this).also {
             resolver.switchTo(it)
         }
-        attachedDisposables.dispose()
+        super.dispose()
     }
 }
 

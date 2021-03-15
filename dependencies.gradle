@@ -22,9 +22,7 @@ dependencies.ext.base = {
 
         testImplementation 'junit:junit:4.13.1'
 
-        // Workaround for assertk-related IntelliJ bug: https://youtrack.jetbrains.com/issue/IDEA-214533
-        testImplementation 'org.opentest4j:opentest4j:1.2.0'
-        testImplementation 'com.willowtreeapps.assertk:assertk-jvm:0.22'
+        testImplementation 'com.willowtreeapps.assertk:assertk:0.23.1'
 
         testImplementation "io.mockk:mockk:1.10.6"
         testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test'

@@ -22,6 +22,11 @@ public typealias Disposable = DisposableHandle
 public interface AttachedDisposables : Disposable {
     /** The attached disposables which should be auto-disposed when this object is disposed. */
     public val attachedDisposables: DisposableGroup
+
+    /** Default implementation disposing the [attachedDisposables]. */
+    override fun dispose() {
+        attachedDisposables.dispose()
+    }
 }
 
 /**
