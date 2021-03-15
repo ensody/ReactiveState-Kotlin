@@ -13,12 +13,12 @@ public interface ErrorEvents {
 public suspend fun <E : ErrorEvents> withErrorReporting(
     eventNotifier: EventNotifier<E>,
     onError: (suspend (error: Throwable) -> Unit)?,
-    block: () -> Unit,
+    block: suspend () -> Unit,
 ) {
     if (onError == null) {
-        withErrorReporting(eventNotifier, block = block)
+        withErrorReporting(eventNotifier) { block() }
     } else {
-        withErrorReporting({ onError(it) }, block = block)
+        withErrorReporting({ onError(it) }) { block() }
     }
 }
 
