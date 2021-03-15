@@ -1,5 +1,11 @@
 # Changelog
 
+## 3.1.0
+
+* Added `coWithErrorReporting` to handle suspension functions and optional `onError`.
+* Added `EventNotifier.handleEvents` helpers for Kotlin and Android. The Android version takes a `LifecycleOwner`.
+* Added `EventNotifierTest`.
+
 ## 3.0.0
 
 Breaking changes:
