@@ -34,13 +34,13 @@ dependencies {
 }
 ```
 
-Also, make sure you've integrated the JCenter repo, e.g. in your root `build.gradle`:
+Also, make sure you've integrated the Maven Central repo, e.g. in your root `build.gradle`:
 
 ```groovy
 subprojects {
     repositories {
         // ...
-        jcenter()
+        mavenCentral()
         // ...
     }
 }

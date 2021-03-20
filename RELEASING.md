@@ -4,5 +4,3 @@
 * Commit and push everything.
 * Make sure the release is tested (e.g. CI success).
 * Tag the release with v<VERSION> (e.g. v1.0.3) and push the tag.
-* Wait until the GitHub Actions are finished and the release files are uploaded to Bintray.
-* Publish the release files (core and reactivestate) on the Bintray website.

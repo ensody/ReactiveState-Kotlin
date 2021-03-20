@@ -14,11 +14,34 @@ buildscript {
     installCoverageDeps()
 }
 
+plugins {
+    id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
+    id 'pl.allegro.tech.build.axion-release' version '1.12.1'
+}
+
 def isOnCI = System.getenv('RUNNING_ON_CI') == 'true'
 
+scmVersion {
+    ignoreUncommittedChanges = isOnCI
+    useHighestVersion = true
+    tag {
+        prefix = 'v'
+        versionSeparator = ""
+        deserialize = { tag, position, String tagName ->
+            def result = tagName.substring(1)
+            while (result.count(".") < 2) {
+                result += ".0"
+            }
+            result
+        }
+    }
+}
+version = scmVersion.version
+println("Version: $version")
+
 apply from: "$rootDir/secrets.gradle"
-def bintrayUsername = secrets.getProperty("bintray.username") ?: System.getenv("BINTRAY_USERNAME")
-def bintrayApiKey = secrets.getProperty("bintray.apikey") ?: System.getenv("BINTRAY_APIKEY")
+def publicationUsername = secrets.getProperty("publication.username") ?: System.getenv("PUBLICATION_USERNAME")
+def publicationPassword = secrets.getProperty("publication.password") ?: System.getenv("PUBLICATION_PASSWORD")
 
 // Base package setup
 group 'com.ensody.reactivestate'
@@ -79,13 +102,36 @@ subprojects {
 
     apply from: "$rootDir/gradle/common/publish.gradle"
     publish(
-        url: "https://api.bintray.com/maven/ensody/maven/${group}:${project.name}/;publish=1",
-        username: bintrayUsername,
-        password: bintrayApiKey,
-        description: "An easy to understand reactive state management solution for Kotlin and Android.",
-        licenses: [licenses.APACHE2],
-        website: "https://ensody.github.io/ReactiveState-Kotlin/",
+        url: "https://s01.oss.sonatype.org/service/local/",
+        username: publicationUsername,
+        password: publicationPassword,
         repoUrl: "https://github.com/ensody/ReactiveState-Kotlin",
+        pomAction: {
+            description = "An easy to understand reactive state management solution for Kotlin and Android."
+            url = "https://ensody.github.io/ReactiveState-Kotlin/"
+            licenses {
+                license(LICENSE.APACHE2)
+            }
+            developers {
+                developer {
+                    id = "wkornewald"
+                    name = "Waldemar Kornewald"
+                    organization = "Ensody GmbH"
+                    organizationUrl = "https://www.ensody.com"
+                }
+            }
+        },
         isPlatformProject: isPlatformProject,
     )
+}
+
+nexusPublishing {
+    repositories {
+        mavenCentral {
+            nexusUrl = uri("https://s01.oss.sonatype.org/service/local/")
+            snapshotRepositoryUrl = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+            username = publicationUsername
+            password = publicationPassword
+        }
+    }
 }

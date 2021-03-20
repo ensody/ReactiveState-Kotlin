@@ -27,9 +27,7 @@ jobs:
       - name: Configure Gradle
         run: ./gradlew help
       - name: Build project
-        run: sudo ./gradlew assemble --stacktrace
-      - name: Fix permissions
-        run: sudo chown -R "$(whoami):$(whoami)" .
+        run: ./gradlew assemble --stacktrace
       - name: Run tests
         run: ./gradlew testDebugUnitTest --stacktrace
       - name: Create coverage report
@@ -52,15 +50,24 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build
-    if: startsWith(github.ref, 'refs/heads/_publish/v') || startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+    if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Publish package
-        run: sudo ./gradlew publish "-Pversion=$(echo "$GITHUB_REF" | sed 's#refs/.[^/]*/\(_publish/\)\?v##')" "-Pbintray.username=$BINTRAY_USERNAME" "-Pbintray.apikey=$BINTRAY_APIKEY"
+      - name: Decode key
+        run: |
+          mkdir -p .credentials
+          echo "$SIGNING_KEY_RING" | base64 -d > ".credentials/$SIGNING_KEY_ID.gpg"
         env:
-          BINTRAY_USERNAME: ${{ secrets.BINTRAY_USERNAME }}
-          BINTRAY_APIKEY: ${{ secrets.BINTRAY_APIKEY }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
+      - name: Publish package
+        run: ./gradlew publishToMavenCentral closeAndReleaseMavenCentralStagingRepository
+        env:
+          PUBLICATION_USERNAME: ${{ secrets.PUBLICATION_USERNAME }}
+          PUBLICATION_PASSWORD: ${{ secrets.PUBLICATION_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
   docs:
     name: Publish docs
@@ -72,9 +79,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build project
-        run: sudo ./gradlew assemble --stacktrace
-      - name: Fix permissions
-        run: sudo chown -R "$(whoami):$(whoami)" .
+        run: ./gradlew assemble --stacktrace
       - name: Install common deps
         run: sudo scripts/build-common.sh
       - name: Install Python deps

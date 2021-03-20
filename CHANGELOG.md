@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.2.1
+
+* Moved from JCenter to Maven Central ([JCenter is shutting down](https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter/)). Make sure your `repositories` block looks like this:
+
+```groovy
+repositories {
+    google()
+    mavenCentral()
+    // ...
+}
+```
+
 ## 3.2.0
 
 * `CoroutineTest` now implements `AttachedDisposables` and disposes at the end of `runBlockingTest`.
