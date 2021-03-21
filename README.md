@@ -1,6 +1,6 @@
 # ReactiveState for Kotlin and Android
 
-[ ![Download](https://api.bintray.com/packages/ensody/maven/com.ensody.reactivestate%3Areactivestate/images/download.svg) ](https://bintray.com/ensody/maven/com.ensody.reactivestate%3Areactivestate/_latestVersion)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate)
 
 An easy to understand reactive state management solution for Kotlin and Android.
 
