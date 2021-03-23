@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.0
+
+* Added `NamespacedStateFlowStore`.
+* Added `ReducingStateFlow`.
+
 ## 3.2.1
 
 * Moved from JCenter to Maven Central ([JCenter is shutting down](https://jfrog.com/blog/into-the-sunset-bintray-jcenter-gocenter-and-chartcenter/)). Make sure your `repositories` block looks like this:
