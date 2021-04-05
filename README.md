@@ -228,9 +228,13 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
     // ...
 }
 
-// This is a multi-platform "ViewModel" (it doesn't depend on any Android code) which also can persist saved instance
-// state using a StateFlowStore (on non-Android platforms this might be a simple InMemoryStateFlowStore)
-class StateViewModel(val scope: CoroutineScope, val store: StateFlowStore, dependency: SomeDependency) {
+// This is a multi-platform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
+// code. It can still persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
+class MultiPlatformViewModel(
+    private val scope: CoroutineScope,
+    private val store: StateFlowStore,
+    private val dependency: SomeDependency,
+) {
     // ...
 }
 
