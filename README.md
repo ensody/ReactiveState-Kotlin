@@ -228,13 +228,24 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
     // ...
 }
 
+// This is a multi-platform "ViewModel" (it doesn't depend on any Android code) which also can persist saved instance
+// state using a StateFlowStore (on non-Android platforms this might be a simple InMemoryStateFlowStore)
+class StateViewModel(val scope: CoroutineScope, val store: StateFlowStore, dependency: SomeDependency) {
+    // ...
+}
+
 class MainFragment : Fragment() {
     private val viewModel by buildViewModel { MainViewModel(SomeDependency()) }
     private val viewModel2 by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
+
+    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel
+    private val multiPlatformViewModel by buildOnViewModel {
+        MultiPlatformViewModel(scope, stateFlowStore, SomeDependency())
+    }
 }
 ```
 
-ReactiveState's `buildViewModel`, `stateViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
+ReactiveState's `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
 This results in more natural code and allows passing arguments to the `ViewModel` (e.g. for dependency injection).
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.

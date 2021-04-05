@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
-import java.lang.IllegalStateException
 
 internal class EventNotifierTest {
     @Test
