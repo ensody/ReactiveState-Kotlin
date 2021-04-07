@@ -13,6 +13,15 @@ import org.junit.Test
 
 internal class ValueFlowTest {
     @Test
+    fun `replaceLocked replaces the value`() = runBlockingTest {
+        val flow = MutableValueFlow(0)
+        flow.replace { this + 1 }
+        assertThat(flow.first()).isEqualTo(1)
+        flow.replaceLocked { this + 1 }
+        assertThat(flow.first()).isEqualTo(2)
+    }
+
+    @Test
     fun `ValueFlow emits first value`() = runBlockingTest {
         val flow = MutableValueFlow(mutableListOf(0))
         assertThat(flow.first().first()).isEqualTo(0)

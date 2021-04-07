@@ -3,7 +3,7 @@
 ## Next release
 
 * Added `buildOnViewModel` which allows creating arbitrary objects living on an internally-created wrapper ViewModel.
-* Added `MutableStateFlow.replace` helper function for simplifying e.g. data class `copy()` based mutation.
+* Added `MutableStateFlow.replace` and `MutableValueFlow.replaceLocked` helper functions for simplifying e.g. data class `copy()` based mutation.
 
 ## 3.3.0
 
