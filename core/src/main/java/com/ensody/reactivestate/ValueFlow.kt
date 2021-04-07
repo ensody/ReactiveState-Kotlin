@@ -64,6 +64,20 @@ public interface MutableValueFlow<T> : ValueFlow<T>, MutableStateFlow<T> {
     public fun updateThis(block: T.() -> Unit) {
         update(block)
     }
+
+    /**
+     * Replaces the [value] with [block]'s return value. This is safe under concurrency.
+     *
+     * This is a simple helper for the common case where you want to `copy()` a data class:
+     *
+     * ```
+     * data class Foo(val num: Int)
+     *
+     * val stateFlow = MutableStateFlow(Foo(3))
+     * stateFlow.replace { copy(num = 5) }
+     * ```
+     */
+    public fun replaceLocked(block: T.() -> T)
 }
 
 /** Instantiates a [MutableValueFlow] with the given initial [value]. */
@@ -86,6 +100,12 @@ private class ValueFlowImpl<T>(initial: T) :
         synchronized(this) {
             block(value)
             tryEmit(value)
+        }
+    }
+
+    override fun replaceLocked(block: T.() -> T) {
+        synchronized(this) {
+            value = value.block()
         }
     }
 
