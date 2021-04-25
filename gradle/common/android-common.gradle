@@ -1,16 +1,35 @@
-ext.androidCommon = { minVersion, targetVersion = 29 ->
+class Config {
+    Integer minVersion = null
+    Integer targetVersion = null
+    Integer compileSdkVersion = null
+    Boolean kotlinExplicitApiMode = false
+}
+
+ext.androidCommon = { args = [:] ->
+    apply from: "$rootDir/gradle/common/kotlin-common.gradle"
+
+    Config config = new Config(args)
+
+    int minVersion = config.minVersion ?: 19
+    int targetVersion = config.targetVersion ?: 30
+    int compileVersion = config.compileSdkVersion ?: targetVersion
+
+    kotlinCommon()
+
     apply plugin: 'kotlin-android'
 
     android {
-        compileSdkVersion targetVersion
+        compileSdkVersion compileVersion
 
         compileOptions {
+            coreLibraryDesugaringEnabled true
             sourceCompatibility JavaVersion.VERSION_1_8
             targetCompatibility JavaVersion.VERSION_1_8
         }
 
         kotlinOptions {
             jvmTarget = "1.8"
+            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
         }
 
         defaultConfig {
@@ -18,6 +37,9 @@ ext.androidCommon = { minVersion, targetVersion = 29 ->
             targetSdkVersion targetVersion
             versionCode 1
             versionName version
+
+            // Required for coreLibraryDesugaring
+            multiDexEnabled true
 
             testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         }
@@ -34,7 +56,7 @@ ext.androidCommon = { minVersion, targetVersion = 29 ->
         }
     }
 
-    tasks.withType(Test) {
-        testLogging { exceptionFormat "full" }
+    dependencies {
+        coreLibraryDesugaring "com.android.tools:desugar_jdk_libs:1.1.5"
     }
 }

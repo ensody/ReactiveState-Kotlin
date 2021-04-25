@@ -1,23 +1,31 @@
-ext.kotlinLibrary = {
+class Config {
+    Boolean kotlinExplicitApiMode = true
+}
+
+ext.kotlinLibrary = { args = [:] ->
+    apply from: "$rootDir/gradle/common/kotlin-common.gradle"
+
     apply plugin: 'java-library'
     apply plugin: 'kotlin'
 
-    kotlin {
-        explicitApi()
-    }
+    Config config = new Config(args)
+
+    kotlinCommon()
 
     compileKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
+        }
     }
 
     compileTestKotlin {
-        kotlinOptions.jvmTarget = "1.8"
+        kotlinOptions {
+            jvmTarget = "1.8"
+            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
+        }
     }
 
     // Behave like Android
     task testDebugUnitTest(type: Test, dependsOn: ['test'], group: 'verification')
-
-    tasks.withType(Test) {
-        testLogging { exceptionFormat "full" }
-    }
 }

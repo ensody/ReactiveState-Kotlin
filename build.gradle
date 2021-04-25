@@ -74,7 +74,7 @@ subprojects {
             }
         } else {
             apply from: "$rootDir/gradle/common/android-library.gradle"
-            androidLibrary(19)
+            androidLibrary()
 
             android {
                 // Resolve build conflicts for test modules

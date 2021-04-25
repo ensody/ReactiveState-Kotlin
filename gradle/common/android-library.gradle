@@ -1,22 +1,26 @@
-ext.androidLibrary = { minVersion, targetVersion = 29 ->
+class Config {
+    Integer minVersion = null
+    Integer targetVersion = null
+    Integer compileSdkVersion = null
+    Boolean kotlinExplicitApiMode = true
+}
+
+ext.androidLibrary = { args = [:] ->
     apply plugin: 'com.android.library'
     apply from: "$rootDir/gradle/common/android-common.gradle"
-    androidCommon(minVersion, targetVersion)
+
+    Config config = new Config(args)
+
+    androidCommon(
+        minVersion: config.minVersion,
+        targetVersion: config.targetVersion,
+        compileSdkVersion: config.compileSdkVersion,
+        kotlinExplicitApiMode: config.kotlinExplicitApiMode,
+    )
 
     android {
         defaultConfig {
             consumerProguardFiles 'consumer-rules.pro'
-        }
-
-        kotlinOptions {
-            freeCompilerArgs = ["-Xexplicit-api=strict"]
-        }
-
-        buildTypes {
-            release {
-                minifyEnabled false
-                proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            }
         }
     }
 }
