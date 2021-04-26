@@ -53,17 +53,37 @@ public class JobDisposable(internal val job: Job) : Disposable {
 }
 
 /**
- * A [Disposable] that can dispose multiple [Disposable] and [Job] instances
- * at once.
+ * A [Disposable] that can dispose multiple [Disposable] and [Job] instances at once.
+ *
+ * On [dispose] this destroys all [Disposable] and [Job] instances attached to it.
  */
-public class DisposableGroup : Disposable {
+public interface DisposableGroup : Disposable {
+    public val size: Int
+
+    /** Add a [Disposable] to this group. */
+    public fun add(disposable: Disposable)
+
+    /** Add a [Job] to this group. */
+    public fun add(job: Job)
+
+    /** Remove a [Disposable] from this group. */
+    public fun remove(disposable: Disposable)
+
+    /** Remove a [Job] from this group. */
+    public fun remove(job: Job)
+}
+
+/** Constructs a [DisposableGroup]. */
+@Suppress("FunctionName")
+public fun DisposableGroup(): DisposableGroup = DisposableGroupImpl()
+
+private class DisposableGroupImpl : DisposableGroup {
     private val disposables = mutableSetOf<Disposable>()
     private val jobs = mutableSetOf<Job>()
 
-    public val size: Int get() = disposables.size + jobs.size
+    override val size: Int get() = disposables.size + jobs.size
 
-    /** Add a [Disposable] to this group. */
-    public fun add(disposable: Disposable) {
+    override fun add(disposable: Disposable) {
         if (disposable is JobDisposable) {
             add(disposable.job)
         } else {
@@ -71,13 +91,11 @@ public class DisposableGroup : Disposable {
         }
     }
 
-    /** Add a [Job] to this group. */
-    public fun add(job: Job) {
+    override fun add(job: Job) {
         jobs.add(job)
     }
 
-    /** Remove a [Disposable] from this group. */
-    public fun remove(disposable: Disposable) {
+    override fun remove(disposable: Disposable) {
         if (disposable is JobDisposable) {
             remove(disposable.job)
         } else {
@@ -85,12 +103,10 @@ public class DisposableGroup : Disposable {
         }
     }
 
-    /** Remove a [Job] from this group. */
-    public fun remove(job: Job) {
+    override fun remove(job: Job) {
         jobs.remove(job)
     }
 
-    /** Disposes all [Disposable] and [Job] instances in this group. */
     override fun dispose() {
         jobs.forEach { it.cancel() }
         jobs.clear()

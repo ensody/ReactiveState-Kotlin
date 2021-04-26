@@ -19,17 +19,13 @@ import kotlinx.coroutines.flow.stateIn
 public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlow<T> {
     var onChange: () -> Unit = {}
     val autoRunner = AutoRunner(launcher = this, onChange = { onChange() }, observer = observer)
-    val initialValue = CompletableDeferred<T>()
     val flow = callbackFlow {
         onChange = {
             sendBlocking(autoRunner.run())
         }
-        send(initialValue.await())
         awaitClose { autoRunner.dispose() }
     }
-    val realInitialValue = autoRunner.run()
-    initialValue.complete(realInitialValue)
-    return flow.stateIn(scope = launcherScope, started = SharingStarted.Eagerly, initialValue = realInitialValue)
+    return flow.stateIn(scope = launcherScope, started = SharingStarted.Eagerly, initialValue = autoRunner.run())
 }
 
 /**
@@ -79,7 +75,9 @@ public fun <T> CoroutineLauncher.derived(
         onChange = {
             send(autoRunner.run())
         }
-        send(autoRunner.run())
+        launch(withLoading = withLoading) {
+            send(autoRunner.run())
+        }.join()
         awaitClose { autoRunner.dispose() }
     }
     return flow.stateIn(scope = launcherScope, started = started, initialValue = initial)
