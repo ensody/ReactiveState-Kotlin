@@ -3,6 +3,7 @@
 ## 3.5.0
 
 * The lambda function for `WhileUsed` now receives a `WhileUsedReferenceToken` which has a lazy `scope` attribute in case you need a `CoroutineScope` with the same lifetime as your `WhileUsed` value.
+* Fixed `withLoading` behavior of first `derived` calculation.
 
 ## 3.4.0
 
