@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.5.0
+
+* The lambda function for `WhileUsed` now receives a `WhileUsedReferenceToken` which has a lazy `scope` attribute in case you need a `CoroutineScope` with the same lifetime as your `WhileUsed` value.
+
 ## 3.4.0
 
 * Added `buildOnViewModel` which allows creating arbitrary objects living on an internally-created wrapper ViewModel.

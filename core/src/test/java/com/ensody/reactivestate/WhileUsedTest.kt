@@ -1,10 +1,12 @@
 package com.ensody.reactivestate
 
 import assertk.assertThat
+import assertk.assertions.isFalse
 import assertk.assertions.isNotSameAs
 import assertk.assertions.isSameAs
+import assertk.assertions.isTrue
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
@@ -56,5 +58,20 @@ internal class WhileUsedTest {
 
         // Now a new value is created
         assertThat(data1).isNotSameAs(origData)
+    }
+
+    @Test
+    fun `WhileUsedReferenceToken scope`() = runBlockingTest {
+        val lazyScope = WhileUsed { it.scope }
+        val referenceToken = DisposableGroup()
+        var scope = lazyScope.invoke(referenceToken)
+        assertThat(scope.isActive).isTrue()
+        referenceToken.dispose()
+        assertThat(scope.isActive).isFalse()
+
+        scope = lazyScope.invoke(referenceToken)
+        assertThat(scope.isActive).isTrue()
+        referenceToken.dispose()
+        assertThat(scope.isActive).isFalse()
     }
 }

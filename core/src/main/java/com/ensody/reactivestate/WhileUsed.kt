@@ -49,10 +49,10 @@ import kotlinx.coroutines.flow.stateIn
 public class WhileUsed<T>(
     private val retentionMillis: Long = 0,
     private val destructor: ((T) -> Unit)? = null,
-    private val builder: (DisposableGroup) -> T,
+    private val builder: (WhileUsedReferenceToken) -> T,
 ) {
     private var value: Wrapped<T>? = null
-    private var disposables = DisposableGroup()
+    private var disposables = WhileUsedReferenceToken()
     private var references = 0
     private var cleaner: Job? = null
 
@@ -122,6 +122,22 @@ public class WhileUsed<T>(
         value = null
         disposables.dispose()
     }
+}
+
+/** The reference token passed to the [WhileUsed] builder function. */
+public class WhileUsedReferenceToken : DisposableGroup by DisposableGroup() {
+    /** A lazily created [MainScope] that lives only as long as the [WhileUsed] value. */
+    public val scope: CoroutineScope
+        get() =
+            lazyScope ?: MainScope().also {
+                lazyScope = it
+                add(OnDispose {
+                    lazyScope = null
+                    it.cancel()
+                })
+            }
+
+    private var lazyScope: CoroutineScope? = null
 }
 
 private class Wrapped<T>(val value: T)
