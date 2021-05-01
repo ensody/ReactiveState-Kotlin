@@ -57,10 +57,10 @@ public interface ValueFlow<T> : StateFlow<T>
  * That's why [MutableValueFlow] tries to make working with mutable values easy and safe.
  */
 public interface MutableValueFlow<T> : ValueFlow<T>, MutableStateFlow<T> {
-    /** Mutates the existing value in-place and notifies listeners. The current value is passed as an arg. */
+    /** Mutates [value] in-place and notifies listeners. The current value is passed as an arg. */
     public fun update(block: (value: T) -> Unit)
 
-    /** Mutates the existing value in-place and notifies listeners. The current value is passed via this. */
+    /** Mutates [value] in-place and notifies listeners. The current value is passed via this. */
     public fun updateThis(block: T.() -> Unit) {
         update(block)
     }
