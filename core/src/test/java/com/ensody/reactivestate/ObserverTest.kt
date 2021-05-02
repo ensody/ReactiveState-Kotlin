@@ -3,7 +3,6 @@ package com.ensody.reactivestate
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.ensody.reactivestate.test.CoroutineTest
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 internal class ObserverTest : CoroutineTest() {
     @Test
     fun autoRunOnCoroutineScope() = runBlockingTest {

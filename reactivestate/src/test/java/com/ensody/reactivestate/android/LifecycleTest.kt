@@ -10,11 +10,9 @@ import assertk.assertions.isFailure
 import assertk.assertions.isInstanceOf
 import com.ensody.reactivestate.test.CoroutineTest
 import com.ensody.reactivestate.validUntil
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.junit.Rule
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 internal class LifecycleTest : CoroutineTest() {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()

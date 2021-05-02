@@ -74,7 +74,6 @@ public interface DisposableGroup : Disposable {
 }
 
 /** Constructs a [DisposableGroup]. */
-@Suppress("FunctionName")
 public fun DisposableGroup(): DisposableGroup = DisposableGroupImpl()
 
 private class DisposableGroupImpl : DisposableGroup {

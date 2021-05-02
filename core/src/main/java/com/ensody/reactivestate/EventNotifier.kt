@@ -35,7 +35,6 @@ public interface EventNotifier<T> : MutableFlow<suspend T.() -> Unit> {
 }
 
 /** Creates an [EventNotifier]. */
-@Suppress("FunctionName")
 public fun <T> EventNotifier(capacity: Int = Channel.UNLIMITED): EventNotifier<T> =
     EventNotifierImpl(capacity)
 

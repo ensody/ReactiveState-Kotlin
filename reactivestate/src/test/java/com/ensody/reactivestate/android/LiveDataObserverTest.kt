@@ -5,13 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import com.ensody.reactivestate.autoRun
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Rule
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 internal class LiveDataObserverTest {
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()

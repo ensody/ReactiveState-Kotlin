@@ -6,11 +6,9 @@ import assertk.assertions.isFalse
 import assertk.assertions.isSameAs
 import assertk.assertions.isTrue
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 internal class SampleState(scope: CoroutineScope, store: StateFlowStore) :
     CoroutineLauncher by SimpleCoroutineLauncher(scope) {
 
@@ -21,7 +19,6 @@ internal class SampleState(scope: CoroutineScope, store: StateFlowStore) :
     }
 }
 
-@ExperimentalCoroutinesApi
 internal class StateFlowStoreTest {
     @Test
     fun conflatedQueue() = runBlockingTest {
