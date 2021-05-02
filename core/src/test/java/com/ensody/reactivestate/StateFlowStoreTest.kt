@@ -12,7 +12,7 @@ import org.junit.Test
 internal class SampleState(scope: CoroutineScope, store: StateFlowStore) :
     CoroutineLauncher by SimpleCoroutineLauncher(scope) {
 
-    val counter = store.getData("counter", 0)
+    val counter by store.getData(0)
 
     fun increment() {
         counter.value += 1
@@ -26,6 +26,8 @@ internal class StateFlowStoreTest {
         assertThat(store.contains("counter")).isFalse()
 
         val state = SampleState(this, store)
+        assertThat(store.contains("counter")).isFalse()
+        state.counter
         assertThat(store.contains("counter")).isTrue()
         assertThat(state.counter.value).isEqualTo(0)
         assertThat(state.counter).isSameAs(store.getData("counter", -200))

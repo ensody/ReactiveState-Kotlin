@@ -1,5 +1,8 @@
 package com.ensody.reactivestate
 
+import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KProperty
+
 /**
  * Base interface for a temporary observable key-value store.
  *
@@ -12,16 +15,32 @@ public interface StateFlowStore {
     public fun <T> getData(key: String, default: T): MutableValueFlow<T>
 }
 
+/** For use with `by` delegation. Returns the [StateFlowStore] entry for the key that equals the property name. */
+public fun <T> StateFlowStore.getData(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
+    StateFlowStoreProperty(this, default)
+
+private class StateFlowStoreProperty<T>(store: StateFlowStore, default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> {
+    private lateinit var key: String
+    private val data by lazy { store.getData(key, default) }
+
+    override fun getValue(thisRef: Any?, property: KProperty<*>): MutableValueFlow<T> {
+        key = property.name
+        return data
+    }
+}
+
 /** A [StateFlowStore] that can be used for unit tests or non-Android parts of multi-platform projects. */
 public class InMemoryStateFlowStore : StateFlowStore {
     private val store = mutableMapOf<String, MutableValueFlow<*>>()
 
     override fun contains(key: String): Boolean = key in store
 
-    @Suppress("UNCHECKED_CAST")
     override fun <T> getData(key: String, default: T): MutableValueFlow<T> =
+        getData(key, default, null)
+
+    public fun <T> getData(key: String, default: T, setter: ((value: T) -> Unit)?): MutableValueFlow<T> =
         store.getOrPut(key) {
-            val data = MutableValueFlow(default)
+            val data = MutableValueFlow(default, setter)
             store[key] = data
             data
         } as MutableValueFlow<T>
