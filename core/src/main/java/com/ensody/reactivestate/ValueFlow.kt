@@ -80,17 +80,24 @@ public interface MutableValueFlow<T> : ValueFlow<T>, MutableStateFlow<T> {
     public fun replaceLocked(block: T.() -> T)
 }
 
-/** Instantiates a [MutableValueFlow] with the given initial [value]. */
-@Suppress("FunctionName")
-public fun <T> MutableValueFlow(value: T): MutableValueFlow<T> =
-    ValueFlowImpl(value)
+/** Instantiates a [MutableValueFlow] with the given initial [value] and optional [setter] to intercept mutations. */
+public fun <T> MutableValueFlow(value: T, setter: ((value: T) -> Unit)? = null): MutableValueFlow<T> =
+    ValueFlowImpl(initial = value, setter = setter)
 
 // XXX: The MutableValueFlow, MutableSharedFlow and Flow interfaces aren't stable for inheritance, yet.
 // We use delegation to ensure that at least up to MutableSharedFlow we implement the whole interface automatically.
 // Only changes to the very tiny (Mutable)StateFlow interface can still lead to incompatibility on our side.
-private class ValueFlowImpl<T>(initial: T) :
-    MutableValueFlow<T>,
-    MutableSharedFlow<T> by MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST) {
+private class ValueFlowImpl<T> constructor(
+    private val flow: MutableSharedFlow<T>,
+    initial: T,
+    private val setter: ((value: T) -> Unit)?,
+) : MutableValueFlow<T>, MutableSharedFlow<T> by flow {
+
+    constructor(initial: T, setter: ((value: T) -> Unit)?) : this(
+        flow = MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST),
+        initial = initial,
+        setter = setter,
+    )
 
     init {
         tryEmit(initial)
@@ -131,5 +138,15 @@ private class ValueFlowImpl<T>(initial: T) :
             }
             return false
         }
+    }
+
+    override suspend fun emit(value: T) {
+        setter?.invoke(value)
+        flow.emit(value)
+    }
+
+    override fun tryEmit(value: T): Boolean {
+        setter?.invoke(value)
+        return flow.tryEmit(value)
     }
 }
