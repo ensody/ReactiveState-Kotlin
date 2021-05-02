@@ -5,7 +5,7 @@
 * `MutableValueFlow`'s constructor now optionally takes a `setter` lambda function which is executed before emitting a new value. This allows observing / reacting to changes without needing a `CoroutineScope`.
 * Added `val Fragment/Activity.savedInstanceState` helper which gives you access to a `StateFlowStore` where you can put saved instance state.
 * Added `by stateFlowViewModel` helpers which work like `by stateViewModel` but use a `StateFlowStore`.
-* Added `by StateFlowStore.getData(initial)` extension function which automatically uses a key based on the property name.
+* Added `by Fragment/Activity.savedInstanceState(default)` and `by StateFlowStore.getData(default)` and extension function which automatically uses a key based on the property name.
 * `SavedStateHandleStore` now provides an alternative constructor with doesn't require a `CoroutineScope` and only has one-way `MutableValueFlow -> LiveData` sync (which covers the 99% use-case).
 
 ## 3.6.0

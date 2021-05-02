@@ -17,11 +17,13 @@ public interface StateFlowStore {
 
 /** For use with `by` delegation. Returns the [StateFlowStore] entry for the key that equals the property name. */
 public fun <T> StateFlowStore.getData(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
-    StateFlowStoreProperty(this, default)
+    StateFlowStoreProperty(lazy { this }, default)
 
-private class StateFlowStoreProperty<T>(store: StateFlowStore, default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> {
+public class StateFlowStoreProperty<T>(store: Lazy<StateFlowStore>, default: T) :
+    ReadOnlyProperty<Any?, MutableValueFlow<T>> {
+
     private lateinit var key: String
-    private val data by lazy { store.getData(key, default) }
+    private val data by lazy { store.value.getData(key, default) }
 
     override fun getValue(thisRef: Any?, property: KProperty<*>): MutableValueFlow<T> {
         key = property.name

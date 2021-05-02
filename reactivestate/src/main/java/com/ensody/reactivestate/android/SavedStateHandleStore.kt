@@ -3,11 +3,9 @@ package com.ensody.reactivestate.android
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.SavedStateHandle
-import com.ensody.reactivestate.InMemoryStateFlowStore
-import com.ensody.reactivestate.MutableValueFlow
-import com.ensody.reactivestate.StateFlowStore
-import com.ensody.reactivestate.autoRun
+import com.ensody.reactivestate.*
 import kotlinx.coroutines.CoroutineScope
+import kotlin.properties.ReadOnlyProperty
 
 /** A [StateFlowStore] that wraps a [SavedStateHandle].
  *
@@ -54,3 +52,11 @@ public val Fragment.savedInstanceState: StateFlowStore get() =
 /** Returns a [StateFlowStore] where you can put your saved instance state. */
 public val ComponentActivity.savedInstanceState: StateFlowStore get() =
     buildOnViewModel { stateFlowStore }.value
+
+/** Returns a [StateFlowStore] where you can put your saved instance state. */
+public fun <T> Fragment.savedInstanceState(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
+    StateFlowStoreProperty(lazy { savedInstanceState }, default)
+
+/** Returns a [StateFlowStore] where you can put your saved instance state. */
+public fun <T> ComponentActivity.savedInstanceState(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
+    StateFlowStoreProperty(lazy { savedInstanceState }, default)
