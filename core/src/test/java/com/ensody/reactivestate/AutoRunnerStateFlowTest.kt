@@ -3,13 +3,11 @@ package com.ensody.reactivestate
 import assertk.assertThat
 import assertk.assertions.isEqualTo
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runBlockingTest
 import org.junit.Test
 
-@ExperimentalCoroutinesApi
 internal class AutoRunnerStateFlowTest {
     @Test
     fun `autoRun with StateFlow`(): Unit = runBlockingTest {

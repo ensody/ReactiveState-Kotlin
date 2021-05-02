@@ -15,7 +15,6 @@ public interface MutableFlow<T> : Flow<T>, FlowCollector<T> {
 }
 
 /** Creates a [MutableFlow]. */
-@Suppress("FunctionName")
 public fun <T> MutableFlow(
     capacity: Int = Channel.RENDEZVOUS,
     onBufferOverflow: BufferOverflow = BufferOverflow.SUSPEND,

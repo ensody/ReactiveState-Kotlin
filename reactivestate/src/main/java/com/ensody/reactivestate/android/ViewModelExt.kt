@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
 public inline fun <reified T : Any> Fragment.buildOnViewModel(
     crossinline provider: BuildOnViewModelContext.() -> T,
 ): Lazy<T> =
-    stateViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
+    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
 
 /**
  * Creates an object living on a wrapper `ViewModel`. This allows for building multi-platform ViewModels.
@@ -33,7 +33,7 @@ public inline fun <reified T : Any> Fragment.buildOnViewModel(
 public inline fun <reified T : Any> ComponentActivity.buildOnViewModel(
     crossinline provider: BuildOnViewModelContext.() -> T,
 ): Lazy<T> =
-    stateViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
+    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
 
 /** Build context for [buildOnViewModel]. */
 public class BuildOnViewModelContext(
@@ -45,8 +45,7 @@ public class BuildOnViewModelContext(
 )
 
 /** The wrapper ViewModel used by [buildOnViewModel]. */
-public class WrapperViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    public val stateFlowStore: StateFlowStore = SavedStateHandleStore(viewModelScope, savedStateHandle)
+public class WrapperViewModel(public val stateFlowStore: StateFlowStore) : ViewModel() {
     public val registry: MutableMap<KClass<*>, Any> = mutableMapOf()
 }
 
@@ -101,6 +100,63 @@ public inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline
     activityViewModels {
         object : ViewModelProvider.Factory {
             override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T
+        }
+    }
+
+/**
+ * Creates `ViewModel` with a [SavedStateHandleStore].
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
+@Suppress("UNCHECKED_CAST")
+public inline fun <reified T : ViewModel> ComponentActivity.stateFlowViewModel(
+    crossinline provider: (handle: SavedStateHandleStore) -> T,
+): Lazy<T> =
+    viewModels {
+        object : AbstractSavedStateViewModelFactory(this, null) {
+            override fun <T : ViewModel?> create(
+                key: String,
+                modelClass: Class<T>,
+                handle: SavedStateHandle,
+            ): T = provider(SavedStateHandleStore(handle)) as T
+        }
+    }
+
+/**
+ * Creates `ViewModel` with a [SavedStateHandleStore].
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
+@Suppress("UNCHECKED_CAST")
+public inline fun <reified T : ViewModel> Fragment.stateFlowViewModel(
+    crossinline provider: (store: SavedStateHandleStore) -> T,
+): Lazy<T> =
+    viewModels {
+        object : AbstractSavedStateViewModelFactory(this, null) {
+            override fun <T : ViewModel?> create(
+                key: String,
+                modelClass: Class<T>,
+                handle: SavedStateHandle,
+            ): T = provider(SavedStateHandleStore(handle)) as T
+        }
+    }
+
+/**
+ * Creates `ViewModel` with a [SavedStateHandleStore], scoped to the `Activity`.
+ *
+ * The [provider] should instantiate the `ViewModel` directly.
+ */
+@Suppress("UNCHECKED_CAST")
+public inline fun <reified T : ViewModel> Fragment.activityStateFlowViewModel(
+    crossinline provider: (handle: SavedStateHandleStore) -> T,
+): Lazy<T> =
+    activityViewModels {
+        object : AbstractSavedStateViewModelFactory(requireActivity(), null) {
+            override fun <T : ViewModel?> create(
+                key: String,
+                modelClass: Class<T>,
+                handle: SavedStateHandle,
+            ): T = provider(SavedStateHandleStore(handle)) as T
         }
     }
 
