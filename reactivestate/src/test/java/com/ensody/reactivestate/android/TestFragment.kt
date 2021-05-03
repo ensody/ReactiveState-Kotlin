@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 internal class TestViewModel(val scope: CoroutineScope, val store: StateFlowStore) {
     val name = store.getData("name", "")
     val count = store.getData("count", 0)
+    val nullableName = store.getData<String?>("name", null)
 }
 
 internal class TestFragment : Fragment() {
@@ -23,7 +24,7 @@ internal class TestFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View? {
+    ): View {
         textView = TextView(context)
         return textView
     }

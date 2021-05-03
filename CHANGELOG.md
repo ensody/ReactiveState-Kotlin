@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.1
+
+* Fixed support for nullable values in `SavedStateHandleStore`.
+
 ## 3.8.0
 
 * Added `by propertyName` and `by lazyProperty` helpers simplifying `ReadOnlyProperty`.
