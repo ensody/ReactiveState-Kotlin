@@ -36,7 +36,8 @@ public class SavedStateHandleStore(private val scope: CoroutineScope?, private v
             liveData.postValue(it)
         }
         scope?.autoRun {
-            data.value = get(liveData)!!
+            @Suppress("UNCHECKED_CAST")
+            data.value = get(liveData) as T
         }
         return data
     }
