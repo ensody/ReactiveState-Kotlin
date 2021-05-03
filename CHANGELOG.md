@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.3
+
+* Fixed argument inconsistency in `SuspendMutableValueFlow.replace`.
+
 ## 3.8.2
 
 * Fixed state restoration with `SavedStateHandleStore`.
