@@ -47,8 +47,8 @@ public abstract class BaseSuspendMutableValueFlow<T>(
     }
 
     /** Replaces the [value] with [block]'s return value. */
-    public suspend fun replace(block: (value: T) -> T) {
-        set(block(value))
+    public suspend fun replace(block: T.() -> T) {
+        set(value.block())
     }
 
     /** Mutates [value] in-place and notifies listeners. The current value is passed as an arg. */

@@ -32,7 +32,7 @@ internal class SuspendMutableValueFlowTest {
         assertThat(data.value).isEqualTo(storage.value)
         assertThat(data.value.count).isEqualTo(2)
 
-        data.replace { it.copy(count = it.count + 1) }
+        data.replace { copy(count = count + 1) }
         assertThat(mutations).isEqualTo(3)
         assertThat(data.value).isEqualTo(storage.value)
         assertThat(data.value.count).isEqualTo(3)
