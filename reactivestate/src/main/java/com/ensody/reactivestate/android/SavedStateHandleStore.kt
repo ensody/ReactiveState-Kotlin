@@ -55,8 +55,8 @@ public val ComponentActivity.savedInstanceState: StateFlowStore get() =
 
 /** Returns a [StateFlowStore] where you can put your saved instance state. */
 public fun <T> Fragment.savedInstanceState(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
-    StateFlowStoreProperty(lazy { savedInstanceState }, default)
+    propertyName { savedInstanceState.getData(it, default) }
 
 /** Returns a [StateFlowStore] where you can put your saved instance state. */
 public fun <T> ComponentActivity.savedInstanceState(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
-    StateFlowStoreProperty(lazy { savedInstanceState }, default)
+    propertyName { savedInstanceState.getData(it, default) }

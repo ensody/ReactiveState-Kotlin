@@ -1,7 +1,6 @@
 package com.ensody.reactivestate
 
 import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
 
 /**
  * Base interface for a temporary observable key-value store.
@@ -17,19 +16,7 @@ public interface StateFlowStore {
 
 /** For use with `by` delegation. Returns the [StateFlowStore] entry for the key that equals the property name. */
 public fun <T> StateFlowStore.getData(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
-    StateFlowStoreProperty(lazy { this }, default)
-
-public class StateFlowStoreProperty<T>(store: Lazy<StateFlowStore>, default: T) :
-    ReadOnlyProperty<Any?, MutableValueFlow<T>> {
-
-    private lateinit var key: String
-    private val data by lazy { store.value.getData(key, default) }
-
-    override fun getValue(thisRef: Any?, property: KProperty<*>): MutableValueFlow<T> {
-        key = property.name
-        return data
-    }
-}
+    propertyName { getData(it, default) }
 
 /** A [StateFlowStore] that can be used for unit tests or non-Android parts of multi-platform projects. */
 public class InMemoryStateFlowStore : StateFlowStore {

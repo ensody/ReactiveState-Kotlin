@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.0
+
+* Added `by propertyName` and `by lazyProperty` helpers simplifying `ReadOnlyProperty`.
+
 ## 3.7.0
 
 * `MutableValueFlow`'s constructor now optionally takes a `setter` lambda function which is executed before emitting a new value. This allows observing / reacting to changes without needing a `CoroutineScope`.
