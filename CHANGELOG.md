@@ -1,5 +1,9 @@
 # Changelog
 
+## 3.8.2
+
+* Fixed state restoration with `SavedStateHandleStore`.
+
 ## 3.8.1
 
 * Fixed support for nullable values in `SavedStateHandleStore`.
