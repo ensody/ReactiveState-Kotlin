@@ -4,6 +4,7 @@
 
 * Added `@ExperimentalReactiveStateApi` annotation to mark experimental APIs.
 * Explicitly marked `SuspendMutableValueFlow` as experimental and changed its constructor to take the default value instead of a delegating `MutableValueFlow`.
+* Turned `SuspendMutableValueFlow` into an interface and constructor/factory function.
 
 ## 3.8.3
 

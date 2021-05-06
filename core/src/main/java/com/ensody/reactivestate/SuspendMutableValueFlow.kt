@@ -8,15 +8,39 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * This is useful e.g. for values backed by some storage/backend system.
  *
- * @see BaseSuspendMutableValueFlow for a more abstract base class
+ * @see BaseSuspendMutableValueFlow which can be a useful base class for your custom implementation.
  */
 @ExperimentalReactiveStateApi
-public class SuspendMutableValueFlow<T>(
+public interface SuspendMutableValueFlow<T> : ValueFlow<T> {
+    /**
+     * Assigns a new [value].
+     *
+     * @param value The new value to be assigned.
+     * @param force Whether to assign even if value is unchanged. Defaults to `false`, behaving like [MutableStateFlow].
+     */
+    public suspend fun set(value: T, force: Boolean = false)
+
+    /** Replaces the [value] with [block]'s return value. */
+    public suspend fun replace(block: T.() -> T)
+
+    /** Mutates [value] in-place and notifies listeners. The current value is passed as an arg. */
+    public suspend fun update(block: (value: T) -> Unit)
+
+    /** Mutates [value] in-place and notifies listeners. The current value is passed via this. */
+    public suspend fun updateThis(block: T.() -> Unit)
+}
+
+@ExperimentalReactiveStateApi
+public fun <T> SuspendMutableValueFlow(value: T, setter: suspend (value: T) -> Unit): SuspendMutableValueFlow<T> =
+    SuspendMutableValueFlowImpl(value, setter)
+
+@ExperimentalReactiveStateApi
+private class SuspendMutableValueFlowImpl<T>(
     value: T,
     private val setter: suspend (value: T) -> Unit,
 ) : BaseSuspendMutableValueFlow<T>(value) {
 
-    protected override suspend fun mutate(value: T) {
+    override suspend fun mutate(value: T) {
         setter(value)
     }
 }
@@ -31,19 +55,13 @@ public class SuspendMutableValueFlow<T>(
 @ExperimentalReactiveStateApi
 public abstract class BaseSuspendMutableValueFlow<T> private constructor(
     private val flow: MutableValueFlow<T>,
-) : ValueFlow<T> by flow {
+) : ValueFlow<T> by flow, SuspendMutableValueFlow<T> {
 
     public constructor(value: T) : this(MutableValueFlow(value))
 
     protected abstract suspend fun mutate(value: T)
 
-    /**
-     * Assigns a new [value].
-     *
-     * @param value The new value to be assigned.
-     * @param force Whether to assign even if value is unchanged. Defaults to `false`, behaving like [MutableStateFlow].
-     */
-    public suspend fun set(value: T, force: Boolean = false) {
+    public override suspend fun set(value: T, force: Boolean) {
         if (!force && this.value == value) {
             return
         }
@@ -51,19 +69,16 @@ public abstract class BaseSuspendMutableValueFlow<T> private constructor(
         flow.emit(value)
     }
 
-    /** Replaces the [value] with [block]'s return value. */
-    public suspend fun replace(block: T.() -> T) {
+    public override suspend fun replace(block: T.() -> T) {
         set(value.block())
     }
 
-    /** Mutates [value] in-place and notifies listeners. The current value is passed as an arg. */
-    public suspend fun update(block: (value: T) -> Unit) {
+    public override suspend fun update(block: (value: T) -> Unit) {
         block(value)
         set(value, force = true)
     }
 
-    /** Mutates [value] in-place and notifies listeners. The current value is passed via this. */
-    public suspend fun updateThis(block: T.() -> Unit) {
+    public override suspend fun updateThis(block: T.() -> Unit) {
         update(block)
     }
 }
