@@ -10,10 +10,12 @@ import kotlinx.coroutines.flow.StateFlow
  *
  * @see BaseSuspendMutableValueFlow for a more abstract base class
  */
+@ExperimentalReactiveStateApi
 public class SuspendMutableValueFlow<T>(
-    flow: MutableValueFlow<T>,
+    value: T,
     private val setter: suspend (value: T) -> Unit,
-) : BaseSuspendMutableValueFlow<T>(flow) {
+) : BaseSuspendMutableValueFlow<T>(value) {
+
     protected override suspend fun mutate(value: T) {
         setter(value)
     }
@@ -26,9 +28,12 @@ public class SuspendMutableValueFlow<T>(
  *
  * @see SuspendMutableValueFlow for a simple lambda-based implementation.
  */
-public abstract class BaseSuspendMutableValueFlow<T>(
+@ExperimentalReactiveStateApi
+public abstract class BaseSuspendMutableValueFlow<T> private constructor(
     private val flow: MutableValueFlow<T>,
 ) : ValueFlow<T> by flow {
+
+    public constructor(value: T) : this(MutableValueFlow(value))
 
     protected abstract suspend fun mutate(value: T)
 
