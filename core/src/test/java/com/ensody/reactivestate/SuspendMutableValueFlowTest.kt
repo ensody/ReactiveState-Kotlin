@@ -10,7 +10,7 @@ internal class SuspendMutableValueFlowTest {
     fun `value assignment behaves like MutableValueFlow`() = runBlockingTest {
         var mutations = 0
         val storage = MutableValueFlow(Counter(0))
-        val data = SuspendMutableValueFlow(MutableValueFlow(Counter(0))) {
+        val data = SuspendMutableValueFlow(Counter(0)) {
             mutations += 1
             storage.emit(it)
         }
