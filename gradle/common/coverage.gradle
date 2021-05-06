@@ -1,7 +1,7 @@
 ext.installCoverageDeps = {
     buildscript {
         dependencies {
-            classpath "org.jacoco:org.jacoco.core:0.8.5"
+            classpath "org.jacoco:org.jacoco.core:0.8.7"
         }
     }
 }
@@ -11,6 +11,7 @@ ext.trackCoverage = { enableTestCoverage ->
 
     tasks.withType(Test) {
         jacoco.includeNoLocationClasses = true
+        jacoco.excludes = ['jdk.internal.*']
     }
 
     def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
