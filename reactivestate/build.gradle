@@ -1,4 +1,3 @@
 dependencies {
-    api project(':core')
-    testImplementation project(':core-test')
+    jvmTestImplementation project(":reactivestate-test")
 }

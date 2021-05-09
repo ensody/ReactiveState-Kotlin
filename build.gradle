@@ -6,7 +6,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.0'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.4.32"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
     }
 
@@ -15,7 +15,7 @@ buildscript {
 }
 
 plugins {
-    id "io.github.gradle-nexus.publish-plugin" version "1.0.0"
+    id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
     id 'pl.allegro.tech.build.axion-release' version '1.12.1'
 }
 
@@ -44,14 +44,15 @@ def publicationUsername = secrets.getProperty("publication.username") ?: System.
 def publicationPassword = secrets.getProperty("publication.password") ?: System.getenv("PUBLICATION_PASSWORD")
 
 // Base package setup
-group 'com.ensody.reactivestate'
+group "com.ensody.reactivestate"
 subprojects {
     group rootProject.group
     version = rootProject.version
 
-    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
-    def isPlatformProject = project.name == 'dependency-versions-bom'
-    def isTestProject = project.name.endsWith('-test')
+    def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
+    def isMultiplatform = ["androidMain", "jvmMain", "commonMain"].any { project.file("src/$it").exists() }
+    def isPlatformProject = project.name.endsWith("-bom")
+    def isTestProject = project.name.endsWith("-test")
 
     repositories {
         google()
@@ -59,21 +60,82 @@ subprojects {
         jcenter()
     }
 
-    apply from: "$rootDir/dependencies.gradle"
-
-    if (!isPlatformProject) {
-        if (!isAndroidProject) {
+    if (isPlatformProject) {
+        apply from: "$rootDir/dependencies.gradle"
+    } else {
+        if (isAndroidProject) {
+            apply from: "$rootDir/gradle/common/android-library.gradle"
+        }
+        if (isMultiplatform) {
             apply from: "$rootDir/gradle/common/kotlin-library.gradle"
-            kotlinLibrary()
+            kotlinLibrary(
+                kotlinCompilerArgs: [
+                    "-Xopt-in=kotlin.RequiresOptIn",
+                    "-Xopt-in=com.ensody.reactivestate.ExperimentalReactiveStateApi",
+                ],
+            )
 
-            dependencies {
-                base()
-                if (isTestProject) {
-                    baseTestLib()
+            kotlin {
+                jvm()
+
+                if (isAndroidProject) {
+                    android {
+                        publishLibraryVariants("release", "debug")
+                    }
+
+                    sourceSets {
+                        androidMain { dependsOn(jvmMain) }
+                        androidTest { dependsOn(jvmTest) }
+                    }
+                }
+
+                // XXX: kotlinx-coroutines-test currently only supports the jvm target
+                if (!isTestProject) {
+                    // XXX: some targets aren't supported by kotlinx.coroutines, so they're commented out
+
+                    js(BOTH) {
+                        browser()
+                        nodejs()
+                    }
+//                    wasm32()
+
+                    ios()
+                    tvos()
+                    watchosArm64()
+                    watchosArm32()
+//                    watchosX64()
+                    watchosX86()
+
+                    macosX64()
+                    linuxX64()
+//                    linuxArm64()
+//                    linuxArm32Hfp()
+                    mingwX64()
+
+                    sourceSets {
+                        nonJvmMain { dependsOn(commonMain) }
+
+                        jsMain { dependsOn(nonJvmMain) }
+                        nativeMain { dependsOn(nonJvmMain) }
+
+                        appleMobileMain { dependsOn(nativeMain) }
+                        iosMain { dependsOn(appleMobileMain) }
+                        tvosMain { dependsOn(appleMobileMain) }
+                        watchosMain { dependsOn(appleMobileMain) }
+                        watchosArm64Main { dependsOn(watchosMain) }
+                        watchosArm32Main { dependsOn(watchosMain) }
+                        watchosX86Main { dependsOn(watchosMain) }
+
+                        desktopMain { dependsOn(nativeMain) }
+                        linuxX64Main { dependsOn(desktopMain) }
+                        macosX64Main { dependsOn(desktopMain) }
+                        mingwX64Main { dependsOn(desktopMain) }
+                    }
                 }
             }
-        } else {
-            apply from: "$rootDir/gradle/common/android-library.gradle"
+        }
+
+        if (isAndroidProject) {
             androidLibrary()
 
             android {
@@ -86,11 +148,33 @@ subprojects {
                 }
             }
 
-            dependencies {
-                baseAndroid()
-                if (isTestProject) {
-                    androidTestLib()
-                }
+            apply from: "$rootDir/dependencies.gradle"
+        }
+
+        apply from: "$rootDir/dependencies.gradle"
+
+        dependencies {
+            commonMainApi platform(project(':reactivestate-bom'))
+            commonMainApi 'org.jetbrains.kotlinx:kotlinx-coroutines-core'
+
+            jvmTestImplementation "io.mockk:mockk:1.11.0"
+            jvmTestImplementation "org.jetbrains.kotlin:kotlin-test-junit"
+            jvmTestImplementation 'junit:junit:4.13.2'
+
+            if (isAndroidProject) {
+                androidMainApi 'androidx.appcompat:appcompat'
+                androidMainApi 'androidx.core:core-ktx'
+                androidMainApi "androidx.fragment:fragment-ktx"
+                androidMainApi "androidx.lifecycle:lifecycle-runtime-ktx"
+                androidMainApi 'androidx.lifecycle:lifecycle-viewmodel-ktx'
+
+                androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
+                androidTestImplementation 'androidx.fragment:fragment-testing:1.3.3'
+                androidTestImplementation 'androidx.test:core:1.3.0'
+                androidTestImplementation 'androidx.test:core-ktx:1.3.0'
+                androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+                androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.2'
+                androidTestImplementation 'org.robolectric:robolectric:4.5.1'
             }
         }
 
@@ -122,6 +206,7 @@ subprojects {
             }
         },
         isPlatformProject: isPlatformProject,
+        sign: isOnCI,
     )
 }
 

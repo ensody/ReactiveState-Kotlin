@@ -1,5 +1,23 @@
 # Changelog
 
+## Next release
+
+This release adds support for Kotlin Multiplatform.
+
+Breaking changes:
+
+* The modules have been restructured and renamed:
+  * dependency-versions-bom => reactivestate-bom
+  * core => reactivestate
+  * core-test => reactivestate-test
+* `CoroutineTest` has become independent of JUnit.
+* `CoroutineTestRule` is now a simple class that you can either derive from or add as an attribute.
+
+Known limitations which will be solved with next releases:
+
+* On non-JVM platforms, `dispatchers.io` currently equals `Dispatchers.Default`.
+* This primarily affects `MutableValueFlow`: Internally, all uses of the JVM-only `synchronized` have been replaced with a spinlock `Mutex` since they were only utilized for very tiny blocks of code which normally don't even have any parallel access. Be careful about doing too large computations in combination with highly concurrent updates via `replaceLocked`, though.
+
 ## 3.9.0
 
 * Added `@ExperimentalReactiveStateApi` annotation to mark experimental APIs.

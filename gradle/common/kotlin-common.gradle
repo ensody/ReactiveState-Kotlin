@@ -8,15 +8,15 @@ ext.kotlinCommon = {
 
 class CompilerArgsConfig {
     Boolean kotlinExplicitApiMode = true
+    List<String> kotlinCompilerArgs = []
 }
 
 ext.getCompilerArgs = { args = [:] ->
     CompilerArgsConfig config = new CompilerArgsConfig(args)
     def compilerArgs = [
         "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        "-Xopt-in=kotlinx.serialization.ExperimentalSerializationApi",
-        "-Xopt-in=kotlin.ExperimentalUnsignedTypes",
-    ]
+        "-Xopt-in=kotlinx.coroutines.FlowPreview",
+    ] + config.kotlinCompilerArgs
     if (config.kotlinExplicitApiMode) {
         compilerArgs.add("-Xexplicit-api=strict")
     }

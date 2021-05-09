@@ -14,7 +14,7 @@ ext.trackCoverage = { enableTestCoverage ->
         jacoco.excludes = ['jdk.internal.*']
     }
 
-    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+    def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
     def hasInstrumentationTests = isAndroidProject && project.file('src/androidTest').exists()
 
     if (isAndroidProject) {

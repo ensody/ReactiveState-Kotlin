@@ -4,22 +4,17 @@ import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
 // * https://gist.github.com/Robyer/a6578e60127418b380ca133a1291f017
 // * https://stackoverflow.com/questions/26874498/publish-an-android-library-to-maven-with-aar-and-source-jar
 
-class License {
-    String name
-    String url
-    String distribution
-}
-
 class PublishingConfig {
     String url
     String username
     String password
     String name
     String repoUrl
-    Closure<Object> pomAction
+    Object pomAction
     Boolean withSources = true
     Boolean withPublication = true
     Boolean isPlatformProject = false
+    Boolean sign = false
 }
 
 ext.LICENSE = [
@@ -43,23 +38,29 @@ ext.publish = { args ->
         config.name = "$rootProject.name: $project.name"
     }
 
-    def isAndroidProject = project.file('src/main/AndroidManifest.xml').exists()
+    def isMultiplatform = !project.file("src/main").exists()
+    def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
 
     if (config.withPublication) {
         if (!config.isPlatformProject && config.withSources) {
-            task sourcesJar(type: Jar) {
-                archiveClassifier.set('sources')
-                if (isAndroidProject) {
-                    from android.sourceSets.main.java.srcDirs
-                    from android.sourceSets.main.kotlin.srcDirs
-                } else {
-                    from sourceSets.main.java.srcDirs
-                    from sourceSets.main.kotlin.srcDirs
-                }
-            }
             task javadocJar(type: Jar) {
                 archiveClassifier.set('javadoc')
-                from rootProject.file("README.md")
+            }
+            if (!isMultiplatform) {
+                task sourcesJar(type: Jar) {
+                    archiveClassifier.set('sources')
+                    if (isAndroidProject) {
+                        from android.sourceSets.main.java.srcDirs
+                        from android.sourceSets.main.kotlin.srcDirs
+                    } else {
+                        if (project.file("src/main/java").exists()) {
+                            from sourceSets.main.java.srcDirs
+                        }
+                        if (project.file("src/main/kotlin").exists()) {
+                            from sourceSets.main.kotlin.srcDirs
+                        }
+                    }
+                }
             }
         }
 
@@ -67,40 +68,50 @@ ext.publish = { args ->
         afterEvaluate {
             publishing {
                 publications {
-                    release(MavenPublication) {
-                        if (isAndroidProject) {
-                            from components.release
-                        } else if (config.isPlatformProject) {
-                            from components.javaPlatform
-                        } else {
-                            from components.java
-                        }
-                        if (!config.isPlatformProject && config.withSources) {
-                            artifact sourcesJar
-                            artifact javadocJar
-                        }
-                        pom {
-                            name = config.name
-                            if (config.repoUrl) {
-                                scm {
-                                    url = config.repoUrl
-                                    def regex = ~"^https://(github.com/[^/]+/[^/]+).*"
-                                    def (_, path) = (config.repoUrl =~ regex)[0]
-                                    if (path) {
-                                        connection = "scm:git:git://${path}.git"
-                                        developerConnection = "scm:git:ssh://${path}.git"
-                                    }
-                                }
+                    if (!isMultiplatform) {
+                        maven(MavenPublication) {
+                            if (isAndroidProject) {
+                                from components.release
+                            } else if (config.isPlatformProject) {
+                                from components.javaPlatform
+                            } else {
+                                throw IllegalStateException("Don't know how to handle publication for $project.name")
                             }
-                        }
-                        if (config.pomAction) {
-                            pom(config.pomAction)
+                            if (!config.isPlatformProject && config.withSources) {
+                                artifact sourcesJar
+                            }
                         }
                     }
                 }
+
+                publications.all {
+                    if (!config.isPlatformProject) {
+                        artifact javadocJar
+                    }
+
+                    pom {
+                        name = config.name
+                        if (config.repoUrl) {
+                            scm {
+                                url = config.repoUrl
+                                def regex = ~"^https://(github.com/[^/]+/[^/]+).*"
+                                def (_, path) = (config.repoUrl =~ regex)[0]
+                                if (path) {
+                                    connection = "scm:git:git://${path}.git"
+                                    developerConnection = "scm:git:ssh://${path}.git"
+                                }
+                            }
+                        }
+                    }
+                    if (config.pomAction) {
+                        pom(config.pomAction)
+                    }
+                }
             }
-            signing {
-                sign publishing.publications
+            if (config.sign) {
+                signing {
+                    sign publishing.publications
+                }
             }
         }
     }

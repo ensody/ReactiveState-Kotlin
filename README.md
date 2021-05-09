@@ -2,10 +2,11 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate)
 
-An easy to understand reactive state management solution for Kotlin and Android.
+An easy to understand reactive state management solution for Kotlin Multiplatform and Android.
 
 ReactiveState-Kotlin provides you with these foundations:
 
+* multiplatform: share your ViewModels and reactive state handling logic between all platforms
 * reactive programming: everything is recomputed/updated automatically based on straightforward code
 * demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
 * event handling: simple events based on interfaces (more composable and less boilerplate than sealed classes)
@@ -24,13 +25,14 @@ Add the package to your `build.gradle`'s `dependencies {}`:
 ```groovy
 dependencies {
     // Add the BOM using the desired ReactiveState version
-    api platform("com.ensody.reactivestate:dependency-versions-bom:VERSION")
+    api platform("com.ensody.reactivestate:reactivestate-bom:VERSION")
 
     // Now you can leave out the version number from all other ReactiveState modules:
-    implementation "com.ensody.reactivestate:core" // For Kotlin-only projects
-    implementation "com.ensody.reactivestate:reactivestate" // For Android projects
+    implementation "com.ensody.reactivestate:reactivestate" // For Kotlin projects
+    implementation "com.ensody.reactivestate:reactivestate-android" // For Android projects
 
-    implementation "com.ensody.reactivestate:core-test" // Utils for unit tests that want to use coroutines
+    implementation "com.ensody.reactivestate:reactivestate-test" // Utils for unit tests that want to use coroutines
+    // Note: kotlin-coroutines-test only supports the "jvm" target, so reactivestate-test has the same limitation
 }
 ```
 
