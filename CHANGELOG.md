@@ -207,8 +207,8 @@ This is the final migration to `Flow`-based APIs like `StateFlow`/`SharedFlow`/`
 
 Breaking changes (migration to `StateFlow`):
 
-* `derived` now returns a `StateFlow` instead of a `LiveData`, so you can use `derived` in multi-platform code.
-* `LiveDataStore` has been replaced with `StateFlowStore`, so you can write multi-platform code.
+* `derived` now returns a `StateFlow` instead of a `LiveData`, so you can use `derived` in multiplatform code.
+* `LiveDataStore` has been replaced with `StateFlowStore`, so you can write multiplatform code.
 * `InMemoryStore` has been replaced with `InMemoryStateFlowStore`.
 * `SavedStateHandleStore` now implements `StateFlowStore` and requires a `CoroutineScope` in addition to `SavedStateHandle`.
 * `State` has been renamed to `Scoped` (more descriptive).

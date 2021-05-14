@@ -12,7 +12,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlin.reflect.KClass
 
 /**
- * Creates an object living on a wrapper `ViewModel`. This allows for building multi-platform ViewModels.
+ * Creates an object living on a wrapper `ViewModel`. This allows for building multiplatform ViewModels.
  *
  * The [provider] should instantiate the object directly.
  *
@@ -24,7 +24,7 @@ public inline fun <reified T : Any> Fragment.buildOnViewModel(
     stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
 
 /**
- * Creates an object living on a wrapper `ViewModel`. This allows for building multi-platform ViewModels.
+ * Creates an object living on a wrapper `ViewModel`. This allows for building multiplatform ViewModels.
  *
  * The [provider] should instantiate the object directly.
  *

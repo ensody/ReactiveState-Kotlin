@@ -5,7 +5,7 @@ import kotlin.properties.ReadOnlyProperty
 /**
  * Base interface for a temporary observable key-value store.
  *
- * This is useful for multi-platform projects and in general for abstracting away `SavedStateHandle`,
+ * This is useful for multiplatform projects and in general for abstracting away `SavedStateHandle`,
  * so you can write tests without Robolectric.
  */
 public interface StateFlowStore {
@@ -18,7 +18,7 @@ public interface StateFlowStore {
 public fun <T> StateFlowStore.getData(default: T): ReadOnlyProperty<Any?, MutableValueFlow<T>> =
     propertyName { getData(it, default) }
 
-/** A [StateFlowStore] that can be used for unit tests or non-Android parts of multi-platform projects. */
+/** A [StateFlowStore] that can be used for unit tests or non-Android parts of multiplatform projects. */
 public class InMemoryStateFlowStore : StateFlowStore {
     private val store = mutableMapOf<String, MutableValueFlow<*>>()
 

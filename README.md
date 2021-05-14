@@ -29,7 +29,6 @@ dependencies {
 
     // Now you can leave out the version number from all other ReactiveState modules:
     implementation "com.ensody.reactivestate:reactivestate" // For Kotlin projects
-    implementation "com.ensody.reactivestate:reactivestate-android" // For Android projects
 
     implementation "com.ensody.reactivestate:reactivestate-test" // Utils for unit tests that want to use coroutines
     // Note: kotlin-coroutines-test only supports the "jvm" target, so reactivestate-test has the same limitation
@@ -230,7 +229,7 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
     // ...
 }
 
-// This is a multi-platform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
+// This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
 // code. It can still persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
 class MultiPlatformViewModel(
     private val scope: CoroutineScope,
@@ -267,7 +266,7 @@ class MainViewModel(handle: SavedStateHandle) : ViewModel() {
 
 A `StateFlowStore` provides a similar API to `SavedStateHandle`, but based on `StateFlow` instead of `LiveData`.
 
-With `InMemoryStateFlowStore` you can do e.g. unit testing or abstract away platform differences in multi-platform projects.
+With `InMemoryStateFlowStore` you can do e.g. unit testing or abstract away platform differences in multiplatform projects.
 
 On Android you'll often want `SavedStateHandleStore` to convert `SavedStateHandle` to a `StateFlowStore`. There is also a convenient extension function: `SavedStateHandle.stateFlowStore(CoroutineScope)`
 
