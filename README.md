@@ -28,7 +28,7 @@ dependencies {
     api platform("com.ensody.reactivestate:reactivestate-bom:VERSION")
 
     // Now you can leave out the version number from all other ReactiveState modules:
-    implementation "com.ensody.reactivestate:reactivestate" // For Kotlin projects
+    implementation "com.ensody.reactivestate:reactivestate"
 
     implementation "com.ensody.reactivestate:reactivestate-test" // Utils for unit tests that want to use coroutines
     // Note: kotlin-coroutines-test only supports the "jvm" target, so reactivestate-test has the same limitation
