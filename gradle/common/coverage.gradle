@@ -1,11 +1,3 @@
-ext.installCoverageDeps = {
-    buildscript {
-        dependencies {
-            classpath "org.jacoco:org.jacoco.core:0.8.7"
-        }
-    }
-}
-
 ext.trackCoverage = { enableTestCoverage ->
     apply plugin: 'jacoco'
 
@@ -14,8 +6,14 @@ ext.trackCoverage = { enableTestCoverage ->
         jacoco.excludes = ['jdk.internal.*']
     }
 
+    jacoco {
+        toolVersion = "0.8.7"
+    }
+
+    def isMultiplatform = ["androidMain", "jvmMain", "commonMain"].any { project.file("src/$it").exists() }
     def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
-    def hasInstrumentationTests = isAndroidProject && project.file('src/androidTest').exists()
+    def hasInstrumentationTests = isAndroidProject &&
+        project.file(isMultiplatform ? 'src/androidUITest' : 'src/androidTest').exists()
 
     if (isAndroidProject) {
         android {
@@ -36,7 +34,10 @@ ext.trackCoverage = { enableTestCoverage ->
     if (hasInstrumentationTests) {
         androidTaskDeps.add('createDebugCoverageReport')
     }
-    def taskDeps = isAndroidProject ? androidTaskDeps : ['test']
+    if (isMultiplatform) {
+        androidTaskDeps.add("jvmTest")
+    }
+    def taskDeps = isAndroidProject ? androidTaskDeps : [isMultiplatform ? "jvmTest" : "test"]
     task jacocoTestReportDefault(type: JacocoReport, dependsOn: taskDeps, group: 'verification') {
         reports {
             xml.enabled = true
@@ -52,18 +53,24 @@ ext.trackCoverage = { enableTestCoverage ->
             'android/**/*.*',
         ]
 
-        sourceDirectories.setFrom(files(["$project.projectDir/src/main/java", "$project.projectDir/src/main/kotlin"]))
+        sourceDirectories.setFrom(files([
+            "$project.projectDir/src/androidMain/kotlin",
+            "$project.projectDir/src/jvmMain/kotlin",
+            "$project.projectDir/src/commonMain/kotlin",
+            "$project.projectDir/src/main/kotlin",
+            "$project.projectDir/src/main/java",
+        ]))
         classDirectories.setFrom(files([
-            isAndroidProject ?
+            !isMultiplatform && isAndroidProject ?
                 fileTree(dir: "$project.buildDir/intermediates/javac/debug", excludes: fileFilter)
                     + fileTree(dir: "$project.buildDir/intermediates/classes/debug", excludes: fileFilter)
                     + fileTree(dir: "$project.buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
-                : fileTree(dir: "$project.buildDir/classes/kotlin")
+                : fileTree(dir: "$project.buildDir/classes/kotlin/jvm/main")
         ]))
         executionData.setFrom(fileTree(dir: project.buildDir,
             includes: isAndroidProject ?
-                ['jacoco/testDebugUnitTest.exec', 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec']
-                : ['jacoco/test.exec'],
+                ['jacoco/testDebugUnitTest.exec', 'jacoco/jvmTest.exec', 'jacoco/test.exec', 'outputs/code_coverage/debugAndroidTest/connected/**/*.ec']
+                : ['jacoco/jvmTest.exec', 'jacoco/test.exec'],
         ))
     }
 }
