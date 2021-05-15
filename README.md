@@ -16,8 +16,6 @@ ReactiveState-Kotlin provides you with these foundations:
 * lifecycle handling (esp. Android)
 * state restoration (esp. Android)
 
-This library is split into separate modules for Kotlin (`core` and `core-test`) and Android (`reactivestate`).
-
 ## Installation
 
 Add the package to your `build.gradle`'s `dependencies {}`:
@@ -219,42 +217,49 @@ This can get rid of the ugly [boilerplate](https://developer.android.com/topic/l
 
 ### Flexible ViewModel instantiation
 
+This library allows creating multiplatform ViewModels (inherited from `BaseReactiveState`) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
+
 ```kotlin
-class MainViewModel(dependency: SomeDependency) : ViewModel() {
-    // ...
-}
-
-// This ViewModel can persist state with SavedStateHandle (no more onSaveInstanceState() boilerplate)
-class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) : ViewModel() {
-    // ...
-}
-
 // This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
 // code. It can persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
+// The base class for such ViewModels (and other "living" stateful objects) is ReactiveState.
 class MultiPlatformViewModel(
-    private val scope: CoroutineScope,
+    scope: CoroutineScope,
+    // The StateFlowStore allows for state restoration (like onSaveInstanceState). See next section for details.
     private val store: StateFlowStore,
     private val dependency: SomeDependency,
-) {
+) : ReactiveState<BaseEvents>(scope) {
     // For error events and other one-time actions
     val eventNotifier = EventNotifier<BaseEvents>()
 
     // ...
 }
 
-class MainFragment : Fragment() {
-    private val viewModel by buildViewModel { MainViewModel(SomeDependency()) }
-    private val viewModel2 by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
+// Alternatively, this is an example in case you want to use Android-native ViewModels.
+// This ViewModel can persist state with SavedStateHandle (no more onSaveInstanceState() boilerplate)
+class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) : ViewModel() {
+    // ...
+}
 
-    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel
-    private val multiPlatformViewModel by buildOnViewModel {
+class MainFragment : Fragment() {
+    // Alternatively, you can use "by buildViewModel" you don't need a SavedStateHandle
+    private val viewModel by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
+
+    // Attaches a multiplatform ViewModel (ReactiveState) to the fragment.
+    // Within the "by reactiveState" block you have access to scope and stateFlowStore which are taken from an
+    // internally created Android ViewModel that hosts the ReactiveState instance.
+    private val multiPlatformViewModel by reactiveState {
         MultiPlatformViewModel(scope, stateFlowStore, SomeDependency())
     }
+
+    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel.
+    // The "by reactiveState" helper is using this internally.
+    private val someObjectOnAViewModel by buildOnViewModel { SomeObject() }
 }
 ```
 
-ReactiveState's `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
-This results in more natural code and allows passing arguments to the `ViewModel` (e.g. for dependency injection).
+ReactiveState's `reactiveState`, `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
+This results in more natural code and allows passing arguments to the `ViewModel`.
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
 
@@ -343,11 +348,12 @@ stateFlow.value = flow.value.let {
 
 If you work with immutable data classes then you might know this problem. You can make immutable data less painful with functional lenses (e.g. [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/)), but that can still result in complicated and inefficient code.
 
-On the other hand, mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture and code structure.
+On the other hand, mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture and code structure and the specific circumstances.
 Usually, reactive code consciously puts data into observables (`StateFlow`s) in order to allow for reactivity.
 This results in a code structure where these `StateFlow`s are the primary hosts of each piece of data and the mutations are limited around each `StateFlow` or even around the observable database as the single source of truth.
 
 So, under these circumstances it can be quite safe to work with mutable data and `MutableValueFlow` makes such use-cases simpler than `MutableStateFlow`.
+Sometimes you even have a mutable third-party object (e.g. `AtomicInteger`) that you have to work with and `StateFlow` can be impossible to use for those cases.
 
 ### Unit tests with coroutines
 
@@ -365,7 +371,7 @@ class MyTest : CoroutineTest() {
     fun setup() {
         // You can access the TestCoroutineScope directly to launch some background processing.
         // In this case, let's process MyViewModel's events.
-        coroutinesTestRule.testCoroutineScope.launch {
+        testCoroutineScope.launch {
             viewModel.eventNotifier.collect { events.it() }
         }
     }
@@ -390,26 +396,14 @@ withContext(dispatchers.io) {
 }
 ```
 
-If you can't derive from `CoroutineTest` directly (e.g. because you have some other base test class), you can alternatively use delegation with the `CoroutineTestRuleOwner` interface:
-
-```kotlin
-class MyTest : SomeBaseTestClass(), CoroutineTestRuleOwner by CoroutineTest() {
-    @Test
-    fun `some test`() = runBlockingTest {
-        // ...
-    }
-}
-```
-
-If you want to go even lower-level there's also `CoroutineTestRule`:
+If you can't derive from `CoroutineTest` directly (e.g. because you have some other base test class), you can alternatively use composition with the `CoroutineTestRule`:
 
 ```kotlin
 class MyTest {
-    @get:Rule
-    override val coroutineTestRule = CoroutineTestRule()
+    val rule = CoroutineTestRule()
 
     @Test
-    fun `some test`() = coroutineTestRule.runBlockingTest {
+    fun `some test`() = rule.runBlockingTest {
         // ...
     }
 }
@@ -417,7 +411,7 @@ class MyTest {
 
 ## See also
 
-This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Kotlin and Android patterns.
+This library is based on [reactive_state](https://github.com/ensody/reactive_state) for Flutter and adapted to Kotlin Multiplatform and Android patterns.
 
 ## License
 
