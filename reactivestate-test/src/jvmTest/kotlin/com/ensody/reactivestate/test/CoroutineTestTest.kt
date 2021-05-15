@@ -13,7 +13,7 @@ internal class CoroutineTestTest : CoroutineTest() {
 
     @BeforeTest
     fun setup() {
-        coroutineTestRule.testCoroutineScope.launch {
+        testCoroutineScope.launch {
             initializedSetup = true
         }
         mainScope.launch {

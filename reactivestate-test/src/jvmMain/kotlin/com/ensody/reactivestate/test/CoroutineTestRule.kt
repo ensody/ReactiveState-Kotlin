@@ -26,7 +26,13 @@ public open class CoroutineTestRule {
     }
 
     public open fun runBlockingTest(block: suspend TestCoroutineScope.() -> Unit): Unit =
-        testCoroutineScope.runBlockingTest(block)
+        try {
+            testCoroutineScope.runBlockingTest(block)
+        } finally {
+            // We've lots of frustrating debugging just because runBlockingTest by default doesn't print out uncaught
+            // coroutine exceptions. The following results in much more helpful unit test errors:
+            testCoroutineScope.cleanupTestCoroutines()
+        }
 
     public fun enterCoroutineTest() {
         dispatchers = TestCoroutineDispatcherConfig(testCoroutineDispatcher)

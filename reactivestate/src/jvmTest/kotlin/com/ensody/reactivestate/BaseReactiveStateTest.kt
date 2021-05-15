@@ -1,37 +1,48 @@
 package com.ensody.reactivestate
 
 import com.ensody.reactivestate.test.ReactiveStateTest
+import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
-import kotlin.test.assertEquals
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 internal class BaseReactiveStateTest : ReactiveStateTest<ChildEvents>() {
-    override val reactiveState by lazy {
-        ParentViewModel(testCoroutineScope)
-    }
-    override val events = EventHandler()
+    override val reactiveState by lazy { ParentViewModel(testCoroutineScope) }
+    override val events: ChildEvents = mockk(relaxed = true)
 
     @Test
     fun `nesting of ReactiveStates`() = runBlockingTest {
-        assertEquals(1, events.childEvents)
-    }
-}
-
-internal class EventHandler : ChildEvents {
-    var errors = mutableListOf<Throwable>()
-    var childEvents = 0
-
-    override fun onError(error: Throwable) {
-        errors.add(error)
-    }
-
-    override fun onSomeChildEvent() {
-        childEvents += 1
+        verify { events.onSomeChildEvent() }
+        reactiveState.increment()
+        reactiveState.increment()
+        assertEquals(4, reactiveState.lazyDoubled.value)
+        assertEquals(2, reactiveState.countAutoRun.value)
+        assertEquals(2, reactiveState.countCoAutoRun.value)
     }
 }
 
 internal class ParentViewModel(scope: CoroutineScope) : BaseReactiveState<ChildEvents>(scope) {
     val childViewModel by childReactiveState { ChildViewModel(scope) }
+
+    val count = MutableValueFlow(0)
+    val doubled = derived { get(count) * 2 }
+    val lazyDoubled = derived(0) { get(doubled) }
+    val countAutoRun = MutableValueFlow(0)
+    val countCoAutoRun = MutableValueFlow(0)
+
+    init {
+        autoRun {
+            countAutoRun.value = get(count)
+        }
+        coAutoRun {
+            countCoAutoRun.value = get(count)
+        }
+    }
+
+    fun increment() {
+        count.increment()
+    }
 }
 
 internal interface ChildEvents : ErrorEvents {

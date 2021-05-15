@@ -1,6 +1,7 @@
 package com.ensody.reactivestate.test
 
 import com.ensody.reactivestate.EventNotifier
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -20,7 +21,14 @@ public abstract class EventNotifierTest<E> : CoroutineTest() {
 
     public fun handleEvents() {
         testCoroutineScope.launch {
-            eventNotifier.collect { events.it() }
+            try {
+                eventNotifier.collect { events.it() }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                e.printStackTrace()
+                throw e
+            }
         }
     }
 

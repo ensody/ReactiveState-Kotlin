@@ -118,7 +118,7 @@ private class DisposableGroupImpl : DisposableGroup {
 
 /** Helper for adding a completion handler to a [CoroutineContext]. */
 public fun CoroutineContext.invokeOnCompletion(handler: CompletionHandler): Disposable =
-    this[Job]!!.invokeOnCompletion(handler)
+    this[Job]?.invokeOnCompletion(handler) ?: OnDispose {}
 
 /** Helper for adding a completion handler to a [CoroutineScope]. */
 public fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Disposable =
