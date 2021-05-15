@@ -6,9 +6,9 @@ An easy to understand reactive state management solution for Kotlin Multiplatfor
 
 ReactiveState-Kotlin provides you with these foundations:
 
-* multiplatform: share your ViewModels and reactive state handling logic between all platforms
 * reactive programming: everything is recomputed/updated automatically based on straightforward code
 * demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
+* multiplatform: share your ViewModels and reactive state handling logic between all platforms
 * event handling: simple events based on interfaces (more composable and less boilerplate than sealed classes)
 * automatic error handling: no more forgotten try-catch or copy-pasted error handling logic all over the place
 * automatic cleanup/dispose logic (e.g. dispose something once a `CoroutineScope` is canceled)
@@ -230,12 +230,15 @@ class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) :
 }
 
 // This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
-// code. It can still persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
+// code. It can persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
 class MultiPlatformViewModel(
     private val scope: CoroutineScope,
     private val store: StateFlowStore,
     private val dependency: SomeDependency,
 ) {
+    // For error events and other one-time actions
+    val eventNotifier = EventNotifier<BaseEvents>()
+
     // ...
 }
 

@@ -5,69 +5,18 @@ import androidx.activity.viewModels
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.*
-import com.ensody.reactivestate.NamespacedStateFlowStore
-import com.ensody.reactivestate.StateFlowStore
-import kotlinx.coroutines.CoroutineScope
-import kotlin.reflect.KClass
+import androidx.lifecycle.AbstractSavedStateViewModelFactory
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.ensody.reactivestate.ReactiveState
 
 /**
- * Creates an object living on a wrapper `ViewModel`. This allows for building multiplatform ViewModels.
- *
- * The [provider] should instantiate the object directly.
- *
- * @see [buildViewModel] and [stateViewModel] if you want to instantiate an Android `ViewModel` directly.
- */
-public inline fun <reified T : Any> Fragment.buildOnViewModel(
-    crossinline provider: BuildOnViewModelContext.() -> T,
-): Lazy<T> =
-    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
-
-/**
- * Creates an object living on a wrapper `ViewModel`. This allows for building multiplatform ViewModels.
- *
- * The [provider] should instantiate the object directly.
- *
- * @see [buildViewModel] and [stateViewModel] if you want to instantiate an Android `ViewModel` directly.
- */
-public inline fun <reified T : Any> ComponentActivity.buildOnViewModel(
-    crossinline provider: BuildOnViewModelContext.() -> T,
-): Lazy<T> =
-    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
-
-/** Build context for [buildOnViewModel]. */
-public class BuildOnViewModelContext(
-    /** The [ViewModel.viewModelScope]. */
-    public val scope: CoroutineScope,
-
-    /** A [StateFlowStore] where you can store/load the saved instance state (similar to a [SavedStateHandle]). */
-    public val stateFlowStore: StateFlowStore,
-)
-
-/** The wrapper ViewModel used by [buildOnViewModel]. */
-public class WrapperViewModel(public val stateFlowStore: StateFlowStore) : ViewModel() {
-    public val registry: MutableMap<KClass<*>, Any> = mutableMapOf()
-}
-
-/** Used internally by [buildOnViewModel]. */
-public inline fun <reified T : Any> Lazy<WrapperViewModel>.buildOnViewModel(
-    crossinline provider: BuildOnViewModelContext.() -> T,
-): Lazy<T> = lazy {
-    val stateFlowStore = NamespacedStateFlowStore(
-        store = value.stateFlowStore,
-        namespace = T::class.qualifiedName
-            ?: throw IllegalArgumentException("The class must have a qualifiedName"),
-    )
-    val result = value.registry[T::class] as? T
-        ?: BuildOnViewModelContext(scope = value.viewModelScope, stateFlowStore = stateFlowStore).provider()
-    value.registry[T::class] = result
-    result
-}
-
-/**
- * Creates `ViewModel`.
+ * Creates a `ViewModel`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.buildViewModel(crossinline provider: () -> T): Lazy<T> =
@@ -78,9 +27,11 @@ public inline fun <reified T : ViewModel> Fragment.buildViewModel(crossinline pr
     }
 
 /**
- * Creates `ViewModel`.
+ * Creates a `ViewModel`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> ComponentActivity.buildViewModel(crossinline provider: () -> T): Lazy<T> =
@@ -91,9 +42,11 @@ public inline fun <reified T : ViewModel> ComponentActivity.buildViewModel(cross
     }
 
 /**
- * Creates `ViewModel` scoped to the `Activity`.
+ * Creates a `ViewModel` scoped to the `Activity`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline provider: () -> T): Lazy<T> =
@@ -104,9 +57,11 @@ public inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline
     }
 
 /**
- * Creates `ViewModel` with a [SavedStateHandleStore].
+ * Creates a `ViewModel` with a [SavedStateHandleStore].
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> ComponentActivity.stateFlowViewModel(
@@ -123,9 +78,11 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateFlowViewModel(
     }
 
 /**
- * Creates `ViewModel` with a [SavedStateHandleStore].
+ * Creates a `ViewModel` with a [SavedStateHandleStore].
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.stateFlowViewModel(
@@ -142,9 +99,11 @@ public inline fun <reified T : ViewModel> Fragment.stateFlowViewModel(
     }
 
 /**
- * Creates `ViewModel` with a [SavedStateHandleStore], scoped to the `Activity`.
+ * Creates a `ViewModel` with a [SavedStateHandleStore], scoped to the `Activity`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.activityStateFlowViewModel(
@@ -161,9 +120,11 @@ public inline fun <reified T : ViewModel> Fragment.activityStateFlowViewModel(
     }
 
 /**
- * Creates `ViewModel` with a `SavedStateHandle`.
+ * Creates a `ViewModel` with a `SavedStateHandle`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.stateViewModel(
@@ -180,9 +141,11 @@ public inline fun <reified T : ViewModel> Fragment.stateViewModel(
     }
 
 /**
- * Creates `ViewModel` with a `SavedStateHandle`.
+ * Creates a `ViewModel` with a `SavedStateHandle`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> ComponentActivity.stateViewModel(
@@ -199,9 +162,11 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateViewModel(
     }
 
 /**
- * Creates `ViewModel` with a `SavedStateHandle`, scoped to the `Activity`.
+ * Creates a `ViewModel` with a `SavedStateHandle`, scoped to the `Activity`.
  *
  * The [provider] should instantiate the `ViewModel` directly.
+ *
+ * @see [reactiveState] if you want to create multiplatform [ReactiveState] ViewModels.
  */
 @Suppress("UNCHECKED_CAST")
 public inline fun <reified T : ViewModel> Fragment.activityStateViewModel(

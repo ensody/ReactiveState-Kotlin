@@ -48,7 +48,7 @@ public fun <T> CoroutineScope.derived(
  *                Defaults to [SharingStarted.Eagerly].
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> CoroutineLauncher.derived(
@@ -56,7 +56,7 @@ public fun <T> CoroutineLauncher.derived(
     started: SharingStarted = SharingStarted.Eagerly,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: Boolean = true,
+    withLoading: MutableValueFlow<Int>? = generalLoading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
     var onChange: suspend () -> Unit = {}
@@ -92,7 +92,7 @@ public fun <T> CoroutineLauncher.derived(
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to `null`.
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> CoroutineScope.derived(
@@ -101,7 +101,7 @@ public fun <T> CoroutineScope.derived(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: Boolean = true,
+    withLoading: MutableValueFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(

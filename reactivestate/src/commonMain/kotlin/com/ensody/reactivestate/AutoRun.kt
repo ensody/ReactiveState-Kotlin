@@ -43,14 +43,14 @@ public fun CoroutineLauncher.autoRun(
  * manually call [run].
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineLauncher.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: Boolean = true,
+    withLoading: MutableValueFlow<Int>? = generalLoading,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     CoAutoRunner(
@@ -200,7 +200,7 @@ public class AutoRunner<T>(
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
  * @param observer The callback which is used to track the observables.
  */
 public class CoAutoRunner<T>(
@@ -208,7 +208,7 @@ public class CoAutoRunner<T>(
     onChange: CoAutoRunOnChangeCallback<T>? = null,
     private val flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
-    private val withLoading: Boolean = true,
+    private val withLoading: MutableValueFlow<Int>? = launcher.generalLoading,
     private val observer: CoAutoRunCallback<T>,
 ) : InternalBaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
@@ -217,7 +217,7 @@ public class CoAutoRunner<T>(
     private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     init {
-        launcher.launch(withLoading = false) {
+        launcher.launch(withLoading = null) {
             changeFlow.map { suspend { worker() } }.flowTransformer().collect()
         }
     }

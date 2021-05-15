@@ -32,7 +32,8 @@ public fun <T> ViewModel.derived(
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading] if
+ *                    this is a [CoroutineLauncher] or `null` otherwise.
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> ViewModel.derived(
@@ -41,7 +42,7 @@ public fun <T> ViewModel.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: Boolean = true,
+    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(
@@ -76,7 +77,8 @@ public fun <T> LifecycleOwner.derived(
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Whether loading state may be tracked for the (re-)computation. Defaults to `true`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading] if
+ *                    this is a [CoroutineLauncher] or `null` otherwise.
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> LifecycleOwner.derived(
@@ -85,7 +87,7 @@ public fun <T> LifecycleOwner.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: Boolean = true,
+    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(

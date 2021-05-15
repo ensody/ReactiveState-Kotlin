@@ -1,49 +1,47 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-/** Interface for launching coroutines. */
+/**
+ * Interface for launching coroutines with error handling and loading state tracking.
+ *
+ * You can track multiple different kinds of loading states by defining separate [MutableValueFlow].
+ *
+ * @see [ReactiveState] for a full implementation that you'll usually want to use.
+ */
 public interface CoroutineLauncher {
     /** The underlying [CoroutineScope] of this launcher. */
     public val launcherScope: CoroutineScope
 
+    /** Whether any loading state is currently doing something. */
+    public val isAnyLoading: LoadingStateTracker
+
     /**
-     * Launches a coroutine. Mark long-running coroutines by setting [withLoading] to `true`.
+     * The default loading tracker.
+     *
+     * Use [MutableValueFlow.replaceLocked] to safely increment/decrement the loading count.
+     */
+    public val generalLoading: MutableValueFlow<Int>
+
+    /**
+     * Launches a coroutine. Mark long-running coroutines by setting [withLoading] to loading state.
      *
      * @param context additional to [CoroutineScope.coroutineContext] context of the coroutine.
      * @param start coroutine start option. The default value is [CoroutineStart.DEFAULT].
-     * @param withLoading Whether the loading state may be tracked for this coroutine. This should be false for
-*                         long-running / never-terminating coroutines (e.g. when collecting a flow). Defaults to `true´.
+     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [generalLoading].
+     *                    This should be `null` for long-running / never-terminating coroutines (e.g. `flow.collect`).
      * @param onError Optional custom error handler.
      * @param block the coroutine code which will be invoked in the context of the provided scope.
      */
     public fun launch(
         context: CoroutineContext = EmptyCoroutineContext,
         start: CoroutineStart = CoroutineStart.DEFAULT,
-        withLoading: Boolean = true,
+        withLoading: MutableValueFlow<Int>? = generalLoading,
         onError: (suspend (Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit
     ): Job
-}
-
-/**
- * Simple default implementation of a [CoroutineLauncher] which uses a given [CoroutineScope].
- *
- * Usually you'll want to use a launcher which also does error handling and maybe even tracks a loading state.
- */
-public class SimpleCoroutineLauncher(override val launcherScope: CoroutineScope) : CoroutineLauncher {
-    override fun launch(
-        context: CoroutineContext,
-        start: CoroutineStart,
-        withLoading: Boolean,
-        onError: (suspend (Throwable) -> Unit)?,
-        block: suspend CoroutineScope.() -> Unit
-    ): Job =
-        launcherScope.launch(context = context, start = start) {
-            withErrorReporting({ onError?.invoke(it) ?: throw it }) {
-                block()
-            }
-        }
 }

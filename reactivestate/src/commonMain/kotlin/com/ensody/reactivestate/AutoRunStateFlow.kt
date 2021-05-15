@@ -18,7 +18,7 @@ private class StateFlowObservable<T>(
 
     override fun addObserver() {
         if (observer == null) {
-            observer = autoRunner.launcher.launch(withLoading = false) {
+            observer = autoRunner.launcher.launch(withLoading = null) {
                 var ignore = true
                 data.collect {
                     if (!ignore) {

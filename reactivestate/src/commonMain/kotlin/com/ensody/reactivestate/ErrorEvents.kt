@@ -18,7 +18,11 @@ public suspend fun <E : ErrorEvents> withErrorReporting(
     if (onError == null) {
         withErrorReporting(eventNotifier) { block() }
     } else {
-        withErrorReporting({ onError(it) }) { block() }
+        withErrorReporting({
+            withErrorReporting(eventNotifier) {
+                onError(it)
+            }
+        }) { block() }
     }
 }
 

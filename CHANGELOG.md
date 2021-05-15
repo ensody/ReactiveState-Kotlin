@@ -1,19 +1,25 @@
 # Changelog
 
-## Next release
+## Next release: 4.0.0
 
-This release adds support for Kotlin Multiplatform.
+This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
 
 Breaking changes:
 
 * The modules have been restructured and renamed:
-  * dependency-versions-bom => reactivestate-bom
-  * core => reactivestate
-  * core-test => reactivestate-test
-* `CoroutineTest` has become independent of JUnit.
+  * `reactivestate-bom` (previously dependency-versions-bom)
+  * `reactivestate` (previously core and reactivestate)
+  * `reactivestate-test` (previously core-test)
 * `CoroutineTestRule` is now a simple class that you can either derive from or add as an attribute.
+* `CoroutineTest` has become independent of JUnit and inherits from `CoroutineTestRule`. The `coroutineTestRule` attribute has been replaced with direct `testCoroutineScope` and `testCoroutineDispatcher` attributes inherited from the new `CoroutienTestRule`.
+* The `withLoading` concept in `autoRun`, `CoroutineLauncher` etc. has become more flexible to allow tracking separate loading states.
 
-Known limitations which will be solved with next releases:
+Non-breaking changes:
+
+* Added a multiplatform ViewModel `ReactiveState` (interface), `BaseReactiveState` (base class). This is actually a broader concept that can be used for any living object that can launch coroutines, automatically handles errors, triggers events, and tracks loading states.
+* Added a multiplatform `buildViewModel` extension function for creating such a `ViewModel` on an Activity and Fragment.
+
+Known limitations which will be solved with later releases:
 
 * On non-JVM platforms, `dispatchers.io` currently equals `Dispatchers.Default`.
 * This primarily affects `MutableValueFlow`: Internally, all uses of the JVM-only `synchronized` have been replaced with a spinlock `Mutex` since they were only utilized for very tiny blocks of code which normally don't even have any parallel access. Be careful about doing too large computations in combination with highly concurrent updates via `replaceLocked`, though.

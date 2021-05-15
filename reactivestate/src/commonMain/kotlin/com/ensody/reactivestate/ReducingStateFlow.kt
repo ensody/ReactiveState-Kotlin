@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.StateFlow
 
 /** A [StateFlow] that computes its output based on a dynamic list of other [StateFlow]s. */
-public class ReducingStateFlow<I, O> private constructor(
+public open class ReducingStateFlow<I, O> private constructor(
     private val flows: MutableValueFlow<MutableList<StateFlow<I>>>,
     flow: StateFlow<O>,
 ) : StateFlow<O> by flow {
