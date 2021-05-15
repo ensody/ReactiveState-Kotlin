@@ -7,7 +7,11 @@ import kotlinx.coroutines.channels.Channel
  * This is used to send events to an observer. All events are queued for later processing.
  *
  * The possible events are defined as method calls on an interface [T]. This allows for easy composition of multiple
- * events. See [ErrorEvents] as an example:
+ * events. One of the most common events interfaces is [ErrorEvents].
+ *
+ * @see ReactiveState for more advanced usage of this pattern.
+ *
+ * Example:
  *
  * ```kotlin
  * interface MyHandlerEvents : ErrorEvents, OtherEvents {

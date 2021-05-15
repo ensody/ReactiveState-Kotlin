@@ -13,10 +13,10 @@ import kotlinx.coroutines.test.TestCoroutineScope
  * By default this handles events in [runBlockingTest]. You can disable this by overriding
  * [handleEventsInRunBlockingTest] to `false`. In that case you have to explicitly call [handleEvents] in each test.
  */
-public abstract class EventNotifierTest<T> : CoroutineTest() {
+public abstract class EventNotifierTest<E> : CoroutineTest() {
     public open val handleEventsInRunBlockingTest: Boolean = true
-    public abstract val eventNotifier: EventNotifier<T>
-    public abstract val events: T
+    public abstract val eventNotifier: EventNotifier<E>
+    public abstract val events: E
 
     public fun handleEvents() {
         testCoroutineScope.launch {
