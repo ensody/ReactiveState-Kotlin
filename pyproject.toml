@@ -6,9 +6,9 @@ authors = []
 
 [tool.poetry.dependencies]
 python = "^3.6"
-mkdocs = "^1.1"
-mkdocs-material = "^5.1.1"
+mkdocs = "^1.1.2"
+mkdocs-material = "^7.1.4"
 
 [build-system]
-requires = ["poetry>=1.0.5"]
+requires = ["poetry>=1.1.6"]
 build-backend = "poetry.masonry.api"

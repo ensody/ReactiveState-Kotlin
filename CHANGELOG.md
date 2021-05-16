@@ -1,5 +1,33 @@
 # Changelog
 
+## 4.0.0-dev.1
+
+This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
+
+Breaking changes:
+
+* The modules have been restructured and renamed:
+  * `reactivestate-bom` (previously dependency-versions-bom)
+  * `reactivestate` (previously core and reactivestate)
+  * `reactivestate-test` (previously core-test)
+* `CoroutineTestRule` is now a simple class that you can either derive from or add as an attribute.
+* `CoroutineTest` has become independent of JUnit and inherits from `CoroutineTestRule`. The `coroutineTestRule` attribute has been replaced with direct `testCoroutineScope` and `testCoroutineDispatcher` attributes inherited from the new `CoroutienTestRule`.
+* The `withLoading` concept in `autoRun`, `CoroutineLauncher` etc. has become more flexible to allow tracking separate loading states.
+
+Non-breaking changes:
+
+* Added a multiplatform ViewModel `ReactiveState` (interface), `BaseReactiveState` (base class). This is actually a broader concept that can be used for any living object that can launch coroutines, automatically handles errors, triggers events, and tracks loading states.
+* Added a multiplatform `buildViewModel` extension function for creating such a `ViewModel` on an Activity and Fragment.
+
+Known limitations which will be solved with later releases:
+
+* On non-JVM platforms, `dispatchers.io` currently equals `Dispatchers.Default`.
+* This primarily affects `MutableValueFlow`: Internally, all uses of the JVM-only `synchronized` have been replaced with a spinlock `Mutex` since they were only utilized for very tiny blocks of code which normally don't even have any parallel access. Be careful about doing too large computations in combination with highly concurrent updates via `replaceLocked`, though.
+
+Changelog of preview releases:
+
+* _4.0.0-dev.1_: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
+
 ## 3.9.0
 
 * Added `@ExperimentalReactiveStateApi` annotation to mark experimental APIs.
@@ -189,8 +217,8 @@ This is the final migration to `Flow`-based APIs like `StateFlow`/`SharedFlow`/`
 
 Breaking changes (migration to `StateFlow`):
 
-* `derived` now returns a `StateFlow` instead of a `LiveData`, so you can use `derived` in multi-platform code.
-* `LiveDataStore` has been replaced with `StateFlowStore`, so you can write multi-platform code.
+* `derived` now returns a `StateFlow` instead of a `LiveData`, so you can use `derived` in multiplatform code.
+* `LiveDataStore` has been replaced with `StateFlowStore`, so you can write multiplatform code.
 * `InMemoryStore` has been replaced with `InMemoryStateFlowStore`.
 * `SavedStateHandleStore` now implements `StateFlowStore` and requires a `CoroutineScope` in addition to `SavedStateHandle`.
 * `State` has been renamed to `Scoped` (more descriptive).

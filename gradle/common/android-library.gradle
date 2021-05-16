@@ -5,8 +5,8 @@ class Config {
     Boolean kotlinExplicitApiMode = true
 }
 
+apply plugin: 'com.android.library'
 ext.androidLibrary = { args = [:] ->
-    apply plugin: 'com.android.library'
     apply from: "$rootDir/gradle/common/android-common.gradle"
 
     Config config = new Config(args)

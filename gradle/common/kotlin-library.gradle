@@ -1,31 +1,34 @@
 class Config {
     Boolean kotlinExplicitApiMode = true
+    Boolean allWarningsAsErrors = true
+    List<String> kotlinCompilerArgs = []
 }
+
+apply plugin: 'org.jetbrains.kotlin.multiplatform'
 
 ext.kotlinLibrary = { args = [:] ->
     apply from: "$rootDir/gradle/common/kotlin-common.gradle"
-
-    apply plugin: 'java-library'
-    apply plugin: 'kotlin'
 
     Config config = new Config(args)
 
     kotlinCommon()
 
-    compileKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
-            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
+    kotlin {
+        // TODO/XXX: Workaround for freeCompilerArgs not getting respected by Android Studio for Kotlin Multiplatform
+        if (config.kotlinExplicitApiMode) {
+            explicitApi()
+        }
+
+        targets.all {
+            compilations.all {
+                kotlinOptions {
+                    allWarningsAsErrors = config.allWarningsAsErrors
+                    freeCompilerArgs += getCompilerArgs(
+                        kotlinExplicitApiMode: config.kotlinExplicitApiMode,
+                        kotlinCompilerArgs: config.kotlinCompilerArgs,
+                    )
+                }
+            }
         }
     }
-
-    compileTestKotlin {
-        kotlinOptions {
-            jvmTarget = "1.8"
-            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
-        }
-    }
-
-    // Behave like Android
-    task testDebugUnitTest(type: Test, dependsOn: ['test'], group: 'verification')
 }

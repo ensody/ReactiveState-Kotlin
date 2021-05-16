@@ -1,5 +1,12 @@
 apply plugin: 'org.jetbrains.dokka'
-dokka {
-    outputDirectory = "$rootDir/docs/reference"
-    outputFormat = 'gfm'
+
+tasks.named("dokkaGfm").configure {
+    outputDirectory.set(rootProject.file("docs/reference"))
+
+    dokkaSourceSets {
+        configureEach {
+            noAndroidSdkLink.set(false)
+            includes.from(*["README.md"].findAll { project.file(it).exists() })
+        }
+    }
 }
