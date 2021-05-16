@@ -50,6 +50,8 @@ subprojects {
 ### Keeping UI in sync with state
 
 ```kotlin
+// You can create a multiplatform ViewModel by deriving from
+// BaseReactiveState instead. More details below.
 class MainViewModel : ViewModel() {
     // You can also use MutableLiveData, but then you'll have to deal with null.
     val name = MutableStateFlow("")
@@ -59,7 +61,9 @@ class MainViewModel : ViewModel() {
     val doubledCounter: StateFlow<Int> = derived { 2 * get(counter) }
 
     // This is only computed while someone is subscribed to changes (autoRun, derived or collect)
-    val onDemandDoubledCounter = derived(initial = 0, started = WhileSubscribed()) { 2 * get(counter) }
+    val onDemandDoubledCounter = derived(initial = 0, started = WhileSubscribed()) {
+        2 * get(counter)
+    }
 
     fun increment() {
         counter.value += 1
@@ -82,10 +86,11 @@ class MainFragment : Fragment() {
         }
 
         autoRun {
-            // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to re-execute
-            // this code block whenever model.name or model.counter is changed.
+            // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to
+            // re-execute this code block whenever model.name or model.counter is changed.
             // Result: isEnabled changes while you type.
-            incrementButton.isEnabled = get(viewModel.name).isNotEmpty() && get(viewModel.doubledCounter) < 100
+            incrementButton.isEnabled =
+                get(viewModel.name).isNotEmpty() && get(viewModel.doubledCounter) < 100
         }
 
         incrementButton.setOnClickListener {
@@ -105,6 +110,21 @@ With `derived` you can construct new `StateFlow`s based on the `autoRun` princip
 
 Note that `autoRun` can be extended to support observables other than `StateFlow`, `LiveData` and `WhileUsed` (see below).
 
+### Relation to Jetpack Compose
+
+Reactive UI frameworks like Jetpack Compose automatically rebuild the UI whenever e.g. a `StateFlow` changes.
+Isn't that the same thing as `autoRun` already? Do you still need this library?
+
+If you look closely at the code sample above, the ViewModel uses `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
+This pattern in very powerful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
+Actually, Jetpack Compose is like `derived` for the UI.
+ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
+
+So, both solutions need to be used together when creating a fully reactive codebase.
+
+Moreover, Jetpack Compose currently doesn't provide any multiplatform ViewModel support.
+This library solves this by providing `BaseReactiveState`.
+
 ### Correct lifecycle handling
 
 ```kotlin
@@ -112,9 +132,12 @@ interface MainEvents {
     fun showMessage(message: String)
 }
 
+// You can create a multiplatform ViewModel by deriving from
+// BaseReactiveState instead. More details below.
 class MainViewModel : ViewModel() {
-    // This queue can be used to send events to the MainEvents in the STARTED lifecycle state.
-    // Instead of boilerplaty event sealed classes we use a simple MainEvents interface with methods.
+    // This queue can be used to send events to the MainEvents in the STARTED
+    // lifecycle state. Instead of boilerplaty event sealed classes we use a
+    // simple MainEvents interface with methods.
     val eventNotifier = EventNotifier<MainEvents>()
 
     fun someAction() {
@@ -169,11 +192,90 @@ To work around this, you'll usually launch a coroutine in `ViewModel.viewModelSc
 
 In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
 
+### Multiplatform ViewModels
+
+This library allows creating multiplatform ViewModels (inherited from `BaseReactiveState`) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
+
+```kotlin
+// This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel
+// and doesn't depend on any Android code.
+// It can persist saved instance state via StateFlowStore. On iOS you could pass
+// e.g. an InMemoryStateFlowStore.
+// The base class for such ViewModels (and other "living" stateful objects)
+// is BaseReactiveState. You can alternatively use the ReactiveState interface
+// e.g. together with delegation.
+class MultiPlatformViewModel(
+    scope: CoroutineScope,
+    // The StateFlowStore allows for state restoration (like onSaveInstanceState).
+    // See next section for details.
+    private val store: StateFlowStore,
+    // For dependency injection
+    private val dependency: SomeDependency,
+) : BaseReactiveState<ErrorEvents>(scope) {
+
+    val data = MutableStateFlow("hello")
+
+    fun doSomething() {
+        // In contrast to scope.launch, the BaseReactiveState.launch function
+        // automatically catches exceptions and forwards them to eventNotifier
+        // via ErrorEvents.onError(throwable).
+        launch {
+            val result = callSomeSuspendFun()
+            data.value = result
+            // BaseReactiveState comes with a built-in eventNotifier
+            eventNotifier { ... }
+        }
+    }
+}
+
+interface MyEvents : ErrorEvents {
+    fun onResultReceived()
+}
+
+// Alternatively, this is an example in case you want to use Android-native ViewModels.
+// This ViewModel can persist state with SavedStateHandle (no more onSaveInstanceState() boilerplate)
+class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) : ViewModel() {
+    // ...
+}
+
+// Example integration with Android
+class MainFragment : Fragment() {
+    // Attaches a multiplatform ViewModel (ReactiveState) to the fragment.
+    // Within the "by reactiveState" block you have access to scope and stateFlowStore which are taken from an
+    // internally created Android ViewModel that hosts the ReactiveState instance.
+    private val multiPlatformViewModel by reactiveState {
+        MultiPlatformViewModel(scope, stateFlowStore, SomeDependency())
+    }
+
+    // Alternatively, for Android ViewModels there's stateViewModel and buildViewModel
+    private val viewModel by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
+
+    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel.
+    // The "by reactiveState" helper is using this internally.
+    private val someObjectOnAViewModel by buildOnViewModel { SomeObject() }
+}
+```
+
+`BaseReactiveState` combines all must-have features into one:
+
+* error handling: `launch` catches all errors and forwards them to `eventNotifier` via `ErrorEvents.onError(throwable)`
+* event handling:
+
+ReactiveState's `reactiveState`, `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
+This results in more natural code and allows passing arguments to the `ViewModel`.
+Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
+They just reduce the amount of boilerplate for common use-cases.
+
 ### Reference-counted / demand-driven singletons
 
 ```kotlin
 val getCache = WhileUsed { mutableMapOf<String, Entity>() }
-val getCacheProxy = WhileUsed { getCache(it) }  // example how to access other WhileUsed values
+
+// example how to access other WhileUsed values
+val getCacheProxy = WhileUsed { getCache(it) }
+
+// example how to pass an on-demand created/destroyed MainScope
+val getSomeValueWithScope = WhileUsed { SomeReactiveState(it.scope) }
 
 class MainViewModel : ViewModel() {
     // The cache is created here and disposed once the ViewModel is destroyed. If multiple ViewModels use the cache
@@ -214,54 +316,6 @@ These are the building blocks for your own lifecycle-aware components which can 
 
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
-
-### Flexible ViewModel instantiation
-
-This library allows creating multiplatform ViewModels (inherited from `BaseReactiveState`) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
-
-```kotlin
-// This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel and doesn't depend on any Android
-// code. It can persist saved instance state via StateFlowStore (on iOS you could use an InMemoryStateFlowStore).
-// The base class for such ViewModels (and other "living" stateful objects) is ReactiveState.
-class MultiPlatformViewModel(
-    scope: CoroutineScope,
-    // The StateFlowStore allows for state restoration (like onSaveInstanceState). See next section for details.
-    private val store: StateFlowStore,
-    private val dependency: SomeDependency,
-) : ReactiveState<BaseEvents>(scope) {
-    // For error events and other one-time actions
-    val eventNotifier = EventNotifier<BaseEvents>()
-
-    // ...
-}
-
-// Alternatively, this is an example in case you want to use Android-native ViewModels.
-// This ViewModel can persist state with SavedStateHandle (no more onSaveInstanceState() boilerplate)
-class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) : ViewModel() {
-    // ...
-}
-
-class MainFragment : Fragment() {
-    // Alternatively, you can use "by buildViewModel" you don't need a SavedStateHandle
-    private val viewModel by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
-
-    // Attaches a multiplatform ViewModel (ReactiveState) to the fragment.
-    // Within the "by reactiveState" block you have access to scope and stateFlowStore which are taken from an
-    // internally created Android ViewModel that hosts the ReactiveState instance.
-    private val multiPlatformViewModel by reactiveState {
-        MultiPlatformViewModel(scope, stateFlowStore, SomeDependency())
-    }
-
-    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel.
-    // The "by reactiveState" helper is using this internally.
-    private val someObjectOnAViewModel by buildOnViewModel { SomeObject() }
-}
-```
-
-ReactiveState's `reactiveState`, `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
-This results in more natural code and allows passing arguments to the `ViewModel`.
-Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
-They just reduce the amount of boilerplate for common use-cases.
 
 ### StateFlowStore - StateFlow based SavedStateHandle
 
@@ -313,6 +367,8 @@ class MyHandler {
     }
 }
 ```
+
+Note: With `BaseReactiveState` you get this for free when using `launch`.
 
 Since it's a common pattern, we provide `ErrorEvents` and `withErrorHandling` to automatically catch and report any errors within a code block to an `EventNotifier`.
 
