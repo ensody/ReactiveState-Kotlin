@@ -1,6 +1,6 @@
 # Changelog
 
-## Next release: 4.0.0
+## 4.0.0-dev.1
 
 This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
 
@@ -23,6 +23,10 @@ Known limitations which will be solved with later releases:
 
 * On non-JVM platforms, `dispatchers.io` currently equals `Dispatchers.Default`.
 * This primarily affects `MutableValueFlow`: Internally, all uses of the JVM-only `synchronized` have been replaced with a spinlock `Mutex` since they were only utilized for very tiny blocks of code which normally don't even have any parallel access. Be careful about doing too large computations in combination with highly concurrent updates via `replaceLocked`, though.
+
+Changelog of preview releases:
+
+* _4.0.0-dev.1_: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
 
 ## 3.9.0
 
