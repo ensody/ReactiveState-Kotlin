@@ -11,6 +11,8 @@ theme:
   name: 'material'
   logo: 'images/ensody.svg'
   favicon: 'images/favicon.ico'
+  features:
+    - navigation.expand
 
 extra_css:
   - css/extra.css
@@ -38,6 +40,6 @@ markdown_extensions:
 nav:
   - 'Overview': index.md
   - 'API reference':
-    - 'core': reference/core/index.md
-    - 'reactivestate': reference/reactivestate/index.md
+    - 'reactivestate': reference/reactivestate/com.ensody.reactivestate/index.md
+    - 'reactivestate-test': reference/reactivestate-test/com.ensody.reactivestate.test/index.md
   - 'Changelog': changelog.md

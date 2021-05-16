@@ -4,7 +4,7 @@ set -euxo pipefail
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 
-./gradlew dokka
+./gradlew dokkaGfm
 
 cp README.md docs/index.md
 cp CHANGELOG.md docs/changelog.md

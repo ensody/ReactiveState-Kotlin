@@ -2,18 +2,24 @@ buildscript {
     repositories {
         google()
         mavenCentral()
-        jcenter()
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:4.2.0'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.0"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:0.10.1"
     }
 }
 
 plugins {
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
-    id 'pl.allegro.tech.build.axion-release' version '1.12.1'
+    id "pl.allegro.tech.build.axion-release" version "1.12.1"
+    id "org.jetbrains.dokka" version "1.4.32"
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
 }
 
 def isOnCI = System.getenv('RUNNING_ON_CI') == 'true'
@@ -50,12 +56,6 @@ subprojects {
     def isMultiplatform = ["androidMain", "jvmMain", "commonMain"].any { project.file("src/$it").exists() }
     def isPlatformProject = project.name.endsWith("-bom")
     def isTestProject = project.name.endsWith("-test")
-
-    repositories {
-        google()
-        mavenCentral()
-        jcenter()
-    }
 
     if (isPlatformProject) {
         apply from: "$rootDir/dependencies.gradle"
@@ -188,7 +188,7 @@ subprojects {
         password: publicationPassword,
         repoUrl: "https://github.com/ensody/ReactiveState-Kotlin",
         pomAction: {
-            description = "An easy to understand reactive state management solution for Kotlin and Android."
+            description = "Easy reactive state management for Kotlin Multiplatform. No boilerplate. Compatible with Android."
             url = "https://ensody.github.io/ReactiveState-Kotlin/"
             licenses {
                 license(LICENSE.APACHE2)

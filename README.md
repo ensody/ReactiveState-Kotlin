@@ -1,8 +1,8 @@
 # ReactiveState for Kotlin and Android
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate?gav=true)
 
-An easy to understand reactive state management solution for Kotlin Multiplatform and Android.
+Easy reactive state management for Kotlin Multiplatform. No boilerplate. Compatible with Android.
 
 ReactiveState-Kotlin provides you with these foundations:
 

@@ -17,4 +17,4 @@ apt-get install -y --no-install-recommends ca-certificates curl gettext git pyth
 ln -sf "$(command -v python3)" /usr/bin/python
 
 # Install poetry
-pip3 install "poetry==1.0.10"
+pip3 install "poetry==1.1.6"

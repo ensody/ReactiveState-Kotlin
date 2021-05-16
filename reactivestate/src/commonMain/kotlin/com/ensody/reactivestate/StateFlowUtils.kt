@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
  *
  * This is a simple helper for the common case where you want to `copy()` a data class:
  *
- * ```
+ * ```kotlin
  * data class Foo(val num: Int)
  *
  * val stateFlow = MutableStateFlow(Foo(3))

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Mutex
 
-/** A version of [StateFlow] that doesn't compare against previous values. */
+/** A version of [StateFlow] that can explicitly trigger value changes without equality checks. */
 public interface ValueFlow<T> : StateFlow<T>
 
 /**
@@ -16,7 +16,7 @@ public interface ValueFlow<T> : StateFlow<T>
  *
  * Example of mutating the `value` in-place:
  *
- * ```
+ * ```kotlin
  * flow.update {
  *     it.subvalue1.deepsubvalue.somevalue += 3
  *     it.subvalue2.state = SomeState.IN_PROGRESS
@@ -29,7 +29,7 @@ public interface ValueFlow<T> : StateFlow<T>
  * In Kotlin, working with nested immutable values (e.g. nested data class with val) is very unwieldy because you have
  * to manually copy each element and its children:
  *
- * ```
+ * ```kotlin
  * flow.value = flow.value.let {
  *     it.copy(
  *         subvalue1 = it.subvalue1.copy(
@@ -44,7 +44,7 @@ public interface ValueFlow<T> : StateFlow<T>
  * In many cases the UI state is even held in mutable data classes (with var), but doing the following would be unsafe
  * with [MutableStateFlow] because the value is considered unchanged, so this code won't trigger a UI update:
  *
- * ```
+ * ```kotlin
  * flow.value = flow.value.also {
  *     it.subvalue1.deepsubvalue.somevalue += 3
  *     it.subvalue2.state = SomeState.IN_PROGRESS
@@ -71,7 +71,7 @@ public interface MutableValueFlow<T> : ValueFlow<T>, MutableStateFlow<T> {
      *
      * This is a simple helper for the common case where you want to `copy()` a data class:
      *
-     * ```
+     * ```kotlin
      * data class Foo(val num: Int)
      *
      * val stateFlow = MutableStateFlow(Foo(3))
