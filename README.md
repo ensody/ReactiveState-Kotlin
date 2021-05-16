@@ -256,12 +256,14 @@ class MainFragment : Fragment() {
 }
 ```
 
-`BaseReactiveState` combines all must-have features into one:
+With `buildOnViewModel` you can create your fully custom ViewModel if prefer. However, `BaseReactiveState` comes with batteries included:
 
-* error handling: `launch` catches all errors and forwards them to `eventNotifier` via `ErrorEvents.onError(throwable)`
-* event handling:
+* event handling: Send one-time events to the UI via `eventNotifier`.
+* error handling: `launch` catches all errors and forwards them to `eventNotifier` via `ErrorEvents.onError(throwable)`.
+* lifecycle handling: With `by reactiveState` the `eventNotifier` is automatically observed in the `>= STARTED` state.
+* loading indicators: `launch` automatically maintains a loading `StateFlow`, so you can show a loading indicator in the UI while the coroutine is running. This can use either the default `generalLoading` or any custom `MutableValueFlow<Int>`, so you can distinguish different loading states, each having its own loading indicator in the UI.
 
-ReactiveState's `reactiveState`, `buildViewModel`, `stateViewModel`, `buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
+For Android, ReactiveState's `by reactiveState`, `by buildViewModel`, `by stateViewModel`, `by buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
 This results in more natural code and allows passing arguments to the `ViewModel`.
 Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
 They just reduce the amount of boilerplate for common use-cases.
