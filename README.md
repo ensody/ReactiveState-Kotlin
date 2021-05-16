@@ -1,4 +1,4 @@
-# ReactiveState for Kotlin and Android
+# ReactiveState for Kotlin Multiplatform and Android
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate?gav=true)
 
@@ -116,7 +116,7 @@ Reactive UI frameworks like Jetpack Compose automatically rebuild the UI wheneve
 Isn't that the same thing as `autoRun` already? Do you still need this library?
 
 If you look closely at the code sample above, the ViewModel uses `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
-This pattern in very powerful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
+This pattern is very powerful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
 Actually, Jetpack Compose is like `derived` for the UI.
 ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
 

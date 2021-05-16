@@ -26,7 +26,7 @@ Known limitations which will be solved with later releases:
 
 Changelog of preview releases:
 
-* _4.0.0-dev.1_: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
+* 4.0.0-dev.1: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
 
 ## 3.9.0
 
