@@ -16,11 +16,6 @@ fi
 export BUILD_VERSION_CHECK_DONE=true
 EOF
 
-# Make sure a few common tools are installed
-apt-get update
-apt-get upgrade -y
-apt-get install -y --no-install-recommends curl gettext git gnupg less procps apt-utils locales bash-completion
-
 # Enable bash auto completion
 cat >> ~/.bashrc <<EOF
 source /etc/profile.d/bash_completion.sh

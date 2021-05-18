@@ -62,7 +62,7 @@ public fun ViewModel.coAutoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 public fun LifecycleOwner.autoRun(
-    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
+    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> {
@@ -112,7 +112,7 @@ public fun LifecycleOwner.autoRun(
  * @param [observer] The callback which is used to track the observables.
  */
 public fun LifecycleOwner.coAutoRun(
-    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
+    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,

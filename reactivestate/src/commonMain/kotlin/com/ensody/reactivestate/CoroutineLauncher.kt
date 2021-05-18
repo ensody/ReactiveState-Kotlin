@@ -23,7 +23,7 @@ public interface CoroutineLauncher {
     /**
      * The default loading tracker.
      *
-     * Use [MutableValueFlow.replaceLocked] to safely increment/decrement the loading count.
+     * Use [increment]/[decrement] to safely update the loading counter.
      */
     public val generalLoading: MutableValueFlow<Int>
 

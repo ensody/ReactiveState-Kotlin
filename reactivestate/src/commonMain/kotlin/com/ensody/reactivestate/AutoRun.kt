@@ -161,6 +161,8 @@ public class AutoRunner<T>(
     public fun run(): T = observe(observer = observer)
 
     override fun triggerChange() {
+        // TODO: This should launch a temporary coroutine to deal with error handling.
+        //  Probably we need to use a flow like with CoAutoRunner. That also allows backpressure handling.
         listener(this)
     }
 

@@ -6,7 +6,7 @@ import kotlinx.coroutines.CoroutineScope
  * A [ReducingStateFlow] used for tracking loading states.
  *
  * Use [createLoadingState] to create a new [MutableValueFlow] for loading state tracking.
- * Make sure use use [MutableValueFlow.replaceLocked] to increment/decrement the loading state.
+ * Make sure use use [increment]/[decrement] to update the loading counter.
  */
 public class LoadingStateTracker(scope: CoroutineScope) :
     ReducingStateFlow<Int, Int>(scope, { it.sum() }) {
