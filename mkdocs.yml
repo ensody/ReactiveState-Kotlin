@@ -39,6 +39,17 @@ markdown_extensions:
 
 nav:
   - 'Overview': index.md
+  - 'Guide':
+    - 'Reactive programming': reactive-programming.md
+    - 'Multiplatform ViewModels': multiplatform-viewmodels.md
+    - 'Demand-driven programming': demand-driven-programming.md
+    - 'Event handling': event-handling.md
+    - 'State restoration': state-restoration.md
+    - 'Lifecycle handling': lifecycle-handling.md
+    - 'Error handling': error-handling.md
+    - 'Unit testing coroutines': unit-testing-coroutines.md
+    - 'MutableValueFlow': mutablevalueflow.md
+    - 'Example: Guess the number': example-guess-the-number.md
   - 'API reference':
     - 'reactivestate': reference/reactivestate/com.ensody.reactivestate/index.md
     - 'reactivestate-test': reference/reactivestate-test/com.ensody.reactivestate.test/index.md

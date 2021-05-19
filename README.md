@@ -4,17 +4,22 @@
 
 Easy reactive state management for Kotlin Multiplatform. No boilerplate. Compatible with Android.
 
-ReactiveState-Kotlin provides you with these foundations:
+ReactiveState-Kotlin provides these foundations:
 
-* reactive programming: everything is recomputed/updated automatically based on straightforward code
-* demand-driven programming: resource-consuming computations and values are allocated on-demand and disposed when not needed
-* multiplatform: share your ViewModels and reactive state handling logic between all platforms
-* event handling: simple events based on interfaces (more composable and less boilerplate than sealed classes)
-* automatic error handling: no more forgotten try-catch or copy-pasted error handling logic all over the place
-* automatic cleanup/dispose logic (e.g. dispose something once a `CoroutineScope` is canceled)
-* coroutine-based unit tests: worry no more about passing around `CoroutineDispatcher`s everywhere
-* lifecycle handling (esp. Android)
-* state restoration (esp. Android)
+* [reactive programming](https://ensody.github.io/ReactiveState-Kotlin/reactive-programming/): everything is recomputed/updated automatically based on straightforward code
+* [demand-driven programming](https://ensody.github.io/ReactiveState-Kotlin/demand-driven-programming/): resource-consuming computations and values are allocated on-demand and disposed when not needed
+* [multiplatform](https://ensody.github.io/ReactiveState-Kotlin/multiplatform-viewmodels/): share your ViewModels and reactive state handling logic between all platforms
+* [event handling](https://ensody.github.io/ReactiveState-Kotlin/event-handling/): simple events based on interfaces (more composable and less boilerplate than sealed classes)
+* [automatic error catching](https://ensody.github.io/ReactiveState-Kotlin/error-handling/): no more forgotten try-catch or copy-pasted error handling logic all over the place
+* [coroutine-based unit tests](https://ensody.github.io/ReactiveState-Kotlin/unit-testing-coroutines/): worry no more about passing around `CoroutineDispatcher`s everywhere
+* [lifecycle handling](https://ensody.github.io/ReactiveState-Kotlin/lifecycle-handling/)
+* [state restoration](https://ensody.github.io/ReactiveState-Kotlin/state-restoration/)
+
+See the [ReactiveState documentation](https://ensody.github.io/ReactiveState-Kotlin/) for more details.
+
+## Supported platforms
+
+android, jvm, ios, tvos, watchos, macosX64, linuxX64, js
 
 ## Installation
 
@@ -25,11 +30,13 @@ dependencies {
     // Add the BOM using the desired ReactiveState version
     api platform("com.ensody.reactivestate:reactivestate-bom:VERSION")
 
-    // Now you can leave out the version number from all other ReactiveState modules:
+    // Leave out the version number from now on:
     implementation "com.ensody.reactivestate:reactivestate"
 
-    implementation "com.ensody.reactivestate:reactivestate-test" // Utils for unit tests that want to use coroutines
-    // Note: kotlin-coroutines-test only supports the "jvm" target, so reactivestate-test has the same limitation
+    // Utils for unit tests that want to use coroutines
+    implementation "com.ensody.reactivestate:reactivestate-test"
+    // Note: kotlin-coroutines-test only supports the "jvm" target,
+    // so reactivestate-test has the same limitation
 }
 ```
 
@@ -45,427 +52,80 @@ subprojects {
 }
 ```
 
-## Use-cases
+## Quick intro
 
-### Keeping UI in sync with state
+The following two principles are here to give you a quick idea of the reactive programming aspect only.
+The "Guide" section in the [documentation](https://ensody.github.io/ReactiveState-Kotlin/) describes how to work with the more advanced aspects like multiplatform ViewModels, lifecycle handling, etc.
+
+Note: While the discussion is about `StateFlow`, you can also use `LiveData` or even implement extensions for other observable values.
+
+### Observing StateFlow
+
+Imagine you have an input form with first and last name and want to observe two `StateFlow` values at the same time:
+
+* `isFirstNameValid: StateFlow<Boolean>`
+* `isLastNameValid: StateFlow<Boolean>`
+
+This is how you'd do it by using the `autoRun` function:
 
 ```kotlin
-// You can create a multiplatform ViewModel by deriving from
-// BaseReactiveState instead. More details below.
-class MainViewModel : ViewModel() {
-    // You can also use MutableLiveData, but then you'll have to deal with null.
-    val name = MutableStateFlow("")
-    val counter = MutableStateFlow(0)
-
-    // This is automatically recomputed whenever counter's value is changed
-    val doubledCounter: StateFlow<Int> = derived { 2 * get(counter) }
-
-    // This is only computed while someone is subscribed to changes (autoRun, derived or collect)
-    val onDemandDoubledCounter = derived(initial = 0, started = WhileSubscribed()) {
-        2 * get(counter)
-    }
-
-    fun increment() {
-        counter.value += 1
-    }
-}
-
-class MainFragment : Fragment() {
-    private val viewModel by viewModels<MainViewModel>()
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        // ...
-        // val nameInputField = ...
-        // val incrementButton = ...
-
-        nameInputField.addTextChangedListener {
-            viewModel.name.value = nameInputField.text.toString()
-        }
-
-        autoRun {
-            // get() returns the StateFlow.value (or LiveData.value) and tells autoRun to
-            // re-execute this code block whenever model.name or model.counter is changed.
-            // Result: isEnabled changes while you type.
-            incrementButton.isEnabled =
-                get(viewModel.name).isNotEmpty() && get(viewModel.doubledCounter) < 100
-        }
-
-        incrementButton.setOnClickListener {
-            viewModel.increment()
-        }
-
-        // ...
-    }
+autoRun {
+    submitButton.isEnabled = get(isFirstNameValid) && get(isLastNameValid)
 }
 ```
 
-With `autoRun` (available on `LifecycleOwner`, `ViewModel`, `CoroutineScope`, etc.) you can observe and re-execute a function whenever any of the `StateFlow` or `LiveData` instances accessed by that function are modified.
-On Android you can use this to keeping the UI in sync with your ViewModel. Of course, you can also keep non-UI state in sync.
-Depending on the context in which `autoRun` is executed, this observer is automatically tied to a `CoroutineScope` (e.g. the `ViewModel`'s `viewModelScope`) or in case of a `Fragment`/`Activity` to the `onStart()`/`onStop()` lifecycle in order to prevent accidental crashes and unnecessary resource consumption.
+With `get(isFirstNameValid)` you retrieve `isFirstNameValid.value` and at the same time tell `autoRun` to re-execute the block whenever the value is changed.
+That code is similar to writing this:
 
-With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
+```kotlin
+lifecycleScope.launchWhenStarted {
+    isFirstNameValid
+        .combine(isLastNameValid) { firstNameValid, lastNameValid ->
+            firstNameValid to lastNameValid
+        }
+        .conflate()
+        .collect { (firstNameValid, lastNameValid) ->
+            try {
+                submitButton.isEnabled = firstNameValid && lastNameValid
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Throwable) {
+                onError(e)
+            }
+        }
+}
+```
 
-Note that `autoRun` can be extended to support observables other than `StateFlow`, `LiveData` and `WhileUsed` (see below).
+### Reactive StateFlow / reactive data
 
-### Relation to Jetpack Compose
+The same principle can be used to create a `derived`, reactive `StateFlow`:
+
+```kotlin
+val isFormValid: StateFlow<Boolean> = derived {
+    get(isFirstNameValid) && get(isLastNameValid)
+}
+```
+
+Now you can use `autoRun { submitButton.isEnabled = get(isFormValid) }` in the rest of your code.
+
+Going even further, `isFirstNameValid` itself would usually also be the result of a `derived` computation.
+So, you can have multiple layers of reactive `derived` `StateFlow`s.
+
+## Relation to Jetpack Compose / Flutter / React
 
 Reactive UI frameworks like Jetpack Compose automatically rebuild the UI whenever e.g. a `StateFlow` changes.
 Isn't that the same thing as `autoRun` already? Do you still need this library?
 
 If you look closely at the code sample above, the ViewModel uses `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
-This pattern is very powerful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
+This pattern is very useful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
 Actually, Jetpack Compose is like `derived` for the UI.
 ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
 
-So, both solutions need to be used together when creating a fully reactive codebase.
-
-Moreover, Jetpack Compose currently doesn't provide any multiplatform ViewModel support.
-This library solves this by providing `BaseReactiveState`.
-
-### Correct lifecycle handling
-
-```kotlin
-interface MainEvents {
-    fun showMessage(message: String)
-}
-
-// You can create a multiplatform ViewModel by deriving from
-// BaseReactiveState instead. More details below.
-class MainViewModel : ViewModel() {
-    // This queue can be used to send events to the MainEvents in the STARTED
-    // lifecycle state. Instead of boilerplaty event sealed classes we use a
-    // simple MainEvents interface with methods.
-    val eventNotifier = EventNotifier<MainEvents>()
-
-    fun someAction() {
-        viewModelScope.launch {
-            val result = api.requestSomeAction()
-
-            // Switch back to MainFragment (the latest visible instance).
-            eventNotifier {
-                // If the screen got rotated in the meantime, `this` would point
-                // to the new MainFragment instance instead of the destroyed one
-                // that did the initial `someAction` call above.
-                showMessage(result.someMessage)
-            }
-        }
-    }
-}
-
-class MainFragment : Fragment(), MainEvents {
-    private val viewModel: MainViewModel by viewModels()
-
-    init {
-        // Execute the MainViewModel's events in the >=STARTED state to prevent crashes
-        lifecycleScope.launchWhenStarted {
-            viewModel.eventNotifier.collect { it() }
-        }
-    }
-
-    // ...
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        // ...
-        // val button = ...
-
-        button.setOnClickListener {
-            viewModel.someAction()
-        }
-
-        // ...
-    }
-
-    fun showMessage(message: String) {
-        // ...
-    }
-}
-```
-
-On Android, managing operations independently of the UI lifecycle (e.g. button click -> request -> UI rotated -> response -> UI update/navigation) is made unnecessarily difficult because Android can destroy your UI in the middle of an operation.
-To work around this, you'll usually launch a coroutine in `ViewModel.viewModelScope` and/or use a `Channel` to communicate between the `ViewModel` and the UI.
-
-In order to simplify this pattern, ReactiveState provides `EventNotifier` and the lower-level `MutableFlow` (which has buffered, exactly-once consumption semantics like a `Channel`).
-
-### Multiplatform ViewModels
-
-This library allows creating multiplatform ViewModels (inherited from `BaseReactiveState`) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
-
-```kotlin
-// This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel
-// and doesn't depend on any Android code.
-// It can persist saved instance state via StateFlowStore. On iOS you could pass
-// e.g. an InMemoryStateFlowStore.
-// The base class for such ViewModels (and other "living" stateful objects)
-// is BaseReactiveState. You can alternatively use the ReactiveState interface
-// e.g. together with delegation.
-class MultiPlatformViewModel(
-    scope: CoroutineScope,
-    // The StateFlowStore allows for state restoration (like onSaveInstanceState).
-    // See next section for details.
-    private val store: StateFlowStore,
-    // For dependency injection
-    private val dependency: SomeDependency,
-) : BaseReactiveState<ErrorEvents>(scope) {
-
-    val data = MutableStateFlow("hello")
-
-    fun doSomething() {
-        // In contrast to scope.launch, the BaseReactiveState.launch function
-        // automatically catches exceptions and forwards them to eventNotifier
-        // via ErrorEvents.onError(throwable).
-        launch {
-            val result = callSomeSuspendFun()
-            data.value = result
-            // BaseReactiveState comes with a built-in eventNotifier
-            eventNotifier { ... }
-        }
-    }
-}
-
-interface MyEvents : ErrorEvents {
-    fun onResultReceived()
-}
-
-// Alternatively, this is an example in case you want to use Android-native ViewModels.
-// This ViewModel can persist state with SavedStateHandle (no more onSaveInstanceState() boilerplate)
-class StateViewModel(val handle: SavedStateHandle, dependency: SomeDependency) : ViewModel() {
-    // ...
-}
-
-// Example integration with Android
-class MainFragment : Fragment() {
-    // Attaches a multiplatform ViewModel (ReactiveState) to the fragment.
-    // Within the "by reactiveState" block you have access to scope and stateFlowStore which are taken from an
-    // internally created Android ViewModel that hosts the ReactiveState instance.
-    private val multiPlatformViewModel by reactiveState {
-        MultiPlatformViewModel(scope, stateFlowStore, SomeDependency())
-    }
-
-    // Alternatively, for Android ViewModels there's stateViewModel and buildViewModel
-    private val viewModel by stateViewModel { handle -> StateViewModel(handle, SomeDependency()) }
-
-    // With buildOnViewModel you can create an arbitrary object that lives on an internally created wrapper ViewModel.
-    // The "by reactiveState" helper is using this internally.
-    private val someObjectOnAViewModel by buildOnViewModel { SomeObject() }
-}
-```
-
-With `buildOnViewModel` you can create your fully custom ViewModel if prefer. However, `BaseReactiveState` comes with batteries included:
-
-* event handling: Send one-time events to the UI via `eventNotifier`.
-* error handling: `launch` catches all errors and forwards them to `eventNotifier` via `ErrorEvents.onError(throwable)`.
-* lifecycle handling: With `by reactiveState` the `eventNotifier` is automatically observed in the `>= STARTED` state.
-* loading indicators: `launch` automatically maintains a loading `StateFlow`, so you can show a loading indicator in the UI while the coroutine is running. This can use either the default `generalLoading` or any custom `MutableValueFlow<Int>`, so you can distinguish different loading states, each having its own loading indicator in the UI.
-
-For Android, ReactiveState's `by reactiveState`, `by buildViewModel`, `by stateViewModel`, `by buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
-This results in more natural code and allows passing arguments to the `ViewModel`.
-Internally, these helper functions are simple wrappers around `viewModels`, `ViewModelProvider.Factory` and `AbstractSavedStateViewModelFactory`.
-They just reduce the amount of boilerplate for common use-cases.
-
-### Reference-counted / demand-driven singletons
-
-```kotlin
-val getCache = WhileUsed { mutableMapOf<String, Entity>() }
-
-// example how to access other WhileUsed values
-val getCacheProxy = WhileUsed { getCache(it) }
-
-// example how to pass an on-demand created/destroyed MainScope
-val getSomeValueWithScope = WhileUsed { SomeReactiveState(it.scope) }
-
-class MainViewModel : ViewModel() {
-    // The cache is created here and disposed once the ViewModel is destroyed. If multiple ViewModels use the cache
-    // at the same time then one single instance is shared between all of them and freed once the last ViewModel is
-    // destroyed.
-    private val cache: MutableMap<String, Entity> = getCacheProxy(viewModelScope)
-
-    fun load(id: String) = cache[id]
-
-    fun save(id: String, value: Entity) {
-        cache[id] = value
-    }
-
-    // You can even track WhileUsed (with reference counting) via derived/autoRun.
-    private val entities: StateFlow<Set<Entity>> = derived { get(getCacheProxy).keys }
-}
-```
-
-`WhileUsed` allows you to create an on-demand computed singleton that gets disposed as soon as nobody is using it, anymore.
-This can be used to e.g. share the same cache between all ViewModels within a certain screen flow, but free up the memory as soon as the user leaves the screen flow.
-
-As an alternative to the `CoroutineScope` based reference counting you can also pass a `DisposableGroup` or use `WhileUsed.disposableValue()`, but then you mustn't forget to explicitly call `dispose()` once the value is not needed, anymore!
-
-This is also a nice combination with `derived`/`stateIn`/`shareIn` and `WhileSubscribed`.
-
-Note that `autoRun`/`derived` allow resolving `WhileUsed` via `get(myWhileUsed)` like you can with `StateFlow` and this correctly tracks the reference count (important for `derived` with `WhileSubscribed`).
-
-### Automatic cleanups based on lifecycle state
-
-Especially on Android it's very easy to shoot yourself in the foot and e.g. have a closure that keeps a reference to a destroyed `Fragment` or mistakenly execute code on a destroyed UI.
-
-ReactiveState provides a `Disposable` interface and most objects auto-dispose/terminate when a `CoroutineScope` or Android `Lifecycle` ends.
-You can also use `disposable.disposeOnCompletionOf` to auto-dispose your disposables.
-For more complex use-cases you can use `DisposableGroup` to combine (add/remove) multiple disposables into a single `Disposable` object.
-
-With extension functions like `LifecycleOwner.onResume` or `LifecycleOwner.onStopOnce` you can easily add long-running or one-time observers to a `Lifecycle`.
-These are the building blocks for your own lifecycle-aware components which can automatically clean up after themselves like `LifecycleOwner.autoRun` does.
-
-Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
-This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
-
-### StateFlowStore - StateFlow based SavedStateHandle
-
-```kotlin
-class MainViewModel(handle: SavedStateHandle) : ViewModel() {
-    val store = handle.stateFlowStore(viewModelScope)
-    val count: StateFlow<Int> = store.getData("count", 0)
-}
-```
-
-A `StateFlowStore` provides a similar API to `SavedStateHandle`, but based on `StateFlow` instead of `LiveData`.
-
-With `InMemoryStateFlowStore` you can do e.g. unit testing or abstract away platform differences in multiplatform projects.
-
-On Android you'll often want `SavedStateHandleStore` to convert `SavedStateHandle` to a `StateFlowStore`. There is also a convenient extension function: `SavedStateHandle.stateFlowStore(CoroutineScope)`
-
-In practice, you'll want to make your ViewModel testable without Robolectric using a tiny indirection:
-
-```kotlin
-class MainViewModel(createStore: (CoroutineScope) -> StateFlowStore) : ViewModel() {
-    // This indirection makes it possible to unit test with InMemoryStateFlowStore instead of SavedStateHandle
-    val store = createStore(viewModelScope)
-    val count = store.getData("count", 0)
-}
-
-class MainFragment : Fragment() {
-    private val viewModel by stateViewModel { MainViewModel(it::stateFlowStore) }
-
-    // ...
-}
-```
-
-### Error handling
-
-```kotlin
-interface MyHandlerEvents : ErrorEvents {
-    fun onSomethingHappened()
-}
-
-class MyHandler {
-    val eventNotifier = EventNotifier<MyHandlerEvents>()
-
-    fun doSomething() {
-        withErrorHandling(eventNotifier) {
-            if (computeResult() > 5) {
-                eventNotifier { onSomethingHappened() }
-            }
-        }
-    }
-}
-```
-
-Note: With `BaseReactiveState` you get this for free when using `launch`.
-
-Since it's a common pattern, we provide `ErrorEvents` and `withErrorHandling` to automatically catch and report any errors within a code block to an `EventNotifier`.
-
-The `ErrorEvents` interface provides a simple `onError(error: Throwable)` method.
-
-This pattern is also useful in combination with `CoroutineLauncher` in order to automate error handling for all coroutines.
-
-### MutableValueFlow - the more flexible alternative to MutableStateFlow
-
-`MutableValueFlow` implements the same API as `MutableStateFlow`, but also provides an `update` method for working with mutable values:
-
-```kotlin
-// MutableValueFlow
-
-valueFlow.update {
-    it.subvalue1.deepsubvalue.somevalue += 3
-    it.subvalue2.state = SomeState.IN_PROGRESS
-    it.isLoading = true
-}
-
-// versus MutableStateFlow
-
-stateFlow.value = flow.value.let {
-    it.copy(
-        subvalue1 = it.subvalue1.copy(
-            deepsubvalue = it.subvalue1.deepsubvalue.copy(somevalue = it.subvalue1.deepsubvalue.somevalue + 3)
-         ),
-        subvalue2 = it.subvalue2.copy(state = SomeState.IN_PROGRESS),
-        isLoading = true,
-    )
-}
-```
-
-If you work with immutable data classes then you might know this problem. You can make immutable data less painful with functional lenses (e.g. [arrow Optics DSL](https://arrow-kt.io/docs/optics/dsl/) and [arrow Lens](https://arrow-kt.io/docs/optics/lens/)), but that can still result in complicated and inefficient code.
-
-On the other hand, mutable data does allow to shoot yourself in the foot. So whether you want to use `MutableValueFlow` is a question of your architecture and code structure and the specific circumstances.
-Usually, reactive code consciously puts data into observables (`StateFlow`s) in order to allow for reactivity.
-This results in a code structure where these `StateFlow`s are the primary hosts of each piece of data and the mutations are limited around each `StateFlow` or even around the observable database as the single source of truth.
-
-So, under these circumstances it can be quite safe to work with mutable data and `MutableValueFlow` makes such use-cases simpler than `MutableStateFlow`.
-Sometimes you even have a mutable third-party object (e.g. `AtomicInteger`) that you have to work with and `StateFlow` can be impossible to use for those cases.
-
-### Unit tests with coroutines
-
-The `CoroutineTest` base class provides some often useful helpers for working with coroutines.
-
-```kotlin
-class MyTest : CoroutineTest() {
-    // This works because MainScope/Dispatchers.Main is automatically set up correctly by CoroutineTest
-    val viewModel = MyViewModel()
-
-    // Let's use a mock to test the events emitted by MyViewModel
-    val events: MyEvents = mock()
-
-    @Before
-    fun setup() {
-        // You can access the TestCoroutineScope directly to launch some background processing.
-        // In this case, let's process MyViewModel's events.
-        testCoroutineScope.launch {
-            viewModel.eventNotifier.collect { events.it() }
-        }
-    }
-
-    @Test
-    fun `some test`() = runBlockingTest {
-        viewModel.doSomething()
-        advanceUntilIdle()
-        verify(events).someEvent()
-    }
-}
-```
-
-This also sets up a global `dispatchers` variable which you can use in all of your code instead of passing a `CoroutineDispatcher` around as arguments:
-
-```kotlin
-// Use this instead of Dispatchers.IO. In unit tests this will automatically use
-// the TestCoroutineDispatcher instead. Outside of unit tests it points to Dispatchers.IO.
-// You can also define your own overrides if you want.
-withContext(dispatchers.io) {
-    // do some IO
-}
-```
-
-If you can't derive from `CoroutineTest` directly (e.g. because you have some other base test class), you can alternatively use composition with the `CoroutineTestRule`:
-
-```kotlin
-class MyTest {
-    val rule = CoroutineTestRule()
-
-    @Test
-    fun `some test`() = rule.runBlockingTest {
-        // ...
-    }
-}
-```
+So, the combination of both solutions used together results in a fully reactive codebase - which improves code simplicity and avoids many bugs.
+
+Moreover, Jetpack Compose currently doesn't provide any multiplatform ViewModel support or any large-scale architecture.
+So, this library solves this by providing `BaseReactiveState` for ViewModels.
+This comes with a lifecycle-aware event system (`eventNotifier`) and loading state handling (so you can track one or multiple different loading indicators based on coroutines that you launch).
 
 ## See also
 

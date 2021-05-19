@@ -8,3 +8,5 @@ cd "$ROOT"
 
 cp README.md docs/index.md
 cp CHANGELOG.md docs/changelog.md
+
+./prepare-docs.py

@@ -22,7 +22,7 @@ import kotlinx.coroutines.channels.Channel
  *     val eventNotifier = EventNotifier<MyHandlerEvents>()
  *
  *     fun doSomething() {
- *         withErrorHandling(eventNotifier) {
+ *         withErrorReporting(eventNotifier) {
  *             if (computeResult() > 5) {
  *                 eventNotifier { onSomethingHappened() }
  *             } else {
