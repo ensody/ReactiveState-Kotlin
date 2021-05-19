@@ -1,10 +1,11 @@
 package com.ensody.reactivestate.android
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LifecycleRegistry
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.*
 import com.ensody.reactivestate.validUntil
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.TestCoroutineDispatcher
 import kotlinx.coroutines.test.TestCoroutineScope
@@ -27,14 +28,71 @@ internal class LifecycleTest {
     }
 
     @Test
-    fun lifecycleObservers() = testCoroutineScope.runBlockingTest {
-        val owner = object : LifecycleOwner {
-            val lifecycle = LifecycleRegistry(this)
-            var lifecycleValue: String by validUntil(::onStop)
-
-            override fun getLifecycle(): Lifecycle = lifecycle
+    fun `lifecycle observers`() = testCoroutineScope.runBlockingTest {
+        var owner = MockLifecycleOwner()
+        val lifecycle = MutableLiveData(owner)
+        val fragment: Fragment = mockk {
+            @Suppress("UNCHECKED_CAST")
+            every { viewLifecycleOwnerLiveData } returns (lifecycle as LiveData<LifecycleOwner>)
         }
+
+        var createView = 0
+        var createViewOnce = 0
+        var destroyView = 0
+        var destroyViewOnce = 0
+
+        val onCreateViewDisposable = fragment.onCreateView(this) { createView += 1 }
+        fragment.onCreateViewOnce(this) { createViewOnce += 1 }
+        val onDestroyViewDisposable = fragment.onDestroyView(this) { destroyView += 1 }
+        fragment.onDestroyViewOnce(this) { destroyViewOnce += 1 }
+
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+
+        assertEquals(1, createView)
+        assertEquals(1, createViewOnce)
+        assertEquals(0, destroyView)
+        assertEquals(0, destroyViewOnce)
+
+        lifecycle.value = null
+        owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+
+        assertEquals(1, createView)
+        assertEquals(1, createViewOnce)
+        assertEquals(1, destroyView)
+        assertEquals(1, destroyViewOnce)
+
+        var destroyViewOnce2 = 0
+        fragment.onDestroyViewOnce(this) { destroyViewOnce2 += 1 }
+
+        owner = MockLifecycleOwner()
+        lifecycle.value = owner
+        owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        lifecycle.value = null
+
+        assertEquals(2, createView)
+        assertEquals(1, createViewOnce)
+        assertEquals(2, destroyView)
+        assertEquals(1, destroyViewOnce)
+        assertEquals(1, destroyViewOnce2)
+
+        onCreateViewDisposable.dispose()
+        onDestroyViewDisposable.dispose()
+
+        owner = MockLifecycleOwner()
+        lifecycle.value = owner
+        owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_CREATE)
+        owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+        lifecycle.value = null
+
+        assertEquals(2, createView)
+        assertEquals(1, createViewOnce)
+        assertEquals(2, destroyView)
+        assertEquals(1, destroyViewOnce)
+        assertEquals(1, destroyViewOnce2)
+
+        owner = MockLifecycleOwner()
+        lifecycle.value = owner
 
         var run = 0
         var start = 0
@@ -46,34 +104,18 @@ internal class LifecycleTest {
         var pause = 0
         var pauseOnce = 0
 
-        owner.autoRun {
-            run += 1
-        }
+        owner.autoRun { run += 1 }
         owner.onStart {
             owner.lifecycleValue = "I have a value!"
             start += 1
         }
-        owner.onStartOnce {
-            startOnce += 1
-        }
-        owner.onStop {
-            stop += 1
-        }
-        owner.onStopOnce {
-            stopOnce += 1
-        }
-        owner.onResume {
-            resume += 1
-        }
-        owner.onResumeOnce {
-            resumeOnce += 1
-        }
-        owner.onPause {
-            pause += 1
-        }
-        owner.onPauseOnce {
-            pauseOnce += 1
-        }
+        owner.onStartOnce { startOnce += 1 }
+        owner.onStop { stop += 1 }
+        owner.onStopOnce { stopOnce += 1 }
+        owner.onResume { resume += 1 }
+        owner.onResumeOnce { resumeOnce += 1 }
+        owner.onPause { pause += 1 }
+        owner.onPauseOnce { pauseOnce += 1 }
 
         assertFailsWith(IllegalStateException::class) {
             owner.lifecycleValue
@@ -191,4 +233,11 @@ internal class LifecycleTest {
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
         assertEquals(5, owner.lifecycle.observerCount)
     }
+}
+
+internal class MockLifecycleOwner : LifecycleOwner {
+    val lifecycle = LifecycleRegistry(this)
+    var lifecycleValue: String by validUntil(::onStop)
+
+    override fun getLifecycle(): Lifecycle = lifecycle
 }

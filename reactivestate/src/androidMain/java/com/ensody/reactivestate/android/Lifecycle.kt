@@ -3,8 +3,9 @@ package com.ensody.reactivestate.android
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import com.ensody.reactivestate.Disposable
-import com.ensody.reactivestate.DisposableGroup
+import com.ensody.reactivestate.OnDispose
 import com.ensody.reactivestate.autoRun
+import kotlinx.coroutines.CoroutineScope
 
 private abstract class DisposableObserver(private val lifecycle: Lifecycle) :
     LifecycleObserver,
@@ -22,32 +23,30 @@ private fun LifecycleOwner.addObserver(observer: DisposableObserver): Disposable
 
 private fun Fragment.addViewLifecycleObserver(
     once: Boolean = false,
-    create: (LifecycleOwner) -> Disposable
+    scope: CoroutineScope,
+    create: (LifecycleOwner) -> Disposable,
 ): Disposable {
-    val group = DisposableGroup()
-    val onDestroyDisposable = DisposableGroup()
-    group.add(onDestroyDisposable)
+    var activeObserver: Disposable? = null
     // We have to use lifecycleScope.autoRun because LifecycleOwner.autoRun only runs within one
     // single onCreateView/onDestroyView cycle. Here we want to execute autoRun during the whole lifetime.
-    group.add(
-        lifecycleScope.autoRun {
-            onDestroyDisposable.dispose()
-            get(viewLifecycleOwnerLiveData)?.let {
-                onDestroyDisposable.add(create(it))
-                if (once) {
-                    autoRunner.dispose()
-                    group.dispose()
-                }
+    val autoRunner = scope.autoRun {
+        get(viewLifecycleOwnerLiveData)?.let {
+            activeObserver = create(it)
+            if (once) {
+                this.autoRunner.dispose()
             }
         }
-    )
-    return group
+    }
+    return OnDispose {
+        activeObserver?.dispose()
+        autoRunner.dispose()
+    }
 }
 
 private class OnStartObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     private fun handle() {
@@ -77,7 +76,7 @@ public fun LifecycleOwner.onStartOnce(block: () -> Unit): Disposable =
 private class OnStopObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
     @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
     private fun handle() {
@@ -107,9 +106,9 @@ public fun LifecycleOwner.onStopOnce(block: () -> Unit): Disposable =
 private class OnCreateObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
     private fun handle() {
         block()
         if (once) {
@@ -137,7 +136,7 @@ public fun LifecycleOwner.onCreateOnce(block: () -> Unit): Disposable =
 private class OnDestroyObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
     @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
     private fun handle() {
@@ -162,7 +161,11 @@ public fun LifecycleOwner.onDestroy(block: () -> Unit): Disposable =
  * @return [Disposable] that allows removing the observer.
  */
 public fun Fragment.onCreateView(block: () -> Unit): Disposable =
-    addViewLifecycleObserver { it.onCreate(block) }
+    onCreateView(lifecycleScope, block)
+
+// For mocking in unit tests
+internal fun Fragment.onCreateView(scope: CoroutineScope, block: () -> Unit): Disposable =
+    addViewLifecycleObserver(scope = scope) { it.onCreate(block) }
 
 /**
  * Runs the given block once on the next `Fragment.onCreateView` (actually `onViewStateRestored`).
@@ -170,7 +173,10 @@ public fun Fragment.onCreateView(block: () -> Unit): Disposable =
  * @return [Disposable] that allows removing the observer.
  */
 public fun Fragment.onCreateViewOnce(block: () -> Unit): Disposable =
-    addViewLifecycleObserver(once = true) { it.onCreateOnce(block) }
+    onCreateViewOnce(lifecycleScope, block)
+
+internal fun Fragment.onCreateViewOnce(scope: CoroutineScope, block: () -> Unit): Disposable =
+    addViewLifecycleObserver(once = true, scope = scope) { it.onCreateOnce(block) }
 
 /**
  * Runs the given block once on the next `Lifecycle.Event.ON_DESTROY`.
@@ -186,7 +192,10 @@ public fun LifecycleOwner.onDestroyOnce(block: () -> Unit): Disposable =
  * @return [Disposable] that allows removing the observer.
  */
 public fun Fragment.onDestroyView(block: () -> Unit): Disposable =
-    addViewLifecycleObserver { it.onDestroy(block) }
+    onDestroyView(lifecycleScope, block)
+
+internal fun Fragment.onDestroyView(scope: CoroutineScope, block: () -> Unit): Disposable =
+    addViewLifecycleObserver(scope = scope) { it.onDestroy(block) }
 
 /**
  * Runs the given block once on the next `Fragment.onDestroyView`.
@@ -194,12 +203,15 @@ public fun Fragment.onDestroyView(block: () -> Unit): Disposable =
  * @return [Disposable] that allows removing the observer.
  */
 public fun Fragment.onDestroyViewOnce(block: () -> Unit): Disposable =
-    addViewLifecycleObserver(once = true) { it.onDestroyOnce(block) }
+    onDestroyViewOnce(lifecycleScope, block)
+
+internal fun Fragment.onDestroyViewOnce(scope: CoroutineScope, block: () -> Unit): Disposable =
+    addViewLifecycleObserver(once = true, scope = scope) { it.onDestroyOnce(block) }
 
 private class OnResumeObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
     @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
     private fun handle() {
@@ -229,7 +241,7 @@ public fun LifecycleOwner.onResumeOnce(block: () -> Unit): Disposable =
 private class OnPauseObserver(
     lifecycle: Lifecycle,
     private val once: Boolean,
-    private val block: () -> Unit
+    private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
     @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
     private fun handle() {
