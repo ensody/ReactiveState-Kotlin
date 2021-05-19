@@ -1,24 +1,18 @@
 package com.ensody.reactivestate.android
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.MutableLiveData
 import com.ensody.reactivestate.autoRun
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runBlockingTest
-import org.junit.Rule
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class LiveDataObserverTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
+internal class LiveDataObserverTest : BaseTest() {
     @Test
     fun autoRunOnCoroutineScope() = runBlockingTest {
         val source = MutableLiveData(0)
         val target = MutableLiveData(-1)
         val job = launch {
-            autoRun { target.value = 2 * get(source)!! }
+            val runner = autoRun { target.value = 2 * get(source)!! }
 
             // Right after creation of the AutoRunner the values should be in sync
             assertEquals(0, target.value)
@@ -28,6 +22,8 @@ internal class LiveDataObserverTest {
                 source.value = it
                 assertEquals(2 * it, target.value)
             }
+
+            runner.dispose()
         }
         // The underlying AutoRunner should be automatically disposed because its scope has ended
         job.join()

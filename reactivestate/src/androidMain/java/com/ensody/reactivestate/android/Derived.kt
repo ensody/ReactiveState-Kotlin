@@ -61,7 +61,7 @@ public fun <T> ViewModel.derived(
  * immediately.
  */
 public fun <T> LifecycleOwner.derived(
-    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
+    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(observer = observer)
@@ -84,7 +84,7 @@ public fun <T> LifecycleOwner.derived(
 public fun <T> LifecycleOwner.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
-    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(lifecycleScope),
+    launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,

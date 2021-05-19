@@ -60,23 +60,9 @@ public open class BaseReactiveState<E : ErrorEvents>(scope: CoroutineScope) :
 
     override val eventNotifier: EventNotifier<E> = EventNotifier()
 
-    override fun launch(
-        context: CoroutineContext,
-        start: CoroutineStart,
-        withLoading: MutableValueFlow<Int>?,
-        onError: (suspend (Throwable) -> Unit)?,
-        block: suspend CoroutineScope.() -> Unit,
-    ): Job =
-        launcherScope.launch(context = context, start = start) {
-            withErrorReporting(eventNotifier, { onError?.invoke(it) ?: throw it }) {
-                try {
-                    withLoading?.increment()
-                    block()
-                } finally {
-                    withLoading?.decrement()
-                }
-            }
-        }
+    override fun onError(error: Throwable) {
+        eventNotifier { onError(error) }
+    }
 }
 
 /**

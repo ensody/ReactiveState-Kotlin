@@ -1,34 +1,17 @@
 package com.ensody.reactivestate.android
 
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.*
 import com.ensody.reactivestate.validUntil
 import io.mockk.every
 import io.mockk.mockk
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.test.TestCoroutineDispatcher
-import kotlinx.coroutines.test.TestCoroutineScope
-import kotlinx.coroutines.test.runBlockingTest
-import kotlinx.coroutines.test.setMain
-import org.junit.Rule
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-internal class LifecycleTest {
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
-
-    private val testCoroutineDispatcher: TestCoroutineDispatcher = TestCoroutineDispatcher()
-    private val testCoroutineScope: TestCoroutineScope = TestCoroutineScope(testCoroutineDispatcher)
-
-    init {
-        Dispatchers.setMain(testCoroutineDispatcher)
-    }
-
+internal class LifecycleTest : BaseTest() {
     @Test
-    fun `lifecycle observers`() = testCoroutineScope.runBlockingTest {
+    fun `lifecycle observers`() = runBlockingTest {
         var owner = MockLifecycleOwner()
         val lifecycle = MutableLiveData(owner)
         val fragment: Fragment = mockk {

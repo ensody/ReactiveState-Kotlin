@@ -1,10 +1,8 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.withContext
+import kotlin.invoke
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineLauncher] -> UI).
@@ -119,15 +117,60 @@ public abstract class BaseAutoRunner : AttachedDisposables {
     public abstract fun triggerChange()
 }
 
-public abstract class InternalBaseAutoRunner : BaseAutoRunner() {
+public abstract class InternalBaseAutoRunner(
+    final override val launcher: CoroutineLauncher,
+    protected val flowTransformer: AutoRunFlowTransformer,
+) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     override var resolver: Resolver = Resolver(this)
+    protected open val withLoading: MutableValueFlow<Int>? = null
+
+    protected val changeFlow: MutableSharedFlow<Unit> = MutableSharedFlow(extraBufferCapacity = 1)
+    private var flowConsumer: Job? = null
+
+    init {
+        consumeChangeFlow()
+    }
+
+    protected fun consumeChangeFlow() {
+        if (flowConsumer != null) {
+            return
+        }
+        flowConsumer = launcher.launch(withLoading = null) {
+            changeFlow.map {
+                suspend {
+                    worker()
+                }
+            }.flowTransformer().collect()
+        }
+    }
+
+    protected abstract suspend fun triggerListener()
+
+    override fun triggerChange() {
+        changeFlow.tryEmit(Unit)
+    }
+
+    private suspend fun worker() {
+        // Launch a new coroutine, so the loading state can be tracked if necessary
+        val job = launcher.launch(withLoading = withLoading) {
+            triggerListener()
+        }
+        try {
+            job.join()
+        } catch (e: CancellationException) {
+            job.cancel()
+            throw e
+        }
+    }
 
     /** Stops watching observables. */
     override fun dispose() {
         resolver = Resolver(this).also {
             resolver.switchTo(it)
         }
+        flowConsumer?.cancel()
+        flowConsumer = null
         super.dispose()
     }
 }
@@ -147,20 +190,25 @@ public abstract class InternalBaseAutoRunner : BaseAutoRunner() {
  *
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. Your onChange handler has to
- * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
+ *                 manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
+ * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param observer The callback which is used to track the observables.
  */
 public class AutoRunner<T>(
-    override val launcher: CoroutineLauncher,
+    launcher: CoroutineLauncher,
     onChange: AutoRunOnChangeCallback<T>? = null,
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     private val observer: AutoRunCallback<T>,
-) : InternalBaseAutoRunner() {
-    public val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
+) : InternalBaseAutoRunner(launcher, flowTransformer) {
+    private val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
 
     /** Calls [observer] and tracks its dependencies. */
-    public fun run(): T = observe(observer = observer)
+    public fun run(): T {
+        consumeChangeFlow()
+        return observe(observer)
+    }
 
-    override fun triggerChange() {
+    override suspend fun triggerListener() {
         listener(this)
     }
 
@@ -204,45 +252,26 @@ public class AutoRunner<T>(
  * @param observer The callback which is used to track the observables.
  */
 public class CoAutoRunner<T>(
-    override val launcher: CoroutineLauncher,
+    launcher: CoroutineLauncher,
     onChange: CoAutoRunOnChangeCallback<T>? = null,
-    private val flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
-    private val withLoading: MutableValueFlow<Int>? = launcher.generalLoading,
+    override val withLoading: MutableValueFlow<Int>? = launcher.generalLoading,
     private val observer: CoAutoRunCallback<T>,
-) : InternalBaseAutoRunner() {
+) : InternalBaseAutoRunner(launcher, flowTransformer) {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
-    public val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
+    private val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
     override var resolver: Resolver = Resolver(this)
-    private val changeFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
-
-    init {
-        launcher.launch(withLoading = null) {
-            changeFlow.map { suspend { worker() } }.flowTransformer().collect()
-        }
-    }
-
-    private suspend fun worker() {
-        // Launch a new coroutine, so the loading state can be tracked if necessary
-        val job = launcher.launch(withLoading = withLoading) {
-            listener(this@CoAutoRunner)
-        }
-        try {
-            job.join()
-        } catch (e: CancellationException) {
-            job.cancel()
-            throw e
-        }
-    }
 
     /** Calls [observer] and tracks its dependencies. */
     public suspend fun run(): T =
-        withContext(dispatcher) {
-            observe(observer = observer)
+        dispatcher {
+            consumeChangeFlow()
+            observe(observer)
         }
 
-    override fun triggerChange() {
-        changeFlow.tryEmit(Unit)
+    override suspend fun triggerListener() {
+        listener(this)
     }
 
     private suspend fun <T> observe(observer: CoAutoRunCallback<T>): T {
@@ -280,6 +309,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
      */
     public fun <S : Any, T : AutoRunnerObservable> track(underlyingObservable: S, getObservable: () -> T): T {
         val existing = autoRunner.resolver.observables[underlyingObservable]
+
         @Suppress("UNCHECKED_CAST")
         val castExisting = existing as? T
         val observable = castExisting ?: getObservable()
