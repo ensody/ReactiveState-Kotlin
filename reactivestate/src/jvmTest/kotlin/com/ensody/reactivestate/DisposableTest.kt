@@ -13,9 +13,9 @@ import kotlin.test.assertTrue
 internal class DisposableTest {
     @Test
     fun disposableGroup() = runBlockingTest {
-        val disposable1 = mockk<Disposable>(relaxed = true)
-        val disposable2 = mockk<Disposable>(relaxed = true)
-        val disposable3 = mockk<Disposable>(relaxed = true)
+        val disposable1: Disposable = mockk(relaxed = true)
+        val disposable2: Disposable = mockk(relaxed = true)
+        val disposable3: Disposable = mockk(relaxed = true)
         val job = launch { CompletableDeferred<Unit>().await() }
         val group = DisposableGroup().apply {
             add(disposable3)

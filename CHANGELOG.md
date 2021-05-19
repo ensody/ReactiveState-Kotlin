@@ -18,6 +18,7 @@ Non-breaking changes:
 
 * Added a multiplatform ViewModel `ReactiveState` (interface), `BaseReactiveState` (base class). This is actually a broader concept that can be used for any living object that can launch coroutines, automatically handles errors, triggers events, and tracks loading states.
 * Added a multiplatform `buildViewModel` extension function for creating such a `ViewModel` on an Activity and Fragment.
+* Fixes for lifecycle observers: `onCreate`, `onCreateView`, `onCreateViewOnce`, `onDestroyView`, `onDestroyViewOnce`.
 
 Known limitations which will be solved with later releases:
 
@@ -26,6 +27,8 @@ Known limitations which will be solved with later releases:
 
 Changelog of preview releases:
 
+* 4.0.0-dev.2:
+  * Fixes for lifecycle observers
 * 4.0.0-dev.1: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
 
 ## 3.9.0
