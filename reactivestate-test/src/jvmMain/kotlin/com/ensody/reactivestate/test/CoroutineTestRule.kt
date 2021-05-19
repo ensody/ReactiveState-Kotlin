@@ -29,8 +29,6 @@ public open class CoroutineTestRule {
         try {
             testCoroutineScope.runBlockingTest(block)
         } finally {
-            // We've lots of frustrating debugging just because runBlockingTest by default doesn't print out uncaught
-            // coroutine exceptions. The following results in much more helpful unit test errors:
             testCoroutineScope.cleanupTestCoroutines()
         }
 
