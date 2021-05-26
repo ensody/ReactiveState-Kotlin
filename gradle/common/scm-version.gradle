@@ -1,0 +1,25 @@
+class Config {
+    Boolean isOnCI
+}
+
+ext.setupScmVersion = { args ->
+    def config = new Config(args)
+
+    scmVersion {
+        ignoreUncommittedChanges = config.isOnCI
+        useHighestVersion = true
+        tag {
+            prefix = 'v'
+            versionSeparator = ""
+            deserialize = { tag, position, String tagName ->
+                def result = tagName.substring(1)
+                while (result.count(".") < 2) {
+                    result += ".0"
+                }
+                result
+            }
+        }
+    }
+    version = scmVersion.version
+    println("Version: $version")
+}
