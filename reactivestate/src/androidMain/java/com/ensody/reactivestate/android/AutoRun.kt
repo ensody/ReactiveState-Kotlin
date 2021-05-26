@@ -107,7 +107,7 @@ public fun LifecycleOwner.autoRun(
  * manually call [run].
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading] if
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
  * @param [observer] The callback which is used to track the observables.
  */
@@ -116,7 +116,7 @@ public fun LifecycleOwner.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,
+    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: AutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> {
     var active = false

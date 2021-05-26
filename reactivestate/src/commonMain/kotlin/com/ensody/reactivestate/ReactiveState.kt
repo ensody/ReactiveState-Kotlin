@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -64,7 +65,7 @@ public open class BaseReactiveState<E : ErrorEvents>(scope: CoroutineScope) :
 /**
  * Creates and attaches a child [ReactiveState].
  *
- * This merges the child's [ReactiveState.eventNotifier] and [ReactiveState.isAnyLoading] into the parent.
+ * This merges the child's [ReactiveState.eventNotifier] and [ReactiveState.loading] into the parent.
  *
  * Example:
  *
@@ -98,7 +99,13 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
     block: () -> RS,
 ): ReadOnlyProperty<Any?, RS> {
     val child = block()
-    isAnyLoading.add(child.isAnyLoading)
+    launch(withLoading = null) {
+        var previous = 0
+        child.loading.collect {
+            loading.increment(it - previous)
+            previous = it
+        }
+    }
     launch(withLoading = null) {
         eventNotifier.emitAll(child.eventNotifier)
     }

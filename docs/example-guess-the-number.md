@@ -105,18 +105,18 @@ class MainScreen : Fragment(), MainEvents {
         // Also, if we're currently doing a request we want to disable the buttons, too.
         autoRun {
             // Here we're watching multiple StateFlows at the same time.
-            // BaseReactiveState.isAnyLoading is a StateFlow<Int> tracking the number of
+            // BaseReactiveState.loading is a StateFlow<Int> tracking the number of
             // currently running coroutines that were started via BaseReactiveState.launch.
             // This is just the simplest possible example.
-            // Instead of using isAnyLoading you can also distinguish between different
+            // Instead of using `loading` you can also distinguish between different
             // loading states if you want.
             val buttonsEnabled =
-                get(viewModel.lastMessage) == null && get(viewModel.isAnyLoading) == 0
+                get(viewModel.lastMessage) == null && get(viewModel.loading) == 0
             binding.incrementButton.isEnabled = buttonsEnabled
             binding.checkNumberButton.isEnabled = buttonsEnabled
         }
 
-        // You'd usually also observe viewModel.isAnyLoading (or other loading states) to
+        // You'd usually also observe viewModel.loading (or other loading states) to
         // show a loading indicator, but let's keep this example small...
     }
 

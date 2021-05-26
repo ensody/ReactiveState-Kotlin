@@ -48,7 +48,7 @@ public fun <T> CoroutineScope.derived(
  *                Defaults to [SharingStarted.Eagerly].
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> CoroutineLauncher.derived(
@@ -56,7 +56,7 @@ public fun <T> CoroutineLauncher.derived(
     started: SharingStarted = SharingStarted.Eagerly,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: MutableValueFlow<Int>? = generalLoading,
+    withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
     var onChange: suspend () -> Unit = {}
