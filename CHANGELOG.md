@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-dev.1
+## 4.0.0-dev.2
 
 This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
 
