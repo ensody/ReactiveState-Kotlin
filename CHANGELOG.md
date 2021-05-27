@@ -11,7 +11,7 @@ Breaking changes:
   * `reactivestate` (previously core and reactivestate)
   * `reactivestate-test` (previously core-test)
 * `CoroutineTestRule` is now a simple class that you can either derive from or add as an attribute.
-* `CoroutineTest` has become independent of JUnit and inherits from `CoroutineTestRule`. The `coroutineTestRule` attribute has been replaced with direct `testCoroutineScope` and `testCoroutineDispatcher` attributes inherited from the new `CoroutienTestRule`.
+* `CoroutineTest` has become independent of JUnit and inherits from `CoroutineTestRule`. The `coroutineTestRule` attribute has been replaced with direct `testCoroutineScope` and `testCoroutineDispatcher` attributes inherited from the new `CoroutineTestRule`.
 * The `withLoading` concept in `autoRun`, `CoroutineLauncher` etc. has become more flexible to allow tracking separate loading states.
 
 Non-breaking changes:
