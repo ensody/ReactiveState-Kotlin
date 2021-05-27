@@ -77,8 +77,12 @@ public interface MutableValueFlow<T> : ValueFlow<T>, MutableStateFlow<T> {
      * val stateFlow = MutableStateFlow(Foo(3))
      * stateFlow.replace { copy(num = 5) }
      * ```
+     *
+     * @return The previous value before replacing.
+     *
+     * @see [increment] and [decrement] for functions optimized for [Int] operations.
      */
-    public fun replaceLocked(block: T.() -> T)
+    public fun replaceLocked(block: T.() -> T): T
 }
 
 /** Instantiates a [MutableValueFlow] with the given initial [value] and optional [setter] to intercept mutations. */
@@ -113,14 +117,15 @@ private class ValueFlowImpl<T> constructor(
         }
     }
 
-    override fun replaceLocked(block: T.() -> T) {
+    override fun replaceLocked(block: T.() -> T): T =
         mutex.withSpinLock {
+            val previousValue = value
             val newValue = value.block()
-            if (value != newValue) {
+            if (previousValue != newValue) {
                 tryEmit(newValue)
             }
+            previousValue
         }
-    }
 
     override fun resetReplayCache() {
         throw UnsupportedOperationException()

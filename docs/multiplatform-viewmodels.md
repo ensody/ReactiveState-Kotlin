@@ -67,7 +67,7 @@ With `buildOnViewModel` you can create your fully custom ViewModel if prefer. Ho
 * event handling: Send one-time events to the UI via `eventNotifier`.
 * error handling: `launch` catches all errors and forwards them to `eventNotifier` via `ErrorEvents.onError(throwable)`.
 * lifecycle handling: With `by reactiveState` the `eventNotifier` is automatically observed in the `>= STARTED` state.
-* loading indicators: `launch` automatically maintains a loading `StateFlow`, so you can show a loading indicator in the UI while the coroutine is running. This can use either the default `generalLoading` or any custom `MutableValueFlow<Int>`, so you can distinguish different loading states, each having its own loading indicator in the UI.
+* loading indicators: `launch` automatically maintains a loading `StateFlow`, so you can show a loading indicator in the UI while the coroutine is running. This can use either the default `loading` or any custom `MutableValueFlow<Int>`, so you can distinguish different loading states, each having its own loading indicator in the UI.
 
 For Android, ReactiveState's `by reactiveState`, `by buildViewModel`, `by stateViewModel`, `by buildOnViewModel`, and similar extension functions allow creating a `ViewModel` by directly instantiating it.
 This results in more natural code and allows passing arguments to the `ViewModel`.
@@ -88,7 +88,7 @@ That piece of code is similar to writing this:
 
 ```kotlin
 scope.launch {
-    isAnyLoading.atomicIncrement() // however that works
+    loading.atomicIncrement() // however that works
     try {
         // ...code block...
     } catch (e: CancellationException) {
@@ -96,7 +96,7 @@ scope.launch {
     } catch (e: Throwable) {
         eventNotifier.invoke { onError(e) }  // explicitly writing invoke for clarity only
     } finally {
-        isAnyLoading.atomicDecrement() // however that works
+        loading.atomicDecrement() // however that works
     }
 }
 ```

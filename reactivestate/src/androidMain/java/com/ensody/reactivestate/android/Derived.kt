@@ -2,7 +2,6 @@ package com.ensody.reactivestate.android
 
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.ensody.reactivestate.*
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,7 +31,7 @@ public fun <T> ViewModel.derived(
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading] if
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
  * @param observer The callback which is used to track the observables.
  */
@@ -42,7 +41,7 @@ public fun <T> ViewModel.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,
+    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(
@@ -77,7 +76,7 @@ public fun <T> LifecycleOwner.derived(
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading] if
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
  * @param observer The callback which is used to track the observables.
  */
@@ -87,7 +86,7 @@ public fun <T> LifecycleOwner.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.generalLoading else null,
+    withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(

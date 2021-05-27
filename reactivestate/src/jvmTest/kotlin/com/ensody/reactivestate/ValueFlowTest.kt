@@ -16,7 +16,7 @@ internal class ValueFlowTest {
         val flow = MutableValueFlow(0)
         flow.replace { this + 1 }
         assertEquals(1, flow.first())
-        flow.replaceLocked { this + 1 }
+        assertEquals(1, flow.replaceLocked { this + 1 })
         assertEquals(2, flow.first())
         flow.increment()
         assertEquals(3, flow.first())

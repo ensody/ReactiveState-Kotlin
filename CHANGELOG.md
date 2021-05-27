@@ -20,6 +20,7 @@ Non-breaking changes:
 * Added a multiplatform `buildViewModel` extension function for creating such a `ViewModel` on an Activity and Fragment.
 * Improved automatic error catching for `autoRun` and `derived`.
 * Fixes for lifecycle observers: `onCreate`, `onCreateView`, `onCreateViewOnce`, `onDestroyView`, `onDestroyViewOnce`.
+* `MutableValueFlow.replaceLocked` returns the previous value now.
 
 Known limitations which will be solved with later releases:
 
@@ -31,6 +32,10 @@ Changelog of preview releases:
 * 4.0.0-dev.2:
   * Improved automatic error catching for `autoRun` and `derived`.
   * Fixes for lifecycle observers
+  * Removed `LoadingStateTracker`.
+  * Replaced `CoroutineLauncher.isAnyLoading` and `generalLoading` with a simple `loading: MutableValueFlow<Int>`.
+  * `MutableValueFlow.replaceLocked` returns the previous value now.
+  * `MutableValueFlow.increment`/`decrement` now have an optional `amount` argument to increment by more than 1. Also, they return the previous value.
 * 4.0.0-dev.1: This preview release comes without macOS/iOS builds. A port of the CI pipeline is in progress.
 
 ## 3.9.0

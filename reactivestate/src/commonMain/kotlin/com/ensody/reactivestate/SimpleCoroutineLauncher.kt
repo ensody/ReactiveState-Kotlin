@@ -12,8 +12,7 @@ import kotlin.coroutines.CoroutineContext
  * Usually you'll want to use a [ReactiveState] which also does error handling.
  */
 public open class SimpleCoroutineLauncher(final override val launcherScope: CoroutineScope) : CoroutineLauncher {
-    final override val isAnyLoading: LoadingStateTracker by lazy { LoadingStateTracker(launcherScope) }
-    final override val generalLoading: MutableValueFlow<Int> by lazy { isAnyLoading.createLoadingState() }
+    final override val loading: MutableValueFlow<Int> = MutableValueFlow(0)
 
     protected open fun rawLaunch(
         context: CoroutineContext,

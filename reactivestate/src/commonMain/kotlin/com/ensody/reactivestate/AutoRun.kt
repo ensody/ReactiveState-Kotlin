@@ -2,7 +2,6 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlin.invoke
 
 /**
  * Watches observables for changes. Often useful to keep things in sync (e.g. [CoroutineLauncher] -> UI).
@@ -41,14 +40,14 @@ public fun CoroutineLauncher.autoRun(
  * manually call [run].
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineLauncher.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     dispatcher: CoroutineDispatcher = dispatchers.default,
-    withLoading: MutableValueFlow<Int>? = generalLoading,
+    withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     CoAutoRunner(
@@ -248,7 +247,7 @@ public class AutoRunner<T>(
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
  * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
- * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.generalLoading].
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
  */
 public class CoAutoRunner<T>(
@@ -256,7 +255,7 @@ public class CoAutoRunner<T>(
     onChange: CoAutoRunOnChangeCallback<T>? = null,
     flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
-    override val withLoading: MutableValueFlow<Int>? = launcher.generalLoading,
+    override val withLoading: MutableValueFlow<Int>? = launcher.loading,
     private val observer: CoAutoRunCallback<T>,
 ) : InternalBaseAutoRunner(launcher, flowTransformer) {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
