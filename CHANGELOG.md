@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-dev.2
+## 4.0.0-dev.3
 
 This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
 
@@ -32,6 +32,7 @@ Changelog of preview releases:
 
 * 4.0.0-dev.3:
   * Removed `ReducingStateFlow`.
+  * Publish iOS/macOS builds.
 * 4.0.0-dev.2:
   * Improved automatic error catching for `autoRun` and `derived`.
   * Fixes for lifecycle observers
