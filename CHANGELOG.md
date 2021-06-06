@@ -13,6 +13,7 @@ Breaking changes:
 * `CoroutineTestRule` is now a simple class that you can either derive from or add as an attribute.
 * `CoroutineTest` has become independent of JUnit and inherits from `CoroutineTestRule`. The `coroutineTestRule` attribute has been replaced with direct `testCoroutineScope` and `testCoroutineDispatcher` attributes inherited from the new `CoroutineTestRule`.
 * The `withLoading` concept in `autoRun`, `CoroutineLauncher` etc. has become more flexible to allow tracking separate loading states.
+* Removed `ReducingStateFlow` as part of the simplified loading state concept.
 
 Non-breaking changes:
 
@@ -29,6 +30,8 @@ Known limitations which will be solved with later releases:
 
 Changelog of preview releases:
 
+* 4.0.0-dev.3:
+  * Removed `ReducingStateFlow`.
 * 4.0.0-dev.2:
   * Improved automatic error catching for `autoRun` and `derived`.
   * Fixes for lifecycle observers
