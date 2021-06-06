@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0-dev.3
+## 4.0.0-dev.4
 
 This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
 
@@ -30,6 +30,8 @@ Known limitations which will be solved with later releases:
 
 Changelog of preview releases:
 
+* 4.0.0-dev.4:
+  * Fixed build failures due to Jacoco integration.
 * 4.0.0-dev.3:
   * Removed `ReducingStateFlow`.
   * Publish iOS/macOS builds.
