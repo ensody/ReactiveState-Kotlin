@@ -24,6 +24,7 @@ allprojects {
 }
 
 def isOnCI = System.getenv('RUNNING_ON_CI') == 'true'
+def publishing = System.getenv('PUBLISHING') == 'true'
 
 apply from: "$rootDir/gradle/common/dependency-updates.gradle"
 apply from: "$rootDir/gradle/common/scm-version.gradle"
@@ -164,8 +165,10 @@ subprojects {
 
         apply from: "$rootDir/gradle/common/dokka.gradle"
 
-        apply from: "$rootDir/gradle/common/coverage.gradle"
-        trackCoverage(isOnCI)
+        if (!publishing) {
+            apply from: "$rootDir/gradle/common/coverage.gradle"
+            trackCoverage(isOnCI)
+        }
     }
 
     apply from: "$rootDir/gradle/common/publish.gradle"
