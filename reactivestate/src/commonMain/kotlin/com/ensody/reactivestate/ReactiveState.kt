@@ -100,11 +100,7 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
 ): ReadOnlyProperty<Any?, RS> {
     val child = block()
     launch(withLoading = null) {
-        var previous = 0
-        child.loading.collect {
-            loading.increment(it - previous)
-            previous = it
-        }
+        loading.incrementFrom(child.loading)
     }
     launch(withLoading = null) {
         eventNotifier.emitAll(child.eventNotifier)

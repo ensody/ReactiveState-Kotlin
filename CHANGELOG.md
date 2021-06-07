@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.1.0
+
+* Added `MutableValueFlow<Int>.incrementFrom(flow: StateFlow<Int>)` extension function to e.g. sum multiple loading states into one `MutableValueFlow<Int>`.
+
 ## 4.0.0
 
 This release adds support for Kotlin Multiplatform and introduces a multiplatform `ReactiveState` ViewModel.
