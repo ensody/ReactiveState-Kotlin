@@ -2,13 +2,12 @@ package com.ensody.reactivestate.android
 
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.ensody.reactivestate.*
-import com.ensody.reactivestate.android.*
 import kotlinx.coroutines.CoroutineScope
+import kotlin.collections.MutableMap
+import kotlin.collections.mutableMapOf
+import kotlin.collections.set
 import kotlin.reflect.KClass
 
 /**
@@ -18,16 +17,8 @@ import kotlin.reflect.KClass
  */
 public inline fun <reified E : ErrorEvents, reified T : ReactiveState<E>> Fragment.reactiveState(
     crossinline provider: BuildOnViewModelContext.() -> T,
-): Lazy<T> {
-    if (this !is E) {
-        throw IllegalStateException("Your Fragment has to implement the ViewModel's events interface.")
-    }
-    val result = buildOnViewModel(provider)
-    lifecycleScope.launchWhenCreated {
-        result.value.eventNotifier.handleEvents(this@reactiveState as E, this@reactiveState)
-    }
-    return result
-}
+): Lazy<T> =
+    buildOnViewModel(provider).apply { attachLazyReactiveState(this@reactiveState as? E, this@reactiveState) }
 
 /**
  * Creates a multiplatform [ReactiveState] ViewModel and observes its [ReactiveState.eventNotifier].
@@ -36,15 +27,22 @@ public inline fun <reified E : ErrorEvents, reified T : ReactiveState<E>> Fragme
  */
 public inline fun <reified E : ErrorEvents, reified T : ReactiveState<E>> ComponentActivity.reactiveState(
     crossinline provider: BuildOnViewModelContext.() -> T,
-): Lazy<T> {
-    if (this !is E) {
-        throw IllegalStateException("Your Activity has to implement the ViewModel's events interface.")
+): Lazy<T> =
+    buildOnViewModel(provider).apply { attachLazyReactiveState(this@reactiveState as? E, this@reactiveState) }
+
+public fun <E : ErrorEvents> Lazy<ReactiveState<E>>.attachLazyReactiveState(
+    handler: E?,
+    owner: LifecycleOwner,
+) {
+    if (handler == null) {
+        throw IllegalStateException("You have to implement the ViewModel's events interface.")
     }
-    val result = buildOnViewModel(provider)
-    lifecycleScope.launchWhenCreated {
-        result.value.eventNotifier.handleEvents(this@reactiveState as E, this@reactiveState)
+    owner.lifecycleScope.launchWhenCreated {
+        value.eventNotifier.handleEvents(handler, owner)
     }
-    return result
+    owner.lifecycleScope.launchWhenCreated {
+        value.attachTo(owner)
+    }
 }
 
 /**
@@ -57,7 +55,7 @@ public inline fun <reified E : ErrorEvents, reified T : ReactiveState<E>> Compon
 public inline fun <reified T : Any> Fragment.buildOnViewModel(
     crossinline provider: BuildOnViewModelContext.() -> T,
 ): Lazy<T> =
-    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
+    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(T::class, { it as? T }) { provider() }
 
 /**
  * Creates an object living on a wrapper `ViewModel`. This allows for building multiplatform ViewModels.
@@ -69,7 +67,7 @@ public inline fun <reified T : Any> Fragment.buildOnViewModel(
 public inline fun <reified T : Any> ComponentActivity.buildOnViewModel(
     crossinline provider: BuildOnViewModelContext.() -> T,
 ): Lazy<T> =
-    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(provider)
+    stateFlowViewModel { WrapperViewModel(it) }.buildOnViewModel(T::class, { it as? T }) { provider() }
 
 /** Build context for [buildOnViewModel]. */
 public class BuildOnViewModelContext(
@@ -86,16 +84,18 @@ public class WrapperViewModel(public val stateFlowStore: StateFlowStore) : ViewM
 }
 
 /** Used internally by [buildOnViewModel]. */
-public inline fun <reified T : Any> Lazy<WrapperViewModel>.buildOnViewModel(
-    crossinline provider: BuildOnViewModelContext.() -> T,
+public fun <T : Any> Lazy<WrapperViewModel>.buildOnViewModel(
+    klass: KClass<T>,
+    caster: (Any?) -> T?,
+    provider: BuildOnViewModelContext.() -> T,
 ): Lazy<T> = lazy {
     val stateFlowStore = NamespacedStateFlowStore(
         store = value.stateFlowStore,
-        namespace = T::class.qualifiedName
+        namespace = klass.qualifiedName
             ?: throw IllegalArgumentException("The class must have a qualifiedName"),
     )
-    val result = value.registry[T::class] as? T
+    val result = caster(value.registry[klass])
         ?: BuildOnViewModelContext(scope = value.viewModelScope, stateFlowStore = stateFlowStore).provider()
-    value.registry[T::class] = result
+    value.registry[klass] = result
     result
 }

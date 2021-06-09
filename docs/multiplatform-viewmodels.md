@@ -100,3 +100,50 @@ scope.launch {
     }
 }
 ```
+
+## Customizing `by reactiveState`
+
+You can implement the `OnReactiveStateAttached` interface on your `Fragment`/`Activity` in order to customize the attachment procedure:
+
+```kotlin
+class MyFragment : Fragment(), OnReactiveStateAttached, ErrorEvents {
+    val viewModel by reactiveState { ... }
+
+    override fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>) {
+        autoRun { setLoading(get(reactiveState.loading) > 0) }
+    }
+
+    fun setLoading(isLoading: Boolean) {
+        // ...
+    }
+}
+```
+
+Alternatively, if you want to support multiple ViewModels and merge all their loadings states into one:
+
+```kotlin
+class MyFragment : Fragment(), OnReactiveStateAttached, ErrorEvents {
+    // We'll merge the loading states of all ReactiveState instances into this one
+    val loading = MutableValueFlow(0)
+
+    val viewModel by reactiveState { ... }
+    val viewModel2 by reactiveState { ... }
+    val viewModel3 by reactiveState { ... }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        autoRun { setLoading(get(loading) > 0) }
+    }
+
+    fun setLoading(isLoading: Boolean) {
+        // ...
+    }
+
+    override fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>) {
+        lifecycleScope.launch {
+            // Sum all loading states
+            loading.incrementFrom(reactiveState.loading)
+        }
+    }
+}
+```

@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.2.0
+
+* Added `OnReactiveStateAttached` interface to allow customizing `by reactiveState` behavior.
+
 ## 4.1.0
 
 * Added `MutableValueFlow<Int>.incrementFrom(flow: StateFlow<Int>)` extension function to e.g. sum multiple loading states into one `MutableValueFlow<Int>`.
