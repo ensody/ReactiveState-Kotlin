@@ -105,24 +105,46 @@ private class ValueFlowImpl<T> constructor(
     )
 
     private val mutex by lazy { Mutex() }
+    private val queueProcessLock = Mutex()
+    private var queue: MutableList<T> = mutableListOf()
 
     init {
         tryEmit(initial)
     }
 
+    private fun <S> withLockAndEmit(block: () -> S): S {
+        val result = mutex.withSpinLock {
+            block()
+        }
+        processQueue()
+        return result
+    }
+
+    private fun processQueue() {
+        while (queue.isNotEmpty()) {
+            if (!queueProcessLock.tryLock()) {
+                return
+            }
+            if (queue.isNotEmpty()) {
+                tryEmit(queue.removeFirst())
+            }
+            queueProcessLock.unlock()
+        }
+    }
+
     override fun update(block: (value: T) -> Unit) {
-        mutex.withSpinLock {
+        withLockAndEmit {
             block(value)
-            tryEmit(value)
+            enqueueEmit(value)
         }
     }
 
     override fun replaceLocked(block: T.() -> T): T =
-        mutex.withSpinLock {
+        withLockAndEmit {
             val previousValue = value
             val newValue = value.block()
             if (previousValue != newValue) {
-                tryEmit(newValue)
+                enqueueEmit(newValue)
             }
             previousValue
         }
@@ -134,22 +156,26 @@ private class ValueFlowImpl<T> constructor(
     override var value: T
         get() = replayCache.first()
         set(newValue) {
-            mutex.withSpinLock {
+            withLockAndEmit {
                 if (value != newValue) {
-                    tryEmit(newValue)
+                    enqueueEmit(newValue)
                 }
             }
         }
 
     override fun compareAndSet(expect: T, update: T): Boolean =
-        mutex.withSpinLock {
+        withLockAndEmit {
             if (value == expect) {
-                tryEmit(update)
+                enqueueEmit(update)
                 true
             } else {
                 false
             }
         }
+
+    private fun enqueueEmit(newValue: T) {
+        queue.add(newValue)
+    }
 
     override suspend fun emit(value: T) {
         setter?.invoke(value)
