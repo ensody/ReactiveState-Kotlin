@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.0
+
+* Added `@DependencyAccessor` annotation to ensure the DI pattern is respected instead of the service locator pattern.
+
 ## 4.2.1
 
 * Fixed recursively changing the value of a `MutableValueFlow` from within the `collect` block (change->emit->change). Previously this could lead to a deadlock because the first change is still locking the `MutableValueFLow`.

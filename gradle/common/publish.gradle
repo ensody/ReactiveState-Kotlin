@@ -1,9 +1,3 @@
-import org.gradle.api.publish.maven.internal.publication.DefaultMavenPom
-
-// Based on:
-// * https://gist.github.com/Robyer/a6578e60127418b380ca133a1291f017
-// * https://stackoverflow.com/questions/26874498/publish-an-android-library-to-maven-with-aar-and-source-jar
-
 class PublishingConfig {
     String url
     String username
@@ -38,7 +32,7 @@ ext.publish = { args ->
         config.name = "$rootProject.name: $project.name"
     }
 
-    def isMultiplatform = !project.file("src/main").exists()
+    def isMultiplatform = !project.file("src/main").exists() && !config.isPlatformProject
     def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
 
     if (config.withPublication) {
@@ -75,7 +69,7 @@ ext.publish = { args ->
                             } else if (config.isPlatformProject) {
                                 from components.javaPlatform
                             } else {
-                                throw IllegalStateException("Don't know how to handle publication for $project.name")
+                                from components.java
                             }
                             if (!config.isPlatformProject && config.withSources) {
                                 artifact sourcesJar
