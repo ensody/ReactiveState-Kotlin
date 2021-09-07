@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.4.0
+
+* Added experimental Jetpack Compose support (currently Android-only). By adding `com.ensody.reactivestate:reactivestate-compose` to your dependencies and you can use the `viewModel { MyViewModel() }` and `reactiveState { ... }` `Composable`s.
+
 ## 4.3.2
 
 * Fixed race condition with `autoRun`'s observables being changed during run.

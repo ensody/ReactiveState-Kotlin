@@ -114,14 +114,15 @@ So, you can have multiple layers of reactive `derived` `StateFlow`s.
 ## Relation to Jetpack Compose / Flutter / React
 
 Reactive UI frameworks like Jetpack Compose automatically rebuild the UI whenever e.g. a `StateFlow` changes.
-Isn't that the same thing as `autoRun` already? Do you still need this library?
+So, in the UI layer `autoRun` can usually be replaced with a `Composable`.
 
-If you look closely at the code sample above, the ViewModel uses `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
-This pattern is very useful in practice and provides the perfect foundation for frameworks like Jetpack Compose which only focus on the UI aspect.
+However, below the UI your data still needs to be reactive, too.
+This is why ReactiveState provides `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
+This pattern is very useful in practice and provides the perfect foundation for frameworks like Jetpack Compose which primarily focus on the UI aspect.
 Actually, Jetpack Compose is like `derived` for the UI.
-ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
+So, ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
 
-So, the combination of both solutions used together results in a fully reactive codebase - which improves code simplicity and avoids many bugs.
+In other words, the combination of both solutions used together results in a fully reactive codebase - which improves code simplicity and avoids many bugs.
 
 Moreover, Jetpack Compose currently doesn't provide any multiplatform ViewModel support or any large-scale architecture.
 So, this library solves this by providing `BaseReactiveState` for ViewModels.

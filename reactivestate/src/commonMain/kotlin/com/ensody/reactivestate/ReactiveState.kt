@@ -1,7 +1,6 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.emitAll
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty

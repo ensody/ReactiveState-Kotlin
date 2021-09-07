@@ -4,8 +4,8 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:4.2.2'
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.10"
+        classpath "com.android.tools.build:gradle:7.0.2"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
     }
 }
 
@@ -13,7 +13,7 @@ plugins {
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
     id "pl.allegro.tech.build.axion-release" version "1.13.2"
     id "com.github.ben-manes.versions" version "0.38.0"
-    id "org.jetbrains.dokka" version "1.4.32"
+    id "org.jetbrains.dokka" version "1.5.30"
 }
 
 allprojects {
@@ -41,9 +41,10 @@ subprojects {
     version = rootProject.version
 
     def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
-    def isMultiplatform = ["androidMain", "jvmMain", "commonMain"].any { project.file("src/$it").exists() }
+    def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
     def isPlatformProject = project.name.endsWith("-bom")
     def isTestProject = project.name.endsWith("-test")
+    def isComposeProject = project.name.endsWith("-compose")
 
     if (isPlatformProject) {
         apply from: "$rootDir/dependencies.gradle"
@@ -63,19 +64,29 @@ subprojects {
             kotlin {
                 jvm()
 
+                sourceSets {
+                    jvmCommonMain { dependsOn(commonMain) }
+                    jvmCommonTest {
+                        dependsOn(jvmCommonMain)
+                        dependsOn(commonTest)
+                    }
+                    jvmMain { dependsOn(jvmCommonMain) }
+                    jvmTest { dependsOn(jvmCommonTest) }
+                }
+
                 if (isAndroidProject) {
                     android {
-                        publishLibraryVariants("release", "debug")
+                        publishAllLibraryVariants()
                     }
 
                     sourceSets {
-                        androidMain { dependsOn(jvmMain) }
-                        androidTest { dependsOn(jvmTest) }
+                        androidMain { dependsOn(jvmCommonMain) }
+                        androidTest { dependsOn(jvmCommonTest) }
                     }
                 }
 
                 // XXX: kotlinx-coroutines-test currently only supports the jvm target
-                if (!isTestProject) {
+                if (!isTestProject && !isComposeProject) {
                     // XXX: some targets aren't supported by kotlinx.coroutines, so they're commented out
 
                     js(BOTH) {
@@ -120,8 +131,10 @@ subprojects {
             }
         }
 
+        apply from: "$rootDir/dependencies.gradle"
+
         if (isAndroidProject) {
-            androidLibrary()
+            androidLibrary(minVersion: isComposeProject ? 21 : 19)
 
             android {
                 // Resolve build conflicts for test modules
@@ -132,34 +145,13 @@ subprojects {
                     }
                 }
             }
-
-            apply from: "$rootDir/dependencies.gradle"
         }
 
-        apply from: "$rootDir/dependencies.gradle"
-
         dependencies {
-            commonMainApi platform(project(':reactivestate-bom'))
-            commonMainApi 'org.jetbrains.kotlinx:kotlinx-coroutines-core'
-
-            jvmTestImplementation "io.mockk:mockk:1.11.0"
-            jvmTestImplementation "org.jetbrains.kotlin:kotlin-test-junit"
-            jvmTestImplementation 'junit:junit:4.13.2'
+            base()
 
             if (isAndroidProject) {
-                androidMainApi 'androidx.appcompat:appcompat'
-                androidMainApi 'androidx.core:core-ktx'
-                androidMainApi "androidx.fragment:fragment-ktx"
-                androidMainApi "androidx.lifecycle:lifecycle-runtime-ktx"
-                androidMainApi 'androidx.lifecycle:lifecycle-viewmodel-ktx'
-
-                androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
-                androidTestImplementation 'androidx.fragment:fragment-testing:1.3.4'
-                androidTestImplementation 'androidx.test:core:1.3.0'
-                androidTestImplementation 'androidx.test:core-ktx:1.3.0'
-                androidTestImplementation 'androidx.test.ext:junit:1.1.2'
-                androidTestImplementation 'androidx.test.ext:junit-ktx:1.1.2'
-                androidTestImplementation 'org.robolectric:robolectric:4.5.1'
+                androidBase()
             }
         }
 

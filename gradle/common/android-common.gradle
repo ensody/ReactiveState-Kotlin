@@ -5,7 +5,7 @@ class Config {
     Boolean kotlinExplicitApiMode = false
 }
 
-def isMultiplatform = ["androidMain", "jvmMain", "commonMain"].any { project.file("src/$it").exists() }
+def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
 if (!isMultiplatform) {
     apply plugin: 'kotlin-android'
 }
@@ -17,7 +17,8 @@ ext.androidCommon = { args = [:] ->
 
     int minVersion = config.minVersion ?: 19
     int targetVersion = config.targetVersion ?: 30
-    int compileVersion = config.compileSdkVersion ?: targetVersion
+    int compileVersion = config.compileSdkVersion ?: 31
+    def javaVersion = JavaVersion.VERSION_11
 
     kotlinCommon()
 
@@ -26,15 +27,13 @@ ext.androidCommon = { args = [:] ->
 
         compileOptions {
             coreLibraryDesugaringEnabled true
-            sourceCompatibility JavaVersion.VERSION_1_8
-            targetCompatibility JavaVersion.VERSION_1_8
+            sourceCompatibility javaVersion
+            targetCompatibility javaVersion
         }
 
-        if (!isMultiplatform) {
-            kotlinOptions {
-                jvmTarget = "1.8"
-                freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
-            }
+        kotlinOptions {
+            jvmTarget = javaVersion.toString()
+            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
         }
 
         defaultConfig {

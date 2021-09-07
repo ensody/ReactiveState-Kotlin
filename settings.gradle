@@ -3,4 +3,5 @@ rootProject.name='ReactiveState'
 include ':reactivestate-bom'
 
 include ':reactivestate'
+include ':reactivestate-compose'
 include ':reactivestate-test'

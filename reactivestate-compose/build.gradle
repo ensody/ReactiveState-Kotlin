@@ -1,0 +1,6 @@
+dependencies {
+    commonMainApi project(":reactivestate")
+    jvmTestImplementation project(":reactivestate-test")
+
+    jetpackCompose()
+}

@@ -5,8 +5,8 @@ import kotlin.properties.ReadOnlyProperty
 /**
  * Base interface for a temporary observable key-value store.
  *
- * This is useful for multiplatform projects and in general for abstracting away `SavedStateHandle`,
- * so you can write tests without Robolectric.
+ * This is useful for multiplatform projects and also for abstracting away `SavedStateHandle`,
+ * e.g. so you can write tests without Robolectric.
  */
 public interface StateFlowStore {
     public operator fun contains(key: String): Boolean
@@ -19,7 +19,10 @@ public fun <T> StateFlowStore.getData(default: T): ReadOnlyProperty<Any?, Mutabl
     propertyName { getData(it, default) }
 
 /** A [StateFlowStore] that can be used for unit tests or non-Android parts of multiplatform projects. */
-public class InMemoryStateFlowStore : StateFlowStore {
+public class InMemoryStateFlowStore(
+    /** Optional underlying data which can be used to store and restore the whole state. */
+    public val underlyingData: MutableMap<String, Any?> = mutableMapOf(),
+) : StateFlowStore {
     private val store = mutableMapOf<String, MutableValueFlow<*>>()
 
     override fun contains(key: String): Boolean = key in store
@@ -30,7 +33,10 @@ public class InMemoryStateFlowStore : StateFlowStore {
     @Suppress("UNCHECKED_CAST")
     public fun <T> getData(key: String, default: T, setter: ((value: T) -> Unit)?): MutableValueFlow<T> =
         store.getOrPut(key) {
-            val data = MutableValueFlow(default, setter)
+            val data = MutableValueFlow(underlyingData.getOrElse(key) { default } as T) { value ->
+                setter?.invoke(value)
+                underlyingData[key] = value
+            }
             store[key] = data
             data
         } as MutableValueFlow<T>

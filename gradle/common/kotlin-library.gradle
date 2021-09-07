@@ -4,7 +4,7 @@ class Config {
     List<String> kotlinCompilerArgs = []
 }
 
-apply plugin: 'org.jetbrains.kotlin.multiplatform'
+apply plugin: "org.jetbrains.kotlin.multiplatform"
 
 ext.kotlinLibrary = { args = [:] ->
     apply from: "$rootDir/gradle/common/kotlin-common.gradle"
