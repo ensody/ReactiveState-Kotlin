@@ -141,5 +141,3 @@ public class WhileUsedReferenceToken : DisposableGroup by DisposableGroup() {
 
     private var lazyScope: CoroutineScope? = null
 }
-
-private class Wrapped<T>(val value: T)

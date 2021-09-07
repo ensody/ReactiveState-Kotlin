@@ -59,10 +59,14 @@ public fun <T> CoroutineLauncher.derived(
             onChange = { onChangeFlow.tryEmit(Unit) },
             flowTransformer = flowTransformer,
             dispatcher = dispatcher,
-            withLoading = withLoading,
+            withLoading = null,
             observer = observer,
         )
-    val flow = onChangeFlow.onCompletion { autoRunner.dispose() }.map { autoRunner.run() }
+    val flow = onChangeFlow.onCompletion { autoRunner.dispose() }.transform {
+        track(withLoading = withLoading) {
+            emit(autoRunner.run())
+        }
+    }
     return flow.stateIn(scope = launcherScope, started = started, initialValue = initial)
 }
 

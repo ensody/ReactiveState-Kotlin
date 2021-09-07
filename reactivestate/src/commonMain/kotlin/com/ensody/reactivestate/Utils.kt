@@ -20,3 +20,6 @@ private class LazyProperty<T>(block: (property: KProperty<*>) -> T) : ReadOnlyPr
         return result
     }
 }
+
+/** Wraps a value. Together with nullability can model an `Option`/`Maybe`. */
+public class Wrapped<T>(public val value: T)

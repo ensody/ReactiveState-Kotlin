@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.2
+
+* Fixed race condition with `autoRun`'s observables being changed during run.
+
 ## 4.3.1
 
 * Fixed race condition with `derived` where the observed `StateFlow` gets changed during first run.

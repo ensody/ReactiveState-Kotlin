@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 
 /**
@@ -124,7 +125,7 @@ public abstract class InternalBaseAutoRunner(
     override var resolver: Resolver = Resolver(this)
     protected open val withLoading: MutableValueFlow<Int>? = null
 
-    protected val changeFlow: MutableSharedFlow<Unit> = MutableSharedFlow(extraBufferCapacity = 1)
+    private val changeFlow: MutableFlow<Unit> = MutableFlow(Channel.CONFLATED)
     private var flowConsumer: Job? = null
 
     init {
@@ -138,29 +139,18 @@ public abstract class InternalBaseAutoRunner(
         flowConsumer = launcher.launch(withLoading = null) {
             changeFlow.map {
                 suspend {
-                    worker()
+                    launcher.track(withLoading = withLoading) {
+                        worker()
+                    }
                 }
             }.flowTransformer().collect()
         }
     }
 
-    protected abstract suspend fun triggerListener()
+    protected abstract suspend fun worker()
 
     override fun triggerChange() {
         changeFlow.tryEmit(Unit)
-    }
-
-    private suspend fun worker() {
-        // Launch a new coroutine, so the loading state can be tracked if necessary
-        val job = launcher.launch(withLoading = withLoading) {
-            triggerListener()
-        }
-        try {
-            job.join()
-        } catch (e: CancellationException) {
-            job.cancel()
-            throw e
-        }
     }
 
     /** Stops watching observables. */
@@ -207,7 +197,7 @@ public class AutoRunner<T>(
         return observe(observer)
     }
 
-    override suspend fun triggerListener() {
+    override suspend fun worker() {
         listener(this)
     }
 
@@ -269,7 +259,7 @@ public class CoAutoRunner<T>(
             observe(observer)
         }
 
-    override suspend fun triggerListener() {
+    override suspend fun worker() {
         listener(this)
     }
 

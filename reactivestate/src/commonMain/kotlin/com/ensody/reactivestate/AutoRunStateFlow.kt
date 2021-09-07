@@ -18,13 +18,13 @@ private class StateFlowObservable<T>(
 
     override fun addObserver() {
         if (observer == null) {
+            var ignore: Wrapped<T>? = Wrapped(data.value)
             observer = autoRunner.launcher.launch(withLoading = null) {
-                var ignore = true
-                data.collect {
-                    if (!ignore) {
+                data.collect { value ->
+                    if (ignore?.let{ it.value != value } != false) {
                         autoRunner.triggerChange()
                     }
-                    ignore = false
+                    ignore = null
                 }
             }
         }
