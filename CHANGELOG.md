@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.3.1
+
+* Fixed race condition with `derived` where the observed `StateFlow` gets changed during first run.
+
 ## 4.3.0
 
 * Added `@DependencyAccessor` annotation to ensure the DI pattern is respected instead of the service locator pattern.

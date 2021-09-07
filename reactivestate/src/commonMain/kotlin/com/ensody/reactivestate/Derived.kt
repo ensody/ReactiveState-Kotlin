@@ -2,11 +2,8 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.*
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
@@ -15,14 +12,9 @@ import kotlinx.coroutines.flow.stateIn
  * immediately.
  */
 public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlow<T> {
-    var onChange: () -> Unit = {}
-    val autoRunner = AutoRunner(launcher = this, onChange = { onChange() }, observer = observer)
-    val flow = callbackFlow {
-        onChange = {
-            trySend(autoRunner.run())
-        }
-        awaitClose { autoRunner.dispose() }
-    }
+    val onChangeFlow = MutableFlow<Unit>(Channel.CONFLATED)
+    val autoRunner = AutoRunner(launcher = this, onChange = { onChangeFlow.tryEmit(Unit) }, observer = observer)
+    val flow = onChangeFlow.onCompletion { autoRunner.dispose() }.map { autoRunner.run() }
     return flow.stateIn(scope = launcherScope, started = SharingStarted.Eagerly, initialValue = autoRunner.run())
 }
 
@@ -59,25 +51,18 @@ public fun <T> CoroutineLauncher.derived(
     withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
-    var onChange: suspend () -> Unit = {}
+    val onChangeFlow = MutableFlow<Unit>(Channel.CONFLATED)
+    onChangeFlow.tryEmit(Unit)
     val autoRunner =
         CoAutoRunner(
             launcher = this,
-            onChange = { onChange() },
+            onChange = { onChangeFlow.tryEmit(Unit) },
             flowTransformer = flowTransformer,
             dispatcher = dispatcher,
             withLoading = withLoading,
             observer = observer,
         )
-    val flow = callbackFlow {
-        onChange = {
-            send(autoRunner.run())
-        }
-        launch(withLoading = withLoading) {
-            send(autoRunner.run())
-        }.join()
-        awaitClose { autoRunner.dispose() }
-    }
+    val flow = onChangeFlow.onCompletion { autoRunner.dispose() }.map { autoRunner.run() }
     return flow.stateIn(scope = launcherScope, started = started, initialValue = initial)
 }
 
