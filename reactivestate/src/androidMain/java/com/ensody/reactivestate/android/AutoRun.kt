@@ -105,7 +105,7 @@ public fun LifecycleOwner.autoRun(
  *
  * @param [onChange] Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
@@ -114,7 +114,7 @@ public fun LifecycleOwner.autoRun(
 public fun LifecycleOwner.coAutoRun(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: AutoRunCallback<Unit>,

@@ -17,8 +17,8 @@ import kotlinx.coroutines.flow.*
  *
  * @param timeoutMillis Additional delay before the last element is computed (throwing away intermediate elements).
  */
-public fun Flow<suspend () -> Unit>.conflatedWorker(timeoutMillis: Long = 0): Flow<Unit> =
-    conflatedMap(timeoutMillis) { it() }
+public fun <T, R> Flow<T>.conflatedWorker(timeoutMillis: Long = 0, transform: FlowTransform<T, R>): Flow<R> =
+    conflatedTransform(timeoutMillis, transform)
 
 /**
  * Executes each lambda in a [Flow] using [debounce] and [mapLatest].
@@ -35,8 +35,8 @@ public fun Flow<suspend () -> Unit>.conflatedWorker(timeoutMillis: Long = 0): Fl
  *
  * @param timeoutMillis The [debounce] timeout.
  */
-public fun Flow<suspend () -> Unit>.latestWorker(timeoutMillis: Long = 0): Flow<Unit> =
-    debounce(timeoutMillis).mapLatest { it() }
+public fun <T, R> Flow<T>.latestWorker(timeoutMillis: Long = 0, transform: FlowTransform<T, R>): Flow<R> =
+    debounce(timeoutMillis).transformLatest(transform)
 
 /**
  * Executes each lambda in a [Flow] using [debounce] and [map].
@@ -53,8 +53,8 @@ public fun Flow<suspend () -> Unit>.latestWorker(timeoutMillis: Long = 0): Flow<
  *
  * @param timeoutMillis The [debounce] timeout.
  */
-public fun Flow<suspend () -> Unit>.debounceWorker(timeoutMillis: Long = 0): Flow<Unit> =
-    debounce(timeoutMillis).map { it() }
+public fun <T, R> Flow<T>.debounceWorker(timeoutMillis: Long = 0, transform: FlowTransform<T, R>): Flow<R> =
+    debounce(timeoutMillis).transform(transform)
 
 /**
  * Maps a conflated [Flow] with [timeoutMillis] delay between the first and last element.
@@ -68,7 +68,7 @@ public fun Flow<suspend () -> Unit>.debounceWorker(timeoutMillis: Long = 0): Flo
 public inline fun <T, R> Flow<T>.conflatedMap(
     timeoutMillis: Long = 0,
     crossinline transform: suspend (value: T) -> R,
-): Flow<R> = conflate().map(transform).addDelay(timeoutMillis)
+): Flow<R> = conflatedTransform(timeoutMillis = timeoutMillis) { emit(transform(it)) }
 
 /** Transforms a conflated [Flow] with [timeoutMillis] delay between the first and last element. */
 public inline fun <T, R> Flow<T>.conflatedTransform(

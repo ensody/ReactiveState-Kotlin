@@ -39,14 +39,14 @@ public fun CoroutineLauncher.autoRun(
  *
  * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineLauncher.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<Unit>,
@@ -98,13 +98,13 @@ public fun CoroutineScope.autoRun(
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineScope.coAutoRun(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     launcher.coAutoRun(onChange = onChange, flowTransformer = flowTransformer, observer = observer)
@@ -137,13 +137,11 @@ public abstract class InternalBaseAutoRunner(
             return
         }
         flowConsumer = launcher.launch(withLoading = null) {
-            changeFlow.map {
-                suspend {
-                    launcher.track(withLoading = withLoading) {
-                        worker()
-                    }
+            changeFlow.flowTransformer {
+                launcher.track(withLoading = withLoading) {
+                    emit(worker())
                 }
-            }.flowTransformer().collect()
+            }.collect()
         }
     }
 
@@ -180,13 +178,13 @@ public abstract class InternalBaseAutoRunner(
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. Your onChange handler has to
  *                 manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param observer The callback which is used to track the observables.
  */
 public class AutoRunner<T>(
     launcher: CoroutineLauncher,
     onChange: AutoRunOnChangeCallback<T>? = null,
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     private val observer: AutoRunCallback<T>,
 ) : InternalBaseAutoRunner(launcher, flowTransformer) {
     private val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
@@ -235,7 +233,7 @@ public class AutoRunner<T>(
  * @param launcher The [CoroutineLauncher] to use.
  * @param onChange Gets called when the observables change. Your onChange handler has to
  * manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
@@ -243,7 +241,7 @@ public class AutoRunner<T>(
 public class CoAutoRunner<T>(
     launcher: CoroutineLauncher,
     onChange: CoAutoRunOnChangeCallback<T>? = null,
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
     override val withLoading: MutableValueFlow<Int>? = launcher.loading,
     private val observer: CoAutoRunCallback<T>,
@@ -328,6 +326,3 @@ public interface AutoRunnerObservable {
     public fun addObserver()
     public fun removeObserver()
 }
-
-/** The default [CoAutoRunner]/[derived] flow transformer which is: `{ conflatedWorker() }` */
-public val defaultAutoRunFlowTransformer: AutoRunFlowTransformer = { conflatedWorker() }

@@ -29,7 +29,7 @@ public fun <T> ViewModel.derived(
  * @param started When the value should be updated. Pass [SharingStarted.WhileSubscribed] to compute only on demand.
  *                Defaults to [SharingStarted.Eagerly].
  * @param launcher The [CoroutineLauncher] to use.
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
@@ -39,7 +39,7 @@ public fun <T> ViewModel.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,
@@ -74,7 +74,7 @@ public fun <T> LifecycleOwner.derived(
  * @param started When the value should be updated. Pass [SharingStarted.WhileSubscribed] to compute only on demand.
  *                Defaults to [SharingStarted.Eagerly].
  * @param launcher The [CoroutineLauncher] to use.
- * @param flowTransformer How changes should be executed/collected. Defaults to `{ conflatedWorker() }`.
+ * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading] if
  *                    this is a [CoroutineLauncher] or `null` otherwise.
@@ -84,7 +84,7 @@ public fun <T> LifecycleOwner.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
-    flowTransformer: AutoRunFlowTransformer = defaultAutoRunFlowTransformer,
+    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,
