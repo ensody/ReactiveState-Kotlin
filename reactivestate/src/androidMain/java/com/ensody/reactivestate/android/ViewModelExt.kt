@@ -22,7 +22,7 @@ import com.ensody.reactivestate.ReactiveState
 public inline fun <reified T : ViewModel> Fragment.buildViewModel(crossinline provider: () -> T): Lazy<T> =
     viewModels {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = provider() as T
         }
     }
 
@@ -37,7 +37,7 @@ public inline fun <reified T : ViewModel> Fragment.buildViewModel(crossinline pr
 public inline fun <reified T : ViewModel> ComponentActivity.buildViewModel(crossinline provider: () -> T): Lazy<T> =
     viewModels {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = provider() as T
         }
     }
 
@@ -52,7 +52,7 @@ public inline fun <reified T : ViewModel> ComponentActivity.buildViewModel(cross
 public inline fun <reified T : ViewModel> Fragment.activityViewModel(crossinline provider: () -> T): Lazy<T> =
     activityViewModels {
         object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T
+            override fun <T : ViewModel> create(modelClass: Class<T>): T = provider() as T
         }
     }
 
@@ -69,7 +69,7 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateFlowViewModel(
 ): Lazy<T> =
     viewModels {
         object : AbstractSavedStateViewModelFactory(this, null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,
@@ -90,7 +90,7 @@ public inline fun <reified T : ViewModel> Fragment.stateFlowViewModel(
 ): Lazy<T> =
     viewModels {
         object : AbstractSavedStateViewModelFactory(this, null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,
@@ -111,7 +111,7 @@ public inline fun <reified T : ViewModel> Fragment.activityStateFlowViewModel(
 ): Lazy<T> =
     activityViewModels {
         object : AbstractSavedStateViewModelFactory(requireActivity(), null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,
@@ -132,7 +132,7 @@ public inline fun <reified T : ViewModel> Fragment.stateViewModel(
 ): Lazy<T> =
     viewModels {
         object : AbstractSavedStateViewModelFactory(this, null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,
@@ -153,7 +153,7 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateViewModel(
 ): Lazy<T> =
     viewModels {
         object : AbstractSavedStateViewModelFactory(this, null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,
@@ -174,7 +174,7 @@ public inline fun <reified T : ViewModel> Fragment.activityStateViewModel(
 ): Lazy<T> =
     activityViewModels {
         object : AbstractSavedStateViewModelFactory(requireActivity(), null) {
-            override fun <T : ViewModel?> create(
+            override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
                 handle: SavedStateHandle,

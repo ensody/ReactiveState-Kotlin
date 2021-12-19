@@ -42,7 +42,7 @@ public inline fun <reified T : ViewModel> viewModel(
     viewModelStoreOwner = viewModelStoreOwner,
     key = key,
     factory = object : ViewModelProvider.Factory {
-        override fun <T : ViewModel?> create(modelClass: Class<T>): T = provider() as T
+        override fun <T : ViewModel> create(modelClass: Class<T>): T = provider() as T
     }
 )
 

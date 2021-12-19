@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.5.0
+
+* Upgraded to Kotlin 1.6.10 and Jetpack Compose 1.1.0-rc01.
+* Internal improvements.
+
 ## 4.4.0
 
 * Added experimental Jetpack Compose support (currently Android-only). By adding `com.ensody.reactivestate:reactivestate-compose` to your dependencies and you can use the `viewModel { MyViewModel() }` and `reactiveState { ... }` `Composable`s.

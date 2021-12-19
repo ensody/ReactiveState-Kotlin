@@ -8,7 +8,7 @@ import com.ensody.reactivestate.autoRun
 import kotlinx.coroutines.CoroutineScope
 
 private abstract class DisposableObserver(private val lifecycle: Lifecycle) :
-    LifecycleObserver,
+    DefaultLifecycleObserver,
     Disposable {
 
     override fun dispose() {
@@ -48,8 +48,7 @@ private class OnStartObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    private fun handle() {
+    override fun onStart(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()
@@ -78,8 +77,7 @@ private class OnStopObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    private fun handle() {
+    override fun onStop(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()
@@ -108,8 +106,7 @@ private class OnCreateObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_CREATE)
-    private fun handle() {
+    override fun onCreate(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()
@@ -138,8 +135,7 @@ private class OnDestroyObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-    private fun handle() {
+    override fun onDestroy(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()
@@ -213,8 +209,7 @@ private class OnResumeObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_RESUME)
-    private fun handle() {
+    override fun onResume(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()
@@ -243,8 +238,7 @@ private class OnPauseObserver(
     private val once: Boolean,
     private val block: () -> Unit,
 ) : DisposableObserver(lifecycle) {
-    @OnLifecycleEvent(Lifecycle.Event.ON_PAUSE)
-    private fun handle() {
+    override fun onPause(owner: LifecycleOwner) {
         block()
         if (once) {
             dispose()

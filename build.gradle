@@ -1,11 +1,12 @@
 buildscript {
+    ext.kotlin_version = "1.6.10"
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:7.0.2"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.31"
+        classpath "com.android.tools.build:gradle:7.0.4"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
@@ -66,10 +67,7 @@ subprojects {
 
                 sourceSets {
                     jvmCommonMain { dependsOn(commonMain) }
-                    jvmCommonTest {
-                        dependsOn(jvmCommonMain)
-                        dependsOn(commonTest)
-                    }
+                    jvmCommonTest { dependsOn(commonTest) }
                     jvmMain { dependsOn(jvmCommonMain) }
                     jvmTest { dependsOn(jvmCommonTest) }
                 }
@@ -85,48 +83,47 @@ subprojects {
                     }
                 }
 
-                // XXX: kotlinx-coroutines-test currently only supports the jvm target
-                if (!isTestProject && !isComposeProject) {
-                    // XXX: some targets aren't supported by kotlinx.coroutines, so they're commented out
+                js(BOTH) {
+                    browser()
+                    nodejs()
+                }
+//                wasm32()
 
-                    js(BOTH) {
-                        browser()
-                        nodejs()
-                    }
-//                    wasm32()
+                ios()
+                tvos()
+                watchosArm64()
+                watchosArm32()
+//                watchosX64()
+                watchosX86()
 
-                    ios()
-                    tvos()
-                    watchosArm64()
-                    watchosArm32()
-//                    watchosX64()
-                    watchosX86()
+                macosX64()
+                linuxX64()
+//                linuxArm64()
+//                linuxArm32Hfp()
+                mingwX64()
 
-                    macosX64()
-                    linuxX64()
-//                    linuxArm64()
-//                    linuxArm32Hfp()
-                    mingwX64()
+                sourceSets {
+                    nonJvmMain { dependsOn(commonMain) }
 
-                    sourceSets {
-                        nonJvmMain { dependsOn(commonMain) }
+                    jsMain { dependsOn(nonJvmMain) }
+                    nativeMain { dependsOn(nonJvmMain) }
 
-                        jsMain { dependsOn(nonJvmMain) }
-                        nativeMain { dependsOn(nonJvmMain) }
+                    appleMobileMain { dependsOn(nativeMain) }
+                    iosMain { dependsOn(appleMobileMain) }
+                    iosArm64Main { dependsOn(iosMain) }
+                    iosArm64Test { dependsOn(iosMain) }
+                    iosX64Main { dependsOn(iosMain) }
+                    iosX64Test { dependsOn(iosTest) }
+                    tvosMain { dependsOn(appleMobileMain) }
+                    watchosMain { dependsOn(appleMobileMain) }
+                    watchosArm64Main { dependsOn(watchosMain) }
+                    watchosArm32Main { dependsOn(watchosMain) }
+                    watchosX86Main { dependsOn(watchosMain) }
 
-                        appleMobileMain { dependsOn(nativeMain) }
-                        iosMain { dependsOn(appleMobileMain) }
-                        tvosMain { dependsOn(appleMobileMain) }
-                        watchosMain { dependsOn(appleMobileMain) }
-                        watchosArm64Main { dependsOn(watchosMain) }
-                        watchosArm32Main { dependsOn(watchosMain) }
-                        watchosX86Main { dependsOn(watchosMain) }
-
-                        desktopMain { dependsOn(nativeMain) }
-                        linuxX64Main { dependsOn(desktopMain) }
-                        macosX64Main { dependsOn(desktopMain) }
-                        mingwX64Main { dependsOn(desktopMain) }
-                    }
+                    desktopMain { dependsOn(nativeMain) }
+                    linuxX64Main { dependsOn(desktopMain) }
+                    macosX64Main { dependsOn(desktopMain) }
+                    mingwX64Main { dependsOn(desktopMain) }
                 }
             }
         }
