@@ -3,7 +3,7 @@ repo_name: ReactiveState-Kotlin
 repo_url: https://github.com/ensody/ReactiveState-Kotlin
 site_description: "An easy to understand reactive state management solution for Kotlin and Android"
 site_author: Ensody GmbH
-copyright: 'Copyright &copy; 2020 Ensody GmbH'
+copyright: 'Copyright &copy; 2022 Ensody GmbH'
 
 remote_branch: gh-pages
 
