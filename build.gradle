@@ -79,7 +79,7 @@ subprojects {
 
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
-                        androidTest { dependsOn(jvmCommonTest) }
+                        androidTest { dependsOn(jvmTest) }
                     }
                 }
 

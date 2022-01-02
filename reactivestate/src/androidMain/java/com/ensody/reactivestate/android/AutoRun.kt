@@ -161,13 +161,15 @@ public fun <T> Resolver.get(data: LiveData<T>): T? {
 private class LiveDataObservable<T>(
     private val data: LiveData<T>,
     autoRunner: BaseAutoRunner,
-) : AutoRunnerObservable {
+) : AutoRunnerObservable<T?> {
     private var ignore = false
     private val observer = Observer<T> {
         if (!ignore) {
             autoRunner.triggerChange()
         }
     }
+
+    override val value: T? get() = data.value
 
     override fun addObserver() {
         // Prevent recursion and assume the value is already set correctly

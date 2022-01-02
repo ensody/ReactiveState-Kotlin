@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.6.0
+
+* Added `derived` and `derivedWhileSubscribed` variants which don't need a `CoroutineScope`, so you don't need to infect your business logic with scopes.
+
 ## 4.5.0
 
 * Upgraded to Kotlin 1.6.10 and Jetpack Compose 1.1.0-rc01.

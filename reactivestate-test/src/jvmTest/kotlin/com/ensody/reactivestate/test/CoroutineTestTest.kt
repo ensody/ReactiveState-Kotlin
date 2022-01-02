@@ -22,7 +22,7 @@ internal class CoroutineTestTest : CoroutineTest() {
     }
 
     @Test
-    fun `test rule`() = runBlockingTest {
+    fun testRule() = runBlockingTest {
         advanceUntilIdle()
         assertTrue(initializedSetup)
         assertTrue(initializedMain)

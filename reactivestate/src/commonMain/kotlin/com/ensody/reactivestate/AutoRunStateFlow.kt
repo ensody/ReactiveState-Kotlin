@@ -13,8 +13,10 @@ public fun <T> Resolver.get(data: StateFlow<T>): T {
 private class StateFlowObservable<T>(
     private val data: StateFlow<T>,
     private val autoRunner: BaseAutoRunner
-) : AutoRunnerObservable {
+) : AutoRunnerObservable<T> {
     private var observer: Job? = null
+
+    override val value: T get() = data.value
 
     override fun addObserver() {
         if (observer == null) {

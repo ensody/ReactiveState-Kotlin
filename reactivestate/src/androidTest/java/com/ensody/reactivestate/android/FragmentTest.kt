@@ -10,7 +10,7 @@ import kotlin.test.assertSame
 @RunWith(AndroidJUnit4::class)
 internal class FragmentTest : BaseTest() {
     @Test
-    fun `ReactiveState creation`() {
+    fun creationOfReactiveState() {
         val scenario = launchFragmentInContainer<TestFragment>()
         scenario.moveToState(Lifecycle.State.RESUMED)
         lateinit var viewModel: TestViewModel

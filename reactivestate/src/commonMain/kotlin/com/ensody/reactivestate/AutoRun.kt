@@ -115,6 +115,8 @@ public abstract class BaseAutoRunner : AttachedDisposables {
     public abstract val launcher: CoroutineLauncher
 
     public abstract fun triggerChange()
+
+    internal abstract val isActive: Boolean
 }
 
 public abstract class InternalBaseAutoRunner(
@@ -123,6 +125,7 @@ public abstract class InternalBaseAutoRunner(
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     override var resolver: Resolver = Resolver(this)
+        internal set
     protected open val withLoading: MutableValueFlow<Int>? = null
 
     private val changeFlow: MutableFlow<Unit> = MutableFlow(Channel.CONFLATED)
@@ -145,6 +148,8 @@ public abstract class InternalBaseAutoRunner(
         }
     }
 
+    override val isActive: Boolean = flowConsumer != null
+
     protected abstract suspend fun worker()
 
     override fun triggerChange() {
@@ -153,9 +158,7 @@ public abstract class InternalBaseAutoRunner(
 
     /** Stops watching observables. */
     override fun dispose() {
-        resolver = Resolver(this).also {
-            resolver.switchTo(it)
-        }
+        resolver = Resolver(this).also(resolver::switchTo)
         flowConsumer?.cancel()
         flowConsumer = null
         super.dispose()
@@ -281,7 +284,7 @@ public class CoAutoRunner<T>(
 
 /** Tracks observables for [AutoRunner] and [CoAutoRunner]. */
 public class Resolver(public val autoRunner: BaseAutoRunner) {
-    private val observables = mutableMapOf<Any, AutoRunnerObservable>()
+    internal val observables = mutableMapOf<Any, AutoRunnerObservable<*>>()
 
     /**
      * Tracks an arbitrary observable.
@@ -294,14 +297,14 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
      *
      * @return The instantiated [AutoRunnerObservable] of type [T].
      */
-    public fun <S : Any, T : AutoRunnerObservable> track(underlyingObservable: S, getObservable: () -> T): T {
+    public fun <S : Any, T : AutoRunnerObservable<V>, V> track(underlyingObservable: S, getObservable: () -> T): T {
         val existing = autoRunner.resolver.observables[underlyingObservable]
 
         @Suppress("UNCHECKED_CAST")
         val castExisting = existing as? T
         val observable = castExisting ?: getObservable()
         observables[underlyingObservable] = observable
-        if (castExisting == null) {
+        if (autoRunner.isActive && castExisting == null) {
             observable.addObserver()
             existing?.removeObserver()
         }
@@ -322,7 +325,8 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
  *
  * You can use this to wrap actual observables (e.g. Android's `LiveData`).
  */
-public interface AutoRunnerObservable {
+public interface AutoRunnerObservable<T> {
+    public val value: T
     public fun addObserver()
     public fun removeObserver()
 }

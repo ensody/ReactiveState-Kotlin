@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 
 internal class LifecycleTest : BaseTest() {
     @Test
-    fun `lifecycle observers`() = runBlockingTest {
+    fun lifecycleObservers() = runBlockingTest {
         var owner = MockLifecycleOwner()
         val lifecycle = MutableLiveData(owner)
         val fragment: Fragment = mockk {

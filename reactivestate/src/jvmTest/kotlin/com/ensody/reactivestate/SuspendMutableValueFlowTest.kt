@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 internal class SuspendMutableValueFlowTest {
     @Test
-    fun `value assignment behaves like MutableValueFlow`() = runBlockingTest {
+    fun valueAssignmentBehavesLikeMutableValueFlow() = runBlockingTest {
         var mutations = 0
         val storage = MutableValueFlow(Counter(0))
         val data = SuspendMutableValueFlow(Counter(0)) {

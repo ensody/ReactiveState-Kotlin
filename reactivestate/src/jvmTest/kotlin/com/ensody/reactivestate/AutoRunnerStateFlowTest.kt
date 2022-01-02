@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 
 internal class AutoRunnerStateFlowTest : CoroutineTest() {
     @Test
-    fun `autoRun with StateFlow`(): Unit = runBlockingTest {
+    fun autoRunWithStateFlow(): Unit = runBlockingTest {
         val source = MutableStateFlow(0)
         val target = MutableStateFlow(-1)
         val cotarget = MutableStateFlow(-1)

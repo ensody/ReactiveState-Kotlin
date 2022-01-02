@@ -12,7 +12,7 @@ import kotlin.test.assertSame
 
 internal class ValueFlowTest {
     @Test
-    fun `replaceLocked replaces the value`() = runBlockingTest {
+    fun replaceLockedReplacesTheValue() = runBlockingTest {
         val flow = MutableValueFlow(0)
         flow.replace { this + 1 }
         assertEquals(1, flow.first())
@@ -25,7 +25,7 @@ internal class ValueFlowTest {
     }
 
     @Test
-    fun `increment and decrement replace the value`() = runBlockingTest {
+    fun incrementAndDecrementReplaceTheValue() = runBlockingTest {
         val flow = MutableValueFlow(0)
         flow.increment()
         assertEquals(1, flow.first())
@@ -34,7 +34,7 @@ internal class ValueFlowTest {
     }
 
     @Test
-    fun `ValueFlow emits first value`() = runBlockingTest {
+    fun valueFlowEmitsFirstValue() = runBlockingTest {
         val flow = MutableValueFlow(mutableListOf(0))
         assertEquals(0, flow.first().first())
         flow.update { it[0] = 1 }
@@ -42,7 +42,7 @@ internal class ValueFlowTest {
     }
 
     @Test
-    fun `value assignment behaves like MutableStateFlow`() = runBlockingTest {
+    fun valueAssignmentBehavesLkeMutableStateFlow() = runBlockingTest {
         val initial = SomeData("")
         val stateFlow = MutableStateFlow(initial)
         val valueFlow = MutableValueFlow(initial)
@@ -58,7 +58,7 @@ internal class ValueFlowTest {
     }
 
     @Test
-    fun `ValueFlow distinctUntilChanged behavior when assigning to value`() = runBlockingTest {
+    fun valueFlowDistinctUntilChangedBehaviorWhenAssigningToValue() = runBlockingTest {
         val flow = MutableValueFlow(0)
         val collected = mutableListOf<Int>()
         var job = launch {
@@ -77,7 +77,7 @@ internal class ValueFlowTest {
     }
 
     @Test
-    fun `ValueFlow collect emits values continuously and without equality check`() = runBlockingTest {
+    fun valueFlowCollectEmitsValuesContinuouslyAndWithoutEqualityCheck() = runBlockingTest {
         val flow = MutableValueFlow(0)
         val collected = mutableListOf<Int>()
 

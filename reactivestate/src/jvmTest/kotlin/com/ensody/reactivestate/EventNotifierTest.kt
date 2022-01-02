@@ -11,7 +11,7 @@ import kotlin.test.assertEquals
 
 internal class EventNotifierTest {
     @Test
-    fun `EventNotifier buffers until subscriber consumes values`() = runBlockingTest {
+    fun eventNotifierBuffersUntilSubscriberConsumesValues() = runBlockingTest {
         val eventNotifier = EventNotifier<MyEvents>()
         val collected = mutableListOf<Int>()
         val eventHandler = object : MyEvents {
@@ -52,7 +52,7 @@ internal class EventNotifierTest {
     }
 
     @Test
-    fun `withErrorReporting sends error events`() = runBlockingTest {
+    fun withErrorReportingSendsErrorEvents() = runBlockingTest {
         val eventNotifier = EventNotifier<ErrorEvents>()
         val error = IllegalStateException()
         withErrorReporting(eventNotifier) {

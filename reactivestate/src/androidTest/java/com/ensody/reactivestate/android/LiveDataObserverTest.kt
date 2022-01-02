@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 
 internal class LiveDataObserverTest : BaseTest() {
     @Test
-    fun `autoRun on CoroutineScope`() = runBlockingTest {
+    fun autoRunOnCoroutineScope() = runBlockingTest {
         val source = MutableLiveData(0)
         val target = MutableLiveData(-1)
         val job = launch {

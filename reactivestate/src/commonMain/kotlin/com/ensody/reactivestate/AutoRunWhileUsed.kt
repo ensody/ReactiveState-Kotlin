@@ -9,8 +9,8 @@ public fun <T> Resolver.get(data: WhileUsed<T>): T {
 
 private class WhileUsedObservable<T>(
     private val data: WhileUsed<T>,
-) : AutoRunnerObservable {
-    var value: DisposableValue<T>? = null
+) : AutoRunnerObservable<DisposableValue<T>?> {
+    override var value: DisposableValue<T>? = null
 
     override fun addObserver() {
         if (value == null) {

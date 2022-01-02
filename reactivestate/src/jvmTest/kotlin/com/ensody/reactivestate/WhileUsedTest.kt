@@ -8,7 +8,7 @@ import kotlin.test.*
 
 internal class WhileUsedTest {
     @Test
-    fun `WhileUsed tracks the usages`() = runBlockingTest {
+    fun ensureWhileUsedTracksTheUsages() = runBlockingTest {
         val nestedValue = WhileUsed { SomeData("hello") }
         val someValue = WhileUsed { nestedValue(it) }
 
@@ -56,7 +56,7 @@ internal class WhileUsedTest {
     }
 
     @Test
-    fun `WhileUsedReferenceToken scope`() = runBlockingTest {
+    fun checkWhileUsedReferenceTokenScope() = runBlockingTest {
         val lazyScope = WhileUsed { it.scope }
         val referenceToken = DisposableGroup()
         var scope = lazyScope.invoke(referenceToken)

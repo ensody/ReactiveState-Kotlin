@@ -12,10 +12,11 @@ internal class BaseReactiveStateTest : ReactiveStateTest<ChildEvents>() {
     override val events: ChildEvents = mockk(relaxed = true)
 
     @Test
-    fun `nesting of ReactiveStates`() = runBlockingTest {
+    fun nestingOfReactiveStates() = runBlockingTest {
         verify { events.onSomeChildEvent() }
         reactiveState.increment()
         reactiveState.increment()
+        assertEquals(4, reactiveState.doubled.value)
         assertEquals(4, reactiveState.lazyDoubled.value)
         assertEquals(2, reactiveState.countAutoRun.value)
         assertEquals(2, reactiveState.countCoAutoRun.value)

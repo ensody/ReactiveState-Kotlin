@@ -20,7 +20,7 @@ class MyTest : CoroutineTest() {
     }
 
     @Test
-    fun `some test`() = runBlockingTest {
+    fun someTest() = runBlockingTest {
         viewModel.doSomething()
         advanceUntilIdle()
         verify(events).someEvent()
@@ -46,7 +46,7 @@ class MyTest {
     val rule = CoroutineTestRule()
 
     @Test
-    fun `some test`() = rule.runBlockingTest {
+    fun someTest() = rule.runBlockingTest {
         // ...
     }
 }

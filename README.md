@@ -117,16 +117,18 @@ Reactive UI frameworks like Jetpack Compose automatically rebuild the UI wheneve
 So, in the UI layer `autoRun` can usually be replaced with a `Composable`.
 
 However, below the UI your data still needs to be reactive, too.
-This is why ReactiveState provides `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
+Here ReactiveState provides `derived` to automatically recompute a `StateFlow` based on other `StateFlow`s.
 This pattern is very useful in practice and provides the perfect foundation for frameworks like Jetpack Compose which primarily focus on the UI aspect.
-Actually, Jetpack Compose is like `derived` for the UI.
-So, ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
+ReactiveState's `derived` and `autoRun` provide the same reactivity for your data and business logic.
 
-In other words, the combination of both solutions used together results in a fully reactive codebase - which improves code simplicity and avoids many bugs.
+In Jetpack Compose you even have `derivedStateOf` which is very similar to `derived`.
+So, you can choose whether you want to build your business logic based on the official coroutines library (`StateFlow`/`derived`) or Jetpack Compose (`State`/`derivedStateOf`). However, the coroutines library has the advantage that it's available for more platforms and it's fully independent of any UI frameworks. Finally, most open-source non-UI libraries will probably be based on coroutines, so `StateFlow` based code might also be better for compatibility/interoperability.
+
+In other words, the combination of both solutions used together results in a fully reactive, multiplatform codebase - which improves code simplicity and avoids many bugs.
 
 Moreover, Jetpack Compose currently doesn't provide any multiplatform ViewModel support or any large-scale architecture.
-So, this library solves this by providing `BaseReactiveState` for ViewModels.
-This comes with a lifecycle-aware event system (`eventNotifier`) and loading state handling (so you can track one or multiple different loading indicators based on coroutines that you launch).
+So, this library solves that by providing `BaseReactiveState` for ViewModels.
+It also comes with a lifecycle-aware event system (`eventNotifier`) and loading state handling (so you can track one or multiple different loading indicators based on coroutines that you launch).
 
 ## See also
 
@@ -135,7 +137,7 @@ This library is based on [reactive_state](https://github.com/ensody/reactive_sta
 ## License
 
 ```
-Copyright 2020-2021 Ensody GmbH, Waldemar Kornewald
+Copyright 2022 Ensody GmbH, Waldemar Kornewald
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
