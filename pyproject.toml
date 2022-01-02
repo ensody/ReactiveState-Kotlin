@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "ReactiveState-Kotlin"
-version = "0.7.0"
+version = "4.6.0"
 description = "reactivestate"
 authors = []
 
 [tool.poetry.dependencies]
 python = "^3.6"
-mkdocs = "^1.1.2"
-mkdocs-material = "^7.1.4"
+mkdocs = "^1.2.3"
+mkdocs-material = "^8.1.4"
 
 [build-system]
 requires = ["poetry>=1.1.6"]
