@@ -34,5 +34,6 @@ private class StateFlowObservable<T>(
 
     override fun removeObserver() {
         observer?.cancel()
+        observer = null
     }
 }

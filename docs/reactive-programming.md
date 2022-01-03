@@ -22,6 +22,8 @@ Depending on the context in which `autoRun` is executed, this observer is automa
 
 With `derived` you can construct new `StateFlow`s based on the `autoRun` principle. You can control when the calculation should run by passing `Eagerly`, `Lazily` or `WhileSubscribed()`, for example. Especially `WhileSubscribed()` is important for expensive computations.
 
+If you don't have access to a `CoroutineScope` you can use the non-suspend based `derived` and suspend-based `derivedWhileSubscribed`. However, in this case you can't use Eagerly`/`Lazily`/`etc. since that would prevent garbage collection. The non-suspend `derived` recomputes itself when accessing its `.value` and while someone is subscribed. The suspend-based `derivedWhileSubscribed` only recomputes while someone is subscribed. Since it might be important if you rely on side-effects (which is not a good idea anyway), it should be emphasized: Both of these `CoroutineScope`-less functions have in common that they won't do any recomputation if nobody is subscribed and nobody accesses `.value`. If you want the full `Eager`/`Lazy` behavior you need a `CoroutineScope`.
+
 Note that `autoRun` can be extended to support observables other than `StateFlow`, `LiveData` and `WhileUsed`.
 
 The simplicity advantage of `autoRun`/`derived` requires using `StateFlow` instead of `Flow` to avoid writing chains of `combine`, `map`, `flatMapLatest`, `conflate`, etc.

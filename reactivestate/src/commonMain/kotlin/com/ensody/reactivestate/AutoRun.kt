@@ -158,8 +158,8 @@ public abstract class InternalBaseAutoRunner(
 
     /** Stops watching observables. */
     override fun dispose() {
-        resolver = Resolver(this).also(resolver::switchTo)
         flowConsumer?.cancel()
+        resolver = Resolver(this).also(resolver::switchTo)
         flowConsumer = null
         super.dispose()
     }

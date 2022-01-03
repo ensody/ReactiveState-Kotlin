@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
@@ -19,24 +20,14 @@ private abstract class BaseDerivedStateFlow<T>(
     protected var started = 0
     protected val mutex = Mutex()
 
-    protected val onChangeFlow = MutableFlow<Unit>(Channel.CONFLATED)
+    protected val onChangeFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     protected abstract val flow: Flow<T>
     protected abstract val autoRunner: InternalBaseAutoRunner
 
     override val replayCache: List<T> get() = listOf(value)
 
-    /** The values of the observed dependencies. We only track this if nobody is subscribed. */
-    protected var dependencyValues: List<Any?>? = null
-
     init {
         launcher.invokeOnCompletion { autoRunner.dispose() }
-    }
-
-    protected fun stop() {
-        if (--started == 0) {
-            dependencyValues = autoRunner.resolver.getValues()
-            autoRunner.dispose()
-        }
     }
 
     protected fun Resolver.getValues(): List<Any?> = observables.values.map { it.value }
@@ -53,13 +44,16 @@ private class DerivedStateFlow<T>(
         AutoRunner(
             launcher = launcher,
             onChange = {
-                if (hasScope) it.run()
+                if (started > 0) it.run()
                 onChangeFlow.tryEmit(Unit)
             },
         ) {
             observer().also { cachedValue = Wrapped(it) }
         }
-    override val flow = onChangeFlow.map { cachedValue.value }
+    override val flow = onChangeFlow.map { cachedValue.value }.distinctUntilChanged()
+
+    /** The values of the observed dependencies. We only track this if nobody is subscribed. */
+    private var dependencyValues: List<Any?>? = null
 
     /** Caches the last computed value. */
     private lateinit var cachedValue: Wrapped<T>
@@ -104,6 +98,13 @@ private class DerivedStateFlow<T>(
             dependencyValues = null
         }
     }
+
+    protected fun stop() {
+        if (--started == 0) {
+            dependencyValues = autoRunner.resolver.getValues()
+            autoRunner.dispose()
+        }
+    }
 }
 
 private class CoDerivedWhileSubscribedStateFlow<T>(
@@ -129,7 +130,7 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
         launcher.track(withLoading = withLoading) {
             emit(autoRunner.run())
         }
-    }
+    }.distinctUntilChanged()
 
     /** Caches the last computed value. */
     private var cachedValue: T = initial
@@ -150,7 +151,13 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
         started += 1
         if (started == 1) {
             autoRunner.run()
-            dependencyValues = null
+        }
+    }
+
+
+    protected fun stop() {
+        if (--started == 0) {
+            autoRunner.dispose()
         }
     }
 }
@@ -238,7 +245,7 @@ public fun <T> CoroutineLauncher.derived(
     withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
-    val onChangeFlow = MutableFlow<Unit>(Channel.CONFLATED)
+    val onChangeFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     onChangeFlow.tryEmit(Unit)
     val autoRunner =
         CoAutoRunner(

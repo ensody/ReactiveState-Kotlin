@@ -1,5 +1,10 @@
 # Changelog
 
+## 4.6.1
+
+* Fixed `derived` and `derivedWhileSubscribed` bug when used with multiple collectors.
+* Fixed `derived` with `WhileSubscribed` subscribe/unsubscribe/re-subscribe bug.
+
 ## 4.6.0
 
 * Added `derived` and `derivedWhileSubscribed` variants which don't need a `CoroutineScope`, so you don't need to infect your business logic with scopes.
