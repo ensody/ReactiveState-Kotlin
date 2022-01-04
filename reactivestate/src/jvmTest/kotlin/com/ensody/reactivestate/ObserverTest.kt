@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -52,6 +53,7 @@ internal class ObserverTest : CoroutineTest() {
     fun derivedObservableOnCoroutineScope() = runBlockingTest {
         val rawSource = MutableValueFlow(0)
         val source = scopelessDerived { get(rawSource) }
+        assertEquals(0, source.first())
         lateinit var target: StateFlow<Int>
         lateinit var scopelessTarget: StateFlow<Int>
         val job = launch {
@@ -65,11 +67,16 @@ internal class ObserverTest : CoroutineTest() {
 
             // Right after creation of the derived observable the values should be in sync
             assertEquals(0, target.value)
+            assertEquals(0, target.first())
             assertEquals(0, scopelessTarget.value)
+            assertEquals(0, scopelessTarget.first())
             assertEquals(0, lazyTarget.value)
             assertEquals(0, superLazyTarget.value)
+            assertEquals(0, superLazyTarget.first())
             assertEquals(0, superLazyScopelessTarget.value)
+            assertEquals(0, superLazyScopelessTarget.first())
             assertEquals(-1, asyncTarget.value)
+            assertEquals(-1, asyncTarget.first())
 
             // Once somebody collects the lazy derived flow, the value gets updated continuously
             var superLazyJob = launch { superLazyTarget.collect() }

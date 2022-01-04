@@ -27,6 +27,7 @@ private abstract class BaseDerivedStateFlow<T>(
     override val replayCache: List<T> get() = listOf(value)
 
     init {
+        onChangeFlow.tryEmit(Unit)
         launcher.invokeOnCompletion { autoRunner.dispose() }
     }
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.6.2
+
+* Fixed `derived` not replaying the current value.
+
 ## 4.6.1
 
 * Fixed `derived` and `derivedWhileSubscribed` bug when used with multiple collectors.
