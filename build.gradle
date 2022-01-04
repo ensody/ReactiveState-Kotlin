@@ -25,7 +25,6 @@ allprojects {
 }
 
 def isOnCI = System.getenv('RUNNING_ON_CI') == 'true'
-def publishing = System.getenv('PUBLISHING') == 'true'
 
 apply from: "$rootDir/gradle/common/dependency-updates.gradle"
 apply from: "$rootDir/gradle/common/scm-version.gradle"
@@ -154,10 +153,11 @@ subprojects {
 
         apply from: "$rootDir/gradle/common/dokka.gradle"
 
-        if (!publishing) {
-            apply from: "$rootDir/gradle/common/coverage.gradle"
-            trackCoverage(isOnCI)
-        }
+        // TODO: Switch to Kover
+//        if (!publishing) {
+//            apply from: "$rootDir/gradle/common/coverage.gradle"
+//            trackCoverage(isOnCI)
+//        }
     }
 
     apply from: "$rootDir/gradle/common/publish.gradle"

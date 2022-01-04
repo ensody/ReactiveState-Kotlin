@@ -12,9 +12,6 @@ jobs:
   build:
     name: Build and test (JDK ${{ matrix.java_version }})
     runs-on: macos-latest
-    strategy:
-      matrix:
-        java_version: ["11"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -23,17 +20,47 @@ jobs:
       - name: Install JDK ${{ matrix.java_version }}
         uses: actions/setup-java@v1
         with:
-          java-version: ${{ matrix.java_version }}
+          java-version: "11"
       - name: Configure Gradle
         run: ./gradlew help
       - name: Build project
         run: ./gradlew assemble --stacktrace
       - name: Run tests
         run: ./gradlew testDebugUnitTest --stacktrace
-      - name: Create coverage report
-        run: ./gradlew jacocoTestReportDefault
+      # TODO: switch to Kover
+#      - name: Create coverage report
+#        run: ./gradlew jacocoTestReportDefault
       - name: Final checks
         run: ./gradlew check --stacktrace
+
+      - name: Publish docs
+        if: startsWith(github.ref, 'refs/heads/_publish') || startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+        run: |
+          set -euo pipefail
+          sudo scripts/build-common.sh
+          poetry install
+          ./deploy-docs.sh
+        env:
+          GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+
+      # Publish packages
+      - name: Decode key
+        if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+        run: |
+          set -euo pipefail
+          mkdir -p .credentials
+          echo "$SIGNING_KEY_RING" | base64 -d > ".credentials/$SIGNING_KEY_ID.gpg"
+        env:
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
+      - name: Publish package
+        if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+        run: ./gradlew publishToMavenCentral closeAndReleaseMavenCentralStagingRepository
+        env:
+          PUBLICATION_USERNAME: ${{ secrets.PUBLICATION_USERNAME }}
+          PUBLICATION_PASSWORD: ${{ secrets.PUBLICATION_PASSWORD }}
+          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Bundle the build report
         if: failure()
@@ -44,61 +71,3 @@ jobs:
         with:
           name: error-report
           path: build-reports.zip
-
-  publish:
-    name: Publish packages
-    runs-on: macos-latest
-    env:
-      PUBLISHING: "true"
-    needs:
-      - build
-    if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@v1
-      - name: Install JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: "11"
-      - name: Configure Gradle
-        run: ./gradlew clean
-      - name: Build project
-        run: ./gradlew assemble --stacktrace
-      - name: Decode key
-        run: |
-          mkdir -p .credentials
-          echo "$SIGNING_KEY_RING" | base64 -d > ".credentials/$SIGNING_KEY_ID.gpg"
-        env:
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
-      - name: Publish package
-        run: ./gradlew publishToMavenCentral closeAndReleaseMavenCentralStagingRepository
-        env:
-          PUBLICATION_USERNAME: ${{ secrets.PUBLICATION_USERNAME }}
-          PUBLICATION_PASSWORD: ${{ secrets.PUBLICATION_PASSWORD }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
-
-  docs:
-    name: Publish docs
-    runs-on: ubuntu-latest
-    needs:
-      - build
-    if: startsWith(github.ref, 'refs/heads/_publish') || startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Build project
-        run: ./gradlew assemble --stacktrace
-      - name: Install common deps
-        run: sudo scripts/build-common.sh
-      - name: Install Python deps
-        run: poetry install
-      - name: Deploy docs
-        run: ./deploy-docs.sh
-        env:
-          GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
