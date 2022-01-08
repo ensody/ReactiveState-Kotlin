@@ -1,5 +1,9 @@
 # Changelog
 
+## 4.7.0
+
+* Added `Throwable.throwIfFatal()`, `Throwable.isFatal()` and `runCatchingNonFatal` to deal with fatal errors like `CancellationException` in a simpler and platform-specific way.
+
 ## 4.6.2
 
 * Fixed `derived` not replaying the current value.

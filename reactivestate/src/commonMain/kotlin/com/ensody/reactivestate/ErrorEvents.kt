@@ -35,10 +35,8 @@ public inline fun <E : ErrorEvents> withErrorReporting(eventNotifier: EventNotif
 public inline fun withErrorReporting(onError: (error: Throwable) -> Unit, block: () -> Unit) {
     try {
         block()
-    } catch (e: CancellationException) {
-        throw e
     } catch (e: Throwable) {
-        onError(e)
+        onError(e.throwIfFatal())
     }
 }
 
