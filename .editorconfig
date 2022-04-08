@@ -12,5 +12,10 @@ indent_size = 2
 indent_size = 4
 
 [*.{kt,kts}]
-# Configure linters to match default Android Studio behavior
-disabled_rules=import-ordering,no-wildcard-imports
+ij_kotlin_imports_layout=*,java.**,javax.**,kotlin.**,^
+disabled_rules=import-ordering
+ij_kotlin_allow_trailing_comma = true
+ij_kotlin_allow_trailing_comma_on_call_site = true
+ij_kotlin_name_count_to_use_star_import = 1000000
+ij_kotlin_name_count_to_use_star_import_for_members = 1000000
+ij_kotlin_packages_to_use_import_on_demand = unset

@@ -3,6 +3,7 @@ class Config {
     Integer targetVersion = null
     Integer compileSdkVersion = null
     Boolean kotlinExplicitApiMode = true
+    List<String> kotlinCompilerArgs = []
 }
 
 apply plugin: 'com.android.library'
@@ -16,6 +17,7 @@ ext.androidLibrary = { args = [:] ->
         targetVersion: config.targetVersion,
         compileSdkVersion: config.compileSdkVersion,
         kotlinExplicitApiMode: config.kotlinExplicitApiMode,
+        kotlinCompilerArgs: config.kotlinCompilerArgs,
     )
 
     android {

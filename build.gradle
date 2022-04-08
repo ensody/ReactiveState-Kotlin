@@ -1,20 +1,16 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 buildscript {
-    ext.kotlin_version = "1.6.10"
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:7.0.4"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-    }
+    ext.kotlin_version = '1.6.20'
 }
 
 plugins {
+    id 'com.android.application' version '7.1.2' apply false
+    id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
+    id "org.jetbrains.dokka" version "1.6.10"
+    id 'pl.allegro.tech.build.axion-release' version '1.13.3'
+    id 'com.github.ben-manes.versions' version '0.42.0'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
-    id "pl.allegro.tech.build.axion-release" version "1.13.2"
-    id "com.github.ben-manes.versions" version "0.38.0"
-    id "org.jetbrains.dokka" version "1.5.30"
 }
 
 allprojects {
@@ -40,31 +36,44 @@ subprojects {
     group rootProject.group
     version = rootProject.version
 
-    def isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
-    def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
-    def isPlatformProject = project.name.endsWith("-bom")
-    def isTestProject = project.name.endsWith("-test")
-    def isComposeProject = project.name.endsWith("-compose")
+    ext {
+        isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
+        isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
+        isIosProject = isMultiplatform && DefaultNativePlatform.currentOperatingSystem.macOsX && ["iosMain", "appleMobileMain", "nativeMain", "nonJvmMain", "commonMain"].any { project.file("src/$it").exists() }
+        isPlatformProject = project.name.endsWith("-bom")
+        isTestProject = project.name.endsWith("-test")
+        isComposeProject = project.name.endsWith("-compose")
+        kotlinCompilerArgs = [
+            "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+            "-opt-in=kotlinx.coroutines.FlowPreview",
+            "-opt-in=com.ensody.reactivestate.ExperimentalReactiveStateApi",
+        ]
+    }
 
-    if (isPlatformProject) {
-        apply from: "$rootDir/dependencies.gradle"
-    } else {
+    apply from: "$rootDir/dependencies.gradle"
+    if (!isPlatformProject) {
+        task testAll(group: "verification")
+
         if (isAndroidProject) {
             apply from: "$rootDir/gradle/common/android-library.gradle"
+            testAll.dependsOn "testDebugUnitTest"
         }
         if (isMultiplatform) {
             apply from: "$rootDir/gradle/common/kotlin-library.gradle"
             kotlinLibrary(
-                kotlinCompilerArgs: [
-                    "-Xopt-in=kotlin.RequiresOptIn",
-                    "-Xopt-in=com.ensody.reactivestate.ExperimentalReactiveStateApi",
-                ],
+                kotlinCompilerArgs: kotlinCompilerArgs,
             )
 
             kotlin {
                 jvm()
-
+                testAll.dependsOn "jvmTest"
                 sourceSets {
+                    nonJvmMain { dependsOn(commonMain) }
+                    nonJvmTest { dependsOn(commonTest) }
+                    nativeMain { dependsOn(nonJvmMain) }
+                    nativeTest { dependsOn(nonJvmTest) }
+                    desktopMain { dependsOn(nativeMain) }
+                    desktopTest { dependsOn(nativeTest) }
                     jvmCommonMain { dependsOn(commonMain) }
                     jvmCommonTest { dependsOn(commonTest) }
                     jvmMain { dependsOn(jvmCommonMain) }
@@ -73,12 +82,17 @@ subprojects {
 
                 if (isAndroidProject) {
                     android {
-                        publishAllLibraryVariants()
+                        publishLibraryVariants("release")
                     }
+
+//                    androidNativeArm64()
+//                    androidNativeArm32()
+//                    androidNativeX64()
+//                    androidNativeX86()
 
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
-                        androidTest { dependsOn(jvmTest) }
+                        androidTest { dependsOn(jvmCommonTest) }
                     }
                 }
 
@@ -86,51 +100,106 @@ subprojects {
                     browser()
                     nodejs()
                 }
+//                testAll.dependsOn "jsIrNodeTest"
+                sourceSets {
+                    jsMain { dependsOn(nonJvmMain) }
+                    jsTest { dependsOn(nonJvmTest) }
+                }
+
 //                wasm32()
 
-                ios()
-                tvos()
-                watchosArm64()
-                watchosArm32()
-//                watchosX64()
-                watchosX86()
+                if (isIosProject) {
+                    ios()
+                    iosSimulatorArm64()
+                    testAll.dependsOn "iosSimulatorArm64Test"
+                    testAll.dependsOn "iosX64Test"
 
+                    tvos()
+                    tvosSimulatorArm64()
+
+                    watchos()
+                    watchosX86()
+                    watchosSimulatorArm64()
+
+                    sourceSets {
+                        appleMobileMain { dependsOn(nativeMain) }
+                        appleMobileTest { dependsOn(nativeTest) }
+
+                        iosMain { dependsOn(appleMobileMain) }
+                        iosTest { dependsOn(appleMobileTest) }
+                        iosArm64Main { dependsOn(iosMain) }
+                        iosArm64Test { dependsOn(iosMain) }
+                        iosX64Main { dependsOn(iosMain) }
+                        iosX64Test { dependsOn(iosTest) }
+                        iosSimulatorArm64Main { dependsOn(iosMain) }
+                        iosSimulatorArm64Test { dependsOn(iosTest) }
+
+                        tvosMain { dependsOn(appleMobileMain) }
+                        tvosTest { dependsOn(appleMobileTest) }
+                        tvosSimulatorArm64Main { dependsOn(tvosMain) }
+                        tvosSimulatorArm64Test { dependsOn(tvosTest) }
+
+                        watchosMain { dependsOn(appleMobileMain) }
+                        watchosTest { dependsOn(appleMobileTest) }
+                        watchosArm64Main { dependsOn(watchosMain) }
+                        watchosArm64Test { dependsOn(watchosTest) }
+                        watchosArm32Main { dependsOn(watchosMain) }
+                        watchosArm32Test { dependsOn(watchosTest) }
+                        watchosX64Main { dependsOn(watchosMain) }
+                        watchosX64Test { dependsOn(watchosTest) }
+                        watchosX86Main { dependsOn(watchosMain) }
+                        watchosX86Test { dependsOn(watchosTest) }
+                        watchosSimulatorArm64Main { dependsOn(watchosMain) }
+                        watchosSimulatorArm64Test { dependsOn(watchosTest) }
+                    }
+                }
+
+                macosArm64()
+                testAll.dependsOn "macosArm64Test"
                 macosX64()
-                linuxX64()
+                testAll.dependsOn "macosX64Test"
+
 //                linuxArm64()
+//                testAll.dependsOn "linuxArm64Test"
+                linuxX64()
+                testAll.dependsOn "linuxX64Test"
 //                linuxArm32Hfp()
+//                linuxMips32()
+//                linuxMipsel32()
+
                 mingwX64()
+                testAll.dependsOn "mingwX64Test"
+//                mingwX86()
+//                testAll.dependsOn "mingwX86Test"
 
                 sourceSets {
-                    nonJvmMain { dependsOn(commonMain) }
+                    linuxMain { dependsOn(desktopMain) }
+                    linuxTest { dependsOn(desktopTest) }
+                    linuxX64Main { dependsOn(linuxMain) }
+                    linuxX64Test { dependsOn(linuxTest) }
 
-                    jsMain { dependsOn(nonJvmMain) }
-                    nativeMain { dependsOn(nonJvmMain) }
+                    macosMain { dependsOn(desktopMain) }
+                    macosTest { dependsOn(desktopTest) }
+                    macosArm64Main { dependsOn(macosMain) }
+                    macosArm64Test { dependsOn(macosTest) }
+                    macosX64Main { dependsOn(macosMain) }
+                    macosX64Test { dependsOn(macosTest) }
 
-                    appleMobileMain { dependsOn(nativeMain) }
-                    iosMain { dependsOn(appleMobileMain) }
-                    iosArm64Main { dependsOn(iosMain) }
-                    iosArm64Test { dependsOn(iosMain) }
-                    iosX64Main { dependsOn(iosMain) }
-                    iosX64Test { dependsOn(iosTest) }
-                    tvosMain { dependsOn(appleMobileMain) }
-                    watchosMain { dependsOn(appleMobileMain) }
-                    watchosArm64Main { dependsOn(watchosMain) }
-                    watchosArm32Main { dependsOn(watchosMain) }
-                    watchosX86Main { dependsOn(watchosMain) }
-
-                    desktopMain { dependsOn(nativeMain) }
-                    linuxX64Main { dependsOn(desktopMain) }
-                    macosX64Main { dependsOn(desktopMain) }
-                    mingwX64Main { dependsOn(desktopMain) }
+                    mingwMain { dependsOn(desktopMain) }
+                    mingwTest { dependsOn(desktopTest) }
+                    mingwX64Main { dependsOn(mingwMain) }
+                    mingwX64Test { dependsOn(mingwTest) }
                 }
             }
         }
 
-        apply from: "$rootDir/dependencies.gradle"
+        apply from: "$rootDir/gradle/common/ktlint.gradle"
 
         if (isAndroidProject) {
-            androidLibrary(minVersion: isComposeProject ? 21 : 19)
+            androidLibrary(
+                minVersion: isComposeProject ? 21 : 19,
+                kotlinCompilerArgs: kotlinCompilerArgs,
+            )
 
             android {
                 // Resolve build conflicts for test modules

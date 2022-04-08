@@ -19,7 +19,7 @@ See the [ReactiveState documentation](https://ensody.github.io/ReactiveState-Kot
 
 ## Supported platforms
 
-android, jvm, ios, tvos, watchos, macosX64, linuxX64, js
+android, jvm, ios, tvos, watchos, macosArm64, macosX64, mingwX64, linuxX64
 
 ## Installation
 

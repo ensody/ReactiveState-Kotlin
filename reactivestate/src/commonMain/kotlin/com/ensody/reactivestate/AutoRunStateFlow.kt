@@ -2,7 +2,6 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 
 /** Returns [StateFlow.value] and tracks the observable (on the `MainScope`). */
 public fun <T> Resolver.get(data: StateFlow<T>): T {
@@ -12,7 +11,7 @@ public fun <T> Resolver.get(data: StateFlow<T>): T {
 
 private class StateFlowObservable<T>(
     private val data: StateFlow<T>,
-    private val autoRunner: BaseAutoRunner
+    private val autoRunner: BaseAutoRunner,
 ) : AutoRunnerObservable<T> {
     private var observer: Job? = null
 
@@ -23,7 +22,7 @@ private class StateFlowObservable<T>(
             var ignore: Wrapped<T>? = Wrapped(data.value)
             observer = autoRunner.launcher.launch(withLoading = null) {
                 data.collect { value ->
-                    if (ignore?.let{ it.value != value } != false) {
+                    if (ignore?.let { it.value != value } != false) {
                         autoRunner.triggerChange()
                     }
                     ignore = null

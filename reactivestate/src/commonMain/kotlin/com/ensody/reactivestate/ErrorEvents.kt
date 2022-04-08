@@ -1,7 +1,6 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.collect
 
 /** Events interface with a simple [onError] event (e.g. for use with [EventNotifier]). */
 public interface ErrorEvents {

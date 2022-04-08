@@ -26,12 +26,12 @@ jobs:
       - name: Build project
         run: ./gradlew assemble --stacktrace
       - name: Run tests
-        run: ./gradlew testDebugUnitTest --stacktrace
+        run: ./gradlew testAll --stacktrace
       # TODO: switch to Kover
 #      - name: Create coverage report
 #        run: ./gradlew jacocoTestReportDefault
       - name: Final checks
-        run: ./gradlew check --stacktrace
+        run: ./gradlew ktlint
 
       # Publish packages
       - name: Decode key

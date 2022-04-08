@@ -2,10 +2,18 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
@@ -81,14 +89,14 @@ private class DerivedStateFlow<T>(
         }
     }
 
-    @InternalCoroutinesApi
-    override suspend fun collect(collector: FlowCollector<T>) {
+    override suspend fun collect(collector: FlowCollector<T>): Nothing {
         try {
             mutex.withLock { start() }
             flow.collect(collector)
         } finally {
             mutex.withLock { stop() }
         }
+        throw IllegalStateException("Should never get here")
     }
 
     private fun start() {
@@ -137,14 +145,14 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
 
     override val value: T get() = cachedValue
 
-    @InternalCoroutinesApi
-    override suspend fun collect(collector: FlowCollector<T>) {
+    override suspend fun collect(collector: FlowCollector<T>): Nothing {
         try {
             mutex.withLock { start() }
             flow.collect(collector)
         } finally {
             mutex.withLock { stop() }
         }
+        throw IllegalStateException("Should never get here")
     }
 
     private suspend fun start() {
@@ -153,7 +161,6 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
             autoRunner.run()
         }
     }
-
 
     protected fun stop() {
         if (--started == 0) {

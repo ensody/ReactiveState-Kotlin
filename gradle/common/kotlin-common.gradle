@@ -14,8 +14,7 @@ class CompilerArgsConfig {
 ext.getCompilerArgs = { args = [:] ->
     CompilerArgsConfig config = new CompilerArgsConfig(args)
     def compilerArgs = [
-        "-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
-        "-Xopt-in=kotlinx.coroutines.FlowPreview",
+        "-opt-in=kotlin.RequiresOptIn",
     ] + config.kotlinCompilerArgs
     if (config.kotlinExplicitApiMode) {
         compilerArgs.add("-Xexplicit-api=strict")

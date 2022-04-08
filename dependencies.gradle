@@ -15,14 +15,21 @@ dependencies {
                 jvmCommonTestImplementation args
             }
         }
+        androidTestDependency = { args ->
+            if (isTestProject) {
+                androidMainApi args
+            } else {
+                androidTestImplementation args
+            }
+        }
 
-        if (!project.plugins.hasPlugin("org.jetbrains.kotlin.multiplatform")) {
+        if (!isMultiplatform) {
             commonMainApi = { args -> api args }
             commonTestImplementation = { args -> testImplementation args }
         }
 
         versionConstraints = {
-            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.5.2")
+            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1")
         }
 
         base = {
@@ -34,17 +41,17 @@ dependencies {
 
             jvmCommonTestDependency "org.jetbrains.kotlin:kotlin-test-junit"
             jvmCommonTestDependency "junit:junit:4.13.2"
-            jvmCommonTestDependency "org.jetbrains.kotlinx:kotlinx-coroutines-test"
+            commonTestDependency "org.jetbrains.kotlinx:kotlinx-coroutines-test"
 
-            jvmCommonTestImplementation "io.mockk:mockk:1.12.0"
+            jvmCommonTestImplementation "io.mockk:mockk:1.12.3"
         }
 
         activityVersion = "1.4.0"
-        fragmentVersion = "1.4.0"
-        lifecycleVersion = "2.4.0"
+        fragmentVersion = "1.4.1"
+        lifecycleVersion = "2.4.1"
         androidBase = {
             androidMainApi "androidx.annotation:annotation:1.3.0"
-            androidMainApi "androidx.appcompat:appcompat:1.4.0"
+            androidMainApi "androidx.appcompat:appcompat:1.4.1"
             androidMainApi "androidx.core:core-ktx:1.7.0"
             androidMainApi "androidx.activity:activity-ktx:$activityVersion"
             androidMainApi "androidx.fragment:fragment-ktx:$fragmentVersion"
@@ -59,14 +66,14 @@ dependencies {
                 api "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
             }
 
-            androidTestImplementation "androidx.arch.core:core-testing:2.1.0"
-            androidTestImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
-            androidTestImplementation "androidx.test:core-ktx:1.4.0"
-            androidTestImplementation "androidx.test.ext:junit-ktx:1.1.3"
-            androidTestImplementation "org.robolectric:robolectric:4.6.1"
+            androidTestDependency "androidx.arch.core:core-testing:2.1.0"
+            androidTestDependency "androidx.fragment:fragment-testing:$fragmentVersion"
+            androidTestDependency "androidx.test:core-ktx:1.4.0"
+            androidTestDependency "androidx.test.ext:junit-ktx:1.1.3"
+            androidTestDependency "org.robolectric:robolectric:4.7.3"
         }
 
-        composeVersion = "1.1.0-rc01"
+        composeVersion = "1.1.1"
         jetpackCompose = {
             android {
                 buildFeatures {

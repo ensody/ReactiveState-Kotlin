@@ -1,10 +1,18 @@
 package com.ensody.reactivestate
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.invoke
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 
 /**
@@ -133,10 +141,12 @@ public class WhileUsedReferenceToken : DisposableGroup by DisposableGroup() {
         get() =
             lazyScope ?: MainScope().also {
                 lazyScope = it
-                add(OnDispose {
-                    lazyScope = null
-                    it.cancel()
-                })
+                add(
+                    OnDispose {
+                        lazyScope = null
+                        it.cancel()
+                    },
+                )
             }
 
     private var lazyScope: CoroutineScope? = null

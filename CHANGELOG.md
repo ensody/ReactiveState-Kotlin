@@ -1,5 +1,17 @@
 # Changelog
 
+## 5.0.0
+
+* Upgraded to kotlinx.coroutines 1.6.1. You might need to adjust your unit tests to take behavioral differences into account.
+* Upgraded to Jetpack Compose 1.1.1.
+* Upgraded to Kotlin 1.6.20.
+* `CoroutineTest.runBlockingTest` was deprecated and you should now use `CoroutineTest.runTest`. Similarly, `testCoroutineScope` => `testScope` and `testCoroutineDispatcher` => `testDispatcher`.
+* Use `CoroutineTest.testScope` only for coroutines that will terminate. For `ReactiveStateTest` you should use `CoroutineTest.mainScope` which gets canceled at the end of each test run.
+* Native targets are compiled using the experimental memory manager.
+* The reactivestate-test module can now be used with all targets instead of just JVM.
+* Added a few more targets like macosArm64 and iosSimulatorArm64.
+* Moved `get(LiveData)` to the `com.ensody.reactivestate` package, so you don't need to think twice about where you want to import from.
+
 ## 4.7.0
 
 * Added `Throwable.throwIfFatal()`, `Throwable.isFatal()` and `runCatchingNonFatal` to deal with fatal errors like `CancellationException` in a simpler and platform-specific way.

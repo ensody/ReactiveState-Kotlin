@@ -3,6 +3,7 @@ class Config {
     Integer targetVersion = null
     Integer compileSdkVersion = null
     Boolean kotlinExplicitApiMode = false
+    List<String> kotlinCompilerArgs = []
 }
 
 def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
@@ -33,7 +34,10 @@ ext.androidCommon = { args = [:] ->
 
         kotlinOptions {
             jvmTarget = javaVersion.toString()
-            freeCompilerArgs = getCompilerArgs(kotlinExplicitApiMode: config.kotlinExplicitApiMode)
+            freeCompilerArgs = getCompilerArgs(
+                kotlinExplicitApiMode: config.kotlinExplicitApiMode,
+                kotlinCompilerArgs: config.kotlinCompilerArgs,
+            )
         }
 
         defaultConfig {

@@ -1,7 +1,6 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
 
 /** Atomically increment this [MutableValueFlow] by [amount]. */
 public fun MutableValueFlow<Int>.increment(amount: Int = 1): Int =

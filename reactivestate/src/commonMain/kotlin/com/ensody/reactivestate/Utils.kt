@@ -4,11 +4,11 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 /** A [lazyProperty] that only receives the [KProperty.name] as its argument. */
-public inline fun <T> propertyName(crossinline block: (name: String) -> T) : ReadOnlyProperty<Any?, T> =
+public inline fun <T> propertyName(crossinline block: (name: String) -> T): ReadOnlyProperty<Any?, T> =
     lazyProperty { block(it.name) }
 
 /** A helper for creating a lazily computed [ReadOnlyProperty] based on a [KProperty]. */
-public fun <T> lazyProperty(block: (property: KProperty<*>) -> T) : ReadOnlyProperty<Any?, T> =
+public fun <T> lazyProperty(block: (property: KProperty<*>) -> T): ReadOnlyProperty<Any?, T> =
     LazyProperty(block)
 
 private class LazyProperty<T>(block: (property: KProperty<*>) -> T) : ReadOnlyProperty<Any?, T> {
