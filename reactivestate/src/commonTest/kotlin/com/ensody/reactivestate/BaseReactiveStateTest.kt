@@ -12,6 +12,7 @@ internal class BaseReactiveStateTest : ReactiveStateTest<ChildEvents>() {
 
     @Test
     fun nestingOfReactiveStates() = runTest {
+        runCurrent()
         assertEquals(1, events.childCalls)
         reactiveState.increment()
         reactiveState.increment()

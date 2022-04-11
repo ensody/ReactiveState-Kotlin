@@ -3,9 +3,9 @@ package com.ensody.reactivestate.test
 import com.ensody.reactivestate.EventNotifier
 import com.ensody.reactivestate.throwIfFatal
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.advanceUntilIdle
 
 /**
  * Base class for unit testing an [EventNotifier].
@@ -18,11 +18,13 @@ import kotlinx.coroutines.test.advanceUntilIdle
 public abstract class EventNotifierTest<E> : CoroutineTest() {
 
     public open val handleEventsInRunTest: Boolean = true
+    /** The dispatcher to use for [handleEvents]. */
+    public open val eventsDispatcher: TestDispatcher = testDispatcher
     public abstract val eventNotifier: EventNotifier<E>
     public abstract val events: E
 
     public fun handleEvents() {
-        val job = testScope.launch {
+        val job = testScope.launch(eventsDispatcher) {
             try {
                 eventNotifier.collect { events.it() }
             } catch (e: Throwable) {
@@ -37,7 +39,6 @@ public abstract class EventNotifierTest<E> : CoroutineTest() {
         super.runTest {
             if (handleEventsInRunTest) {
                 handleEvents()
-                advanceUntilIdle()
             }
             block()
         }

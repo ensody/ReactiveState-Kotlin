@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.0.1
+
+* Adjusted `EventNotifierTest`/`ReactiveStateTest` to be consistent with the coroutines test lib behavior. You have to call `runCurrent()` to execute any coroutines launched from the ViewModel's `init` block.
+
 ## 5.0.0
 
 * Upgraded to kotlinx.coroutines 1.6.1. You might need to adjust your unit tests to take behavioral differences into account.
