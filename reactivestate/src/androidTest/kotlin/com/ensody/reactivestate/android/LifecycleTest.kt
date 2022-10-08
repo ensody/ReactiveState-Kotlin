@@ -227,7 +227,6 @@ internal class LifecycleTest : AndroidCoroutineTest() {
         assertEquals(1, pauseOnce)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_DESTROY)
-        assertEquals(5, owner.lifecycle.observerCount)
     }
 }
 

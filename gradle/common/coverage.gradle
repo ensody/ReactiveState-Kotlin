@@ -7,7 +7,7 @@ ext.trackCoverage = { enableTestCoverage ->
     }
 
     jacoco {
-        toolVersion = "0.8.7"
+        toolVersion = "0.8.8"
     }
 
     def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }

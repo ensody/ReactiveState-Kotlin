@@ -7,7 +7,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class BaseReactiveStateTest : ReactiveStateTest<ChildEvents>() {
-    override val reactiveState by lazy { ParentViewModel(mainScope) }
+    override val reactiveState by lazy { ParentViewModel(testScope.backgroundScope) }
     override val events = MockChildEvents()
 
     @Test

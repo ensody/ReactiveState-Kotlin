@@ -13,13 +13,13 @@ import kotlin.coroutines.CoroutineContext
 
 /** A [SimpleCoroutineLauncher] that launches coroutines in the `STARTED` state. */
 public class LifecycleCoroutineLauncher(
-    public val owner: LifecycleOwner
+    public val owner: LifecycleOwner,
 ) : SimpleCoroutineLauncher(owner.lifecycleScope) {
 
     override fun rawLaunch(
         context: CoroutineContext,
         start: CoroutineStart,
-        block: suspend CoroutineScope.() -> Unit
+        block: suspend CoroutineScope.() -> Unit,
     ): Job {
         return owner.lifecycleScope.launch(context, start) {
             owner.whenStarted(block)

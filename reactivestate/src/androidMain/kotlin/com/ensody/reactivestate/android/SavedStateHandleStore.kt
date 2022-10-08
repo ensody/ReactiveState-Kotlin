@@ -37,6 +37,7 @@ public class SavedStateHandleStore(private val scope: CoroutineScope?, private v
             return store.getData(key, default)
         }
         val liveData = savedStateHandle.getLiveData(key, default)
+
         @Suppress("UNCHECKED_CAST")
         val data = store.getData<T>(key, liveData.value as T) {
             liveData.postValue(it)

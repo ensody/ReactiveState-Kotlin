@@ -54,14 +54,16 @@ public inline fun <reified T : ViewModel> viewModel(
  * @see [reactiveState] if you want to instantiate a multiplatform [ReactiveState] ViewModel directly.
  */
 @ExperimentalReactiveStateApi
-@Suppress("UNCHECKED_CAST")
 @Composable
 public inline fun <reified T : Any?> onViewModel(
+    viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
+        "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
+    },
     key: String? = null,
     crossinline provider: ReactiveStateBuildContext.() -> T,
 ): T {
     val fullKey = (key ?: "") + ":onViewModel:${T::class.qualifiedName}"
-    return viewModel(key = fullKey) {
+    return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
         WrapperViewModel { scope -> ReactiveStateBuildContext(scope).provider() }
     }.value
 }

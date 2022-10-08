@@ -18,6 +18,7 @@ import kotlinx.coroutines.test.TestScope
 public abstract class EventNotifierTest<E> : CoroutineTest() {
 
     public open val handleEventsInRunTest: Boolean = true
+
     /** The dispatcher to use for [handleEvents]. */
     public open val eventsDispatcher: TestDispatcher = testDispatcher
     public abstract val eventNotifier: EventNotifier<E>

@@ -7,10 +7,13 @@ import kotlinx.coroutines.Dispatchers
 public interface CoroutineDispatcherConfig {
     /** A coroutine dispatcher that behaves like [Dispatchers.Main] (i.e. confined to the main UI thread). */
     public val main: CoroutineDispatcher
+
     /** A coroutine dispatcher that behaves like [Dispatchers.Default]. */
     public val default: CoroutineDispatcher
+
     /** A coroutine dispatcher that behaves like [Dispatchers.IO]. */
     public val io: CoroutineDispatcher
+
     /** A coroutine dispatcher that behaves like [Dispatchers.Unconfined]. */
     public val unconfined: CoroutineDispatcher
 }

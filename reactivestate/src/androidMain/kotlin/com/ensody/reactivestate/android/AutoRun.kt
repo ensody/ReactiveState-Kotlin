@@ -98,7 +98,7 @@ public fun LifecycleOwner.autoRun(
                         } else {
                             add(onDestroy { autoRunner.dispose() })
                         }
-                    }
+                    },
                 )
             }
         }
@@ -157,7 +157,7 @@ public fun LifecycleOwner.coAutoRun(
                         } else {
                             add(onDestroy { autoRunner.dispose() })
                         }
-                    }
+                    },
                 )
             }
         }

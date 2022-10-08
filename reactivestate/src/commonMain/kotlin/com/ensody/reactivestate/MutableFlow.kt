@@ -23,7 +23,7 @@ public fun <T> MutableFlow(
         Channel(
             capacity = capacity,
             onBufferOverflow = onBufferOverflow,
-        )
+        ),
     )
 
 private class MutableFlowImpl<T>(

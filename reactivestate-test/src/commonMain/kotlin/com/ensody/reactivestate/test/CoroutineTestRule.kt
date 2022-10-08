@@ -4,8 +4,6 @@ import com.ensody.reactivestate.DefaultCoroutineDispatcherConfig
 import com.ensody.reactivestate.dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestDispatcher
@@ -35,6 +33,7 @@ public open class CoroutineTestRule(
 
     @Deprecated("Use testScope", ReplaceWith("testScope"))
     public val testCoroutineScope: TestScope get() = testScope
+
     @Deprecated("Use testDispatcher", ReplaceWith("testDispatcher"))
     public val testCoroutineDispatcher: TestDispatcher get() = testDispatcher
 
@@ -42,15 +41,12 @@ public open class CoroutineTestRule(
         enterCoroutineTest()
     }
 
-    public val mainScope: CoroutineScope = MainScope()
+    @Deprecated("Use testScope.backgroundScope", ReplaceWith("testScope.backgroundScope"))
+    public val mainScope: CoroutineScope = testScope.backgroundScope
 
     public open fun runTest(block: suspend TestScope.() -> Unit): TestResult =
         testScope.runTest {
-            try {
-                block()
-            } finally {
-                mainScope.cancel("Exiting test")
-            }
+            block()
         }
 
     @Deprecated("Use runTest instead", ReplaceWith("runTest(block)"))

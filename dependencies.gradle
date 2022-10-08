@@ -29,7 +29,7 @@ dependencies {
         }
 
         versionConstraints = {
-            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.1")
+            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4")
         }
 
         base = {
@@ -43,16 +43,16 @@ dependencies {
             jvmCommonTestDependency "junit:junit:4.13.2"
             commonTestDependency "org.jetbrains.kotlinx:kotlinx-coroutines-test"
 
-            jvmCommonTestImplementation "io.mockk:mockk:1.12.3"
+            jvmCommonTestImplementation "io.mockk:mockk:1.13.2"
         }
 
-        activityVersion = "1.4.0"
-        fragmentVersion = "1.4.1"
-        lifecycleVersion = "2.4.1"
+        activityVersion = "1.6.0"
+        fragmentVersion = "1.5.3"
+        lifecycleVersion = "2.5.1"
         androidBase = {
-            androidMainApi "androidx.annotation:annotation:1.3.0"
-            androidMainApi "androidx.appcompat:appcompat:1.4.1"
-            androidMainApi "androidx.core:core-ktx:1.7.0"
+            androidMainApi "androidx.annotation:annotation:1.5.0"
+            androidMainApi "androidx.appcompat:appcompat:1.5.1"
+            androidMainApi "androidx.core:core-ktx:1.9.0"
             androidMainApi "androidx.activity:activity-ktx:$activityVersion"
             androidMainApi "androidx.fragment:fragment-ktx:$fragmentVersion"
 
@@ -70,18 +70,19 @@ dependencies {
             androidTestDependency "androidx.fragment:fragment-testing:$fragmentVersion"
             androidTestDependency "androidx.test:core-ktx:1.4.0"
             androidTestDependency "androidx.test.ext:junit-ktx:1.1.3"
-            androidTestDependency "org.robolectric:robolectric:4.7.3"
+            androidTestDependency "org.robolectric:robolectric:4.9"
         }
 
-        composeVersion = "1.1.1"
+        composeVersion = "1.3.0-rc01"
+        composeCompilerVersion = "1.3.2"
         jetpackCompose = {
             android {
                 buildFeatures {
-                    compose true
+                    compose = true
                 }
 
                 composeOptions {
-                    kotlinCompilerExtensionVersion = composeVersion
+                    kotlinCompilerExtensionVersion = composeCompilerVersion
                 }
             }
 

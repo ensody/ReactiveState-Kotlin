@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.0.2
+
+* Upgraded to Kotlin 1.7.20, kotlinx.coroutines 1.6.4, androidx.activity 1.6.0, androidx.fragment 1.5.3.
+* Upgraded to Android SDK 33.
+* The experimental reactivestate-compose module is not published in this release due to a Kotlin/Compose compiler bug.
+
 ## 5.0.1
 
 * Adjusted `EventNotifierTest`/`ReactiveStateTest` to be consistent with the coroutines test lib behavior. You have to call `runCurrent()` to execute any coroutines launched from the ViewModel's `init` block.
