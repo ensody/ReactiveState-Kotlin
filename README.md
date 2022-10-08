@@ -2,9 +2,9 @@
 
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate?gav=true)
 
-Easy reactive state management for Kotlin Multiplatform. No boilerplate. Compatible with Android.
+Easy reactive state management and ViewModels for Kotlin Multiplatform. No boilerplate. Compatible with Android.
 
-ReactiveState-Kotlin provides these foundations:
+ReactiveState-Kotlin provides these foundations for building multiplatform ViewModels and lower-level logic:
 
 * [reactive programming](https://ensody.github.io/ReactiveState-Kotlin/reactive-programming/): everything is recomputed/updated automatically based on straightforward code
 * [demand-driven programming](https://ensody.github.io/ReactiveState-Kotlin/demand-driven-programming/): resource-consuming computations and values are allocated on-demand and disposed when not needed
