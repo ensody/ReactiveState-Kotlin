@@ -17,7 +17,7 @@ public fun <T> MutableStateFlow<T>.beforeUpdate(
  * Returns a new [MutableStateFlow] that calls [setter] instead of doing the actual value update.
  *
  * IMPORTANT: You must manually set `value =` on the underlying [MutableStateFlow].
- * The [setter] gets the underlying [MutableStateFlow] as the `this` arg.
+ * The [setter] gets the underlying [MutableStateFlow] via `this`.
  *
  * This can be used to wrap a [MutableStateFlow] with extra update logic.
  * For simpler use cases you might prefer [withSetter] instead.
