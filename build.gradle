@@ -1,13 +1,13 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
-    ext.kotlin_version = '1.7.20'
+    ext.kotlin_version = '1.8.0'
 }
 
 plugins {
-    id 'com.android.application' version '7.3.0' apply false
+    id 'com.android.application' version '7.3.1' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
-    id "org.jetbrains.dokka" version "1.7.10"
+    id "org.jetbrains.dokka" version "1.7.20"
     id 'pl.allegro.tech.build.axion-release' version '1.13.3'
     id 'com.github.ben-manes.versions' version '0.42.0'
     id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
@@ -92,11 +92,11 @@ subprojects {
 
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
-                        androidTest { dependsOn(jvmCommonTest) }
+                        androidUnitTest { dependsOn(jvmCommonTest) }
                     }
                 }
 
-                js(BOTH) {
+                js(IR) {
                     browser()
                     nodejs()
                 }

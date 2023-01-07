@@ -113,7 +113,7 @@ internal class LifecycleTest : AndroidCoroutineTest() {
         owner.onPause { pause += 1 }
         owner.onPauseOnce { pauseOnce += 1 }
 
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith<IllegalStateException> {
             owner.lifecycleValue
         }
         assertEquals(0, run)
@@ -163,7 +163,7 @@ internal class LifecycleTest : AndroidCoroutineTest() {
         assertEquals(1, pauseOnce)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith<IllegalStateException> {
             owner.lifecycleValue
         }
         assertEquals(1, run)
@@ -213,7 +213,7 @@ internal class LifecycleTest : AndroidCoroutineTest() {
         assertEquals(1, pauseOnce)
 
         owner.lifecycle.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith<IllegalStateException> {
             owner.lifecycleValue
         }
         assertEquals(2, run)

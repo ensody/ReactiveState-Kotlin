@@ -62,38 +62,6 @@ ext.androidCommon = { args = [:] ->
         packagingOptions {
             pickFirst 'META-INF/*.kotlin_module'
         }
-
-        if (isMultiplatform) {
-            sourceSets {
-                main {
-                    setRoot("src/androidMain")
-                }
-                release {
-                    setRoot("src/androidMainRelease")
-                }
-                debug {
-                    setRoot("src/androidMainDebug")
-                }
-                test {
-                    setRoot("src/androidTest")
-                }
-                testRelease {
-                    setRoot("src/androidTestRelease")
-                }
-                testDebug {
-                    setRoot("src/androidTestDebug")
-                }
-                androidTest {
-                    setRoot("src/androidUITest")
-                }
-                androidTestRelease {
-                    setRoot("src/androidUITestRelease")
-                }
-                androidTestDebug {
-                    setRoot("src/androidUITestDebug")
-                }
-            }
-        }
     }
 
     dependencies {

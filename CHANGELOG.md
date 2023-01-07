@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0
+
+* Added `MutableStateFlow.beforeUpdate` and `MutableStateFlow.withSetter` setter interceptors.
+* Upgraded to Kotlin 1.8.0.
+* Due to the deprecation of the old JS compiler in Kotlin 1.8.0 the code has switched to the IR compiler.
+
 ## 5.0.2
 
 * Upgraded to Kotlin 1.7.20, kotlinx.coroutines 1.6.4, androidx.activity 1.6.0, androidx.fragment 1.5.3.
