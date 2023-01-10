@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.1
+
+* Improved Swift compatibility of `eventNotifier` by making the lambdas non-`suspend`.
+
 ## 5.1.0
 
 * Added `MutableStateFlow.beforeUpdate` and `MutableStateFlow.withSetter` setter interceptors.

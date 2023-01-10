@@ -19,7 +19,7 @@ dependencies {
             if (isTestProject) {
                 androidMainApi args
             } else {
-                androidTestImplementation args
+                androidUnitTestImplementation args
             }
         }
 

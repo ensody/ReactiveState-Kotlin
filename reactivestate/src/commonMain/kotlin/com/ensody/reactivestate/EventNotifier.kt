@@ -33,9 +33,9 @@ import kotlinx.coroutines.channels.Channel
  * }
  * ```
  */
-public interface EventNotifier<T> : MutableFlow<suspend T.() -> Unit> {
+public interface EventNotifier<T> : MutableFlow<T.() -> Unit> {
     /** Adds a lambda function to the event stream. */
-    public operator fun invoke(block: suspend T.() -> Unit)
+    public operator fun invoke(block: T.() -> Unit)
 }
 
 /** Creates an [EventNotifier]. */
@@ -44,12 +44,12 @@ public fun <T> EventNotifier(capacity: Int = Channel.UNLIMITED): EventNotifier<T
 
 private class EventNotifierImpl<T>(capacity: Int = Channel.UNLIMITED) :
     EventNotifier<T>,
-    MutableFlow<suspend T.() -> Unit> by MutableFlow(
+    MutableFlow<T.() -> Unit> by MutableFlow(
         capacity = capacity,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     ) {
 
-    override operator fun invoke(block: suspend T.() -> Unit) {
+    override operator fun invoke(block: T.() -> Unit) {
         tryEmit(block)
     }
 }
