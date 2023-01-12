@@ -22,6 +22,8 @@ dependencies {
                 androidUnitTestImplementation args
             }
         }
+        // TODO: Remove this once we use Kotlin 1.8.x
+        androidUnitTestImplementation = { args -> androidTestImplementation args }
 
         if (!isMultiplatform) {
             commonMainApi = { args -> api args }

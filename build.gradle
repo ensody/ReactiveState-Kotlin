@@ -92,9 +92,8 @@ subprojects {
 
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
-                        androidUnitTest { dependsOn(jvmCommonTest) }
-                        // TODO: Remove once we upgrade to Kotlin 1.8.x
-                        androidTest { dependsOn(androidUnitTest) }
+                        // TODO: Adapt this once we upgrade to Kotlin 1.8.x
+                        androidTest { dependsOn(jvmCommonTest) }.kotlin.srcDirs("$projectDir/src/androidUnitTest")
                     }
                 }
 
