@@ -1,7 +1,7 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
-    ext.kotlin_version = '1.8.0'
+    ext.kotlin_version = '1.7.20'
 }
 
 plugins {
@@ -93,6 +93,8 @@ subprojects {
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
                         androidUnitTest { dependsOn(jvmCommonTest) }
+                        // TODO: Remove once we upgrade to Kotlin 1.8.x
+                        androidTest { dependsOn(androidUnitTest) }
                     }
                 }
 
