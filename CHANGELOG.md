@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.1.3
+
+* Upgraded to Kotlin 1.7.21.
+
 ## 5.1.2
 
 * Downgraded to Kotlin 1.7.20 because of huge compilation speed degradation on iOS targets and incompatibility with Compose.
