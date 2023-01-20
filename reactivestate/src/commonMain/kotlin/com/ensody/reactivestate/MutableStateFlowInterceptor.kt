@@ -8,10 +8,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
  * The value is set automatically for you after [setter] has been called. For more control use [withSetter].
  * This can be used to wrap a [MutableStateFlow] with extra update logic.
  */
-public fun <T> MutableStateFlow<T>.beforeUpdate(
-    setter: (T) -> Unit,
-): MutableStateFlow<T> =
-    MutableStateFlowInterceptor(this, manuallySetValue = false) { setter(it) }
+public fun <T> MutableStateFlow<T>.beforeUpdate(setter: (T) -> Unit): MutableStateFlow<T> =
+    withSetter {
+        setter(it)
+        value = it
+    }
+
+/**
+ * Returns a new [MutableStateFlow] that calls [setter] after doing the actual value update.
+ *
+ * The value is set automatically for you before [setter] has been called. For more control use [withSetter].
+ * This can be used to wrap a [MutableStateFlow] with extra update logic.
+ */
+public fun <T> MutableStateFlow<T>.afterUpdate(setter: (T) -> Unit): MutableStateFlow<T> =
+    withSetter {
+        value = it
+        setter(it)
+    }
 
 /**
  * Returns a new [MutableStateFlow] that calls [setter] instead of doing the actual value update.
@@ -25,19 +38,13 @@ public fun <T> MutableStateFlow<T>.beforeUpdate(
 public fun <T> MutableStateFlow<T>.withSetter(
     setter: MutableStateFlow<T>.(T) -> Unit,
 ): MutableStateFlow<T> =
-    MutableStateFlowInterceptor(this, manuallySetValue = true, setter)
+    MutableStateFlowInterceptor(this, setter)
 
 private class MutableStateFlowInterceptor<T>(
     private val delegate: MutableStateFlow<T>,
-    private val manuallySetValue: Boolean,
     private val setter: MutableStateFlow<T>.(T) -> Unit,
 ) : MutableStateFlow<T> by delegate {
     override var value: T
         get() = delegate.value
-        set(value) {
-            delegate.setter(value)
-            if (!manuallySetValue) {
-                delegate.value = value
-            }
-        }
+        set(value) { delegate.setter(value) }
 }
