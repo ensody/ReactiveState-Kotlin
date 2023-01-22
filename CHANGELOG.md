@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.2.0
+
+* Extracted non-Android code into reactivestate-core(-test) modules, so you can use ReactiveState with minimal dependencies.
+* Added `MutableStateFlow.afterUpdate` to complete the API introduced in version 5.1.0.
+
 ## 5.1.3
 
 * Upgraded to Kotlin 1.7.21.

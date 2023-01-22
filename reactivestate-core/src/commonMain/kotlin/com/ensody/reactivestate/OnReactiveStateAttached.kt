@@ -10,7 +10,7 @@ public interface OnReactiveStateAttached {
     public fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>)
 }
 
-internal fun ReactiveState<out ErrorEvents>.attachTo(owner: Any) {
+public fun ReactiveState<out ErrorEvents>.attachTo(owner: Any) {
     if (owner is OnReactiveStateAttached) {
         owner.onReactiveStateAttached(this)
     }

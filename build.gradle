@@ -215,10 +215,6 @@ subprojects {
 
         dependencies {
             base()
-
-            if (isAndroidProject) {
-                androidBase()
-            }
         }
 
         apply from: "$rootDir/gradle/common/dokka.gradle"

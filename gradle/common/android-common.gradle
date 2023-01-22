@@ -40,6 +40,8 @@ ext.androidCommon = { args = [:] ->
             )
         }
 
+        namespace = "$group.${name.replace('-', '.')}"
+
         defaultConfig {
             minSdkVersion minVersion
             targetSdkVersion targetVersion
