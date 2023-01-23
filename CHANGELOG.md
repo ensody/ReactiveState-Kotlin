@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.2.1
+
+* Made `Wrapped` a `Serializable` on JVM.
+* Added `Serializable` interface that maps to the JVM `Serializable` and is usable from `commonMain`.
+
 ## 5.2.0
 
 * Extracted non-Android code into reactivestate-core(-test) modules, so you can use ReactiveState with minimal dependencies.
