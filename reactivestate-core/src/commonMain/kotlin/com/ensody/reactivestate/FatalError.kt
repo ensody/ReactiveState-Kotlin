@@ -14,3 +14,14 @@ public inline fun <T> runCatchingNonFatal(block: () -> T): Result<T> =
     } catch (e: Throwable) {
         Result.failure(e.throwIfFatal())
     }
+
+/**
+ * Similar to the stdlib [runCatching][Unit.runCatching], but uses [throwIfFatal] to re-throw fatal exceptions
+ * immediately.
+ */
+public inline fun <T, R> T.runCatchingNonFatal(block: T.() -> R): Result<R> =
+    try {
+        Result.success(block())
+    } catch (e: Throwable) {
+        Result.failure(e.throwIfFatal())
+    }
