@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.3.0
+
+* Added `T.runCatchingNonFatal`. Contributed by @brudaswen. Thank you!
+
 ## 5.2.1
 
 * Made `Wrapped` a `Serializable` on JVM.
