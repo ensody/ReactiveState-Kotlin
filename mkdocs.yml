@@ -50,7 +50,5 @@ nav:
     - 'Unit testing coroutines': unit-testing-coroutines.md
     - 'MutableValueFlow': mutablevalueflow.md
     - 'Example: Guess the number': example-guess-the-number.md
-  - 'API reference':
-    - 'reactivestate': reference/reactivestate/com.ensody.reactivestate/index.md
-    - 'reactivestate-test': reference/reactivestate-test/com.ensody.reactivestate.test/index.md
+  - 'API reference': reference/index.md
   - 'Changelog': changelog.md

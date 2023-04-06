@@ -252,6 +252,10 @@ subprojects {
     )
 }
 
+tasks.named("dokkaGfmMultiModule").configure {
+    outputDirectory.set(project.file("docs/reference"))
+}
+
 nexusPublishing {
     repositories {
         mavenCentral {
