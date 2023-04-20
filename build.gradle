@@ -115,12 +115,12 @@ subprojects {
                     testAll.dependsOn "iosSimulatorArm64Test"
                     testAll.dependsOn "iosX64Test"
 
-                    tvos()
-                    tvosSimulatorArm64()
+//                    tvos()
+//                    tvosSimulatorArm64()
 
-                    watchos()
-                    watchosX86()
-                    watchosSimulatorArm64()
+//                    watchos()
+//                    watchosX86()
+//                    watchosSimulatorArm64()
 
                     sourceSets {
                         appleMobileMain { dependsOn(nativeMain) }
@@ -135,30 +135,30 @@ subprojects {
                         iosSimulatorArm64Main { dependsOn(iosMain) }
                         iosSimulatorArm64Test { dependsOn(iosTest) }
 
-                        tvosMain { dependsOn(appleMobileMain) }
-                        tvosTest { dependsOn(appleMobileTest) }
-                        tvosSimulatorArm64Main { dependsOn(tvosMain) }
-                        tvosSimulatorArm64Test { dependsOn(tvosTest) }
+//                        tvosMain { dependsOn(appleMobileMain) }
+//                        tvosTest { dependsOn(appleMobileTest) }
+//                        tvosSimulatorArm64Main { dependsOn(tvosMain) }
+//                        tvosSimulatorArm64Test { dependsOn(tvosTest) }
 
-                        watchosMain { dependsOn(appleMobileMain) }
-                        watchosTest { dependsOn(appleMobileTest) }
-                        watchosArm64Main { dependsOn(watchosMain) }
-                        watchosArm64Test { dependsOn(watchosTest) }
-                        watchosArm32Main { dependsOn(watchosMain) }
-                        watchosArm32Test { dependsOn(watchosTest) }
-                        watchosX64Main { dependsOn(watchosMain) }
-                        watchosX64Test { dependsOn(watchosTest) }
-                        watchosX86Main { dependsOn(watchosMain) }
-                        watchosX86Test { dependsOn(watchosTest) }
-                        watchosSimulatorArm64Main { dependsOn(watchosMain) }
-                        watchosSimulatorArm64Test { dependsOn(watchosTest) }
+//                        watchosMain { dependsOn(appleMobileMain) }
+//                        watchosTest { dependsOn(appleMobileTest) }
+//                        watchosArm64Main { dependsOn(watchosMain) }
+//                        watchosArm64Test { dependsOn(watchosTest) }
+//                        watchosArm32Main { dependsOn(watchosMain) }
+//                        watchosArm32Test { dependsOn(watchosTest) }
+//                        watchosX64Main { dependsOn(watchosMain) }
+//                        watchosX64Test { dependsOn(watchosTest) }
+//                        watchosX86Main { dependsOn(watchosMain) }
+//                        watchosX86Test { dependsOn(watchosTest) }
+//                        watchosSimulatorArm64Main { dependsOn(watchosMain) }
+//                        watchosSimulatorArm64Test { dependsOn(watchosTest) }
                     }
                 }
 
-                macosArm64()
-                testAll.dependsOn "macosArm64Test"
-                macosX64()
-                testAll.dependsOn "macosX64Test"
+//                macosArm64()
+//                testAll.dependsOn "macosArm64Test"
+//                macosX64()
+//                testAll.dependsOn "macosX64Test"
 
 //                linuxArm64()
 //                testAll.dependsOn "linuxArm64Test"
@@ -179,12 +179,12 @@ subprojects {
                     linuxX64Main { dependsOn(linuxMain) }
                     linuxX64Test { dependsOn(linuxTest) }
 
-                    macosMain { dependsOn(desktopMain) }
-                    macosTest { dependsOn(desktopTest) }
-                    macosArm64Main { dependsOn(macosMain) }
-                    macosArm64Test { dependsOn(macosTest) }
-                    macosX64Main { dependsOn(macosMain) }
-                    macosX64Test { dependsOn(macosTest) }
+//                    macosMain { dependsOn(desktopMain) }
+//                    macosTest { dependsOn(desktopTest) }
+//                    macosArm64Main { dependsOn(macosMain) }
+//                    macosArm64Test { dependsOn(macosTest) }
+//                    macosX64Main { dependsOn(macosMain) }
+//                    macosX64Test { dependsOn(macosTest) }
 
                     mingwMain { dependsOn(desktopMain) }
                     mingwTest { dependsOn(desktopTest) }

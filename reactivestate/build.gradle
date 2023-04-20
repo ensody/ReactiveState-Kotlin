@@ -1,3 +1,27 @@
+apply plugin: "org.jetbrains.kotlin.multiplatform"
+apply plugin: "org.jetbrains.kotlin.native.cocoapods"
+
+kotlin {
+    cocoapods {
+        framework {
+            setStatic(false)
+        }
+
+        ios.deploymentTarget = "13.0"
+
+        specRepos {
+            url("https://cdn.cocoapods.org/")
+        }
+
+
+        pod("OpenSSL-Universal") {
+            version = "1.1.2000"
+            // Comment this out to trigger the bug
+            moduleName = "OpenSSL"
+        }
+    }
+}
+
 dependencies {
     androidBase()
     commonMainApi project(":reactivestate-core")
