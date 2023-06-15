@@ -31,14 +31,14 @@ import kotlinx.coroutines.CoroutineScope
 @ExperimentalReactiveStateApi
 @Suppress("UNCHECKED_CAST")
 @Composable
-public inline fun <reified T : ViewModel> viewModel(
+public inline fun <reified VM : ViewModel> viewModel(
     viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
         "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
     },
     key: String? = null,
-    crossinline provider: () -> T,
-): T = viewModel(
-    modelClass = T::class.java,
+    crossinline provider: () -> VM,
+): VM = viewModel(
+    modelClass = VM::class.java,
     viewModelStoreOwner = viewModelStoreOwner,
     key = key,
     factory = object : ViewModelProvider.Factory {

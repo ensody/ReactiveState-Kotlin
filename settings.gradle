@@ -11,8 +11,7 @@ rootProject.name='ReactiveState'
 include ':reactivestate-bom'
 
 include ':reactivestate'
-// FIXME: The recent Compose & Kotlin compiler combination fails to compile this
-//include ':reactivestate-compose'
+include ':reactivestate-compose'
 include ':reactivestate-core'
 include ':reactivestate-core-test'
 include ':reactivestate-test'

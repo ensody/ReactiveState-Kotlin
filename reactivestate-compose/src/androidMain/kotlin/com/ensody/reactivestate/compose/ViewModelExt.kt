@@ -10,6 +10,7 @@ import com.ensody.reactivestate.InMemoryStateFlowStore
 import com.ensody.reactivestate.ReactiveState
 import com.ensody.reactivestate.StateFlowStore
 import com.ensody.reactivestate.compose.android.onViewModel
+import com.ensody.reactivestate.handleEvents
 import kotlinx.coroutines.CoroutineScope
 
 /**
@@ -20,29 +21,17 @@ import kotlinx.coroutines.CoroutineScope
 @ExperimentalReactiveStateApi
 @Suppress("UNCHECKED_CAST")
 @Composable
-public inline fun <reified E : ErrorEvents, reified T : ReactiveState<E>> reactiveState(
+public inline fun <reified E : ErrorEvents, reified VM : ReactiveState<E>> E.reactiveState(
     key: String? = null,
-    crossinline provider: ReactiveStateBuildContext.() -> T,
-): ReactiveStateWrapper<E, T> =
-    ReactiveStateWrapper(
-        (key ?: "") + ":reactiveStateEvents:${T::class.qualifiedName}",
-        onViewModel(key = key, provider = provider),
-    )
-
-@ExperimentalReactiveStateApi
-public class ReactiveStateWrapper<E : ErrorEvents, T : ReactiveState<E>>(
-    private val key: String,
-    private val reactiveState: T,
-) {
-
-    @ExperimentalReactiveStateApi
-    @Composable
-    public fun handlingEvents(handler: E): T {
-        LaunchedEffect(key1 = key) {
-            reactiveState.eventNotifier.collect { handler.it() }
-        }
-        return reactiveState
+    crossinline observeLoadingEffect: @Composable (viewModel: VM) -> Unit,
+    crossinline provider: ReactiveStateBuildContext.() -> VM,
+): VM {
+    val viewModel = onViewModel(key = key, provider = provider)
+    observeLoadingEffect(viewModel)
+    LaunchedEffect(this, viewModel.eventNotifier) {
+        viewModel.eventNotifier.handleEvents(this@reactiveState)
     }
+    return viewModel
 }
 
 /**
