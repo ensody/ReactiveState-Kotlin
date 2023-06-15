@@ -2,7 +2,6 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -16,9 +15,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-
-// Used to for the derived version which doesn't need a CoroutineScope
-private val scopelessCoroutineLauncher by lazy { SimpleCoroutineLauncher(MainScope()) }
 
 private abstract class BaseDerivedStateFlow<T>(
     protected val launcher: CoroutineLauncher,

@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ensody.reactivestate.Disposable
+import com.ensody.reactivestate.OnDemandStateFlow
 import com.ensody.reactivestate.OnDispose
 import com.ensody.reactivestate.autoRun
 import com.ensody.reactivestate.get
@@ -16,9 +17,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -282,37 +281,18 @@ public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
     addObserver(OnPauseObserver(lifecycle, true, block))
 
 /**
- * A lifecycle observer that provides the current [state] as a [StateFlow].
- *
- * The observer is registered with [start] and unregistered with [dispose].
+ * A [StateFlow] that tracks the current [Lifecycle.State].
  */
-public class LifecycleStateObserver(public val lifecycle: Lifecycle) : LifecycleEventObserver, Disposable {
-    private val _state = MutableStateFlow(lifecycle.currentState)
-    public val state: StateFlow<Lifecycle.State> = _state.asStateFlow()
-
-    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
-        _state.value = event.targetState
+public fun LifecycleStateFlow(lifecycle: Lifecycle): StateFlow<Lifecycle.State> =
+    OnDemandStateFlow({ lifecycle.currentState }) {
+        val observer = LifecycleEventObserver { _, event -> value = event.targetState }
+        lifecycle.addObserver(observer)
+        invokeOnCancellation { lifecycle.removeObserver(observer) }
     }
-
-    public fun start() {
-        lifecycle.addObserver(this)
-    }
-
-    override fun dispose() {
-        lifecycle.removeObserver(this)
-    }
-}
 
 /** Tracks the current lifecycle state as a [StateFlow] and passes it to the given [block]. */
-public suspend fun <T> LifecycleOwner.withLifecycleStateFlow(block: suspend (StateFlow<Lifecycle.State>) -> T): T {
-    val observer = LifecycleStateObserver(lifecycle)
-    return try {
-        observer.start()
-        block(observer.state)
-    } finally {
-        observer.dispose()
-    }
-}
+public suspend fun <T> LifecycleOwner.withLifecycleStateFlow(block: suspend (StateFlow<Lifecycle.State>) -> T): T =
+    block(LifecycleStateFlow(lifecycle))
 
 /**
  * Waits until the lifecycle reaches the given [state] and then launches a coroutine with the given [block].
@@ -341,17 +321,17 @@ public suspend fun <T> LifecycleOwner.onceStateAtLeast(
     state: Lifecycle.State,
     cancelWhenBelow: Boolean,
     block: suspend () -> T,
-): T =
-    withLifecycleStateFlow { currentState ->
-        currentState.filter { it >= state }.first()
-        if (cancelWhenBelow) {
-            coroutineScope {
-                val abort = async {
-                    currentState.filter { it < state }.map { this@coroutineScope.cancel() }.first()
-                }
-                block().also { abort.cancel() }
+): T {
+    val currentState = LifecycleStateFlow(lifecycle)
+    currentState.filter { it >= state }.first()
+    return if (cancelWhenBelow) {
+        coroutineScope {
+            val abort = async {
+                currentState.filter { it < state }.map { this@coroutineScope.cancel() }.first()
             }
-        } else {
-            block()
+            block().also { abort.cancel() }
         }
+    } else {
+        block()
     }
+}
