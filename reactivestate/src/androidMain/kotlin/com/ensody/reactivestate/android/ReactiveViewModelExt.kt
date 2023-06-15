@@ -2,10 +2,10 @@ package com.ensody.reactivestate.android
 
 import androidx.activity.ComponentActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.ensody.reactivestate.ErrorEvents
 import com.ensody.reactivestate.NamespacedStateFlowStore
@@ -43,10 +43,10 @@ public fun <E : ErrorEvents> Lazy<ReactiveState<E>>.attachLazyReactiveState(
     if (handler == null) {
         throw IllegalStateException("You have to implement the ViewModel's events interface.")
     }
-    owner.lifecycleScope.launchWhenCreated {
+    owner.launchOnceStateAtLeast(Lifecycle.State.CREATED) {
         value.eventNotifier.handleEvents(handler, owner)
     }
-    owner.lifecycleScope.launchWhenCreated {
+    owner.launchOnceStateAtLeast(Lifecycle.State.CREATED) {
         value.attachTo(owner)
     }
 }

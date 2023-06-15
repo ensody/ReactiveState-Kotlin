@@ -1,16 +1,16 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
-    ext.kotlin_version = '1.7.21'
+    ext.kotlin_version = '1.8.21'
 }
 
 plugins {
-    id 'com.android.application' version '7.3.1' apply false
+    id 'com.android.application' version '8.0.0' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
-    id "org.jetbrains.dokka" version "1.7.20"
-    id 'pl.allegro.tech.build.axion-release' version '1.13.3'
-    id 'com.github.ben-manes.versions' version '0.42.0'
-    id "io.github.gradle-nexus.publish-plugin" version "1.1.0"
+    id "org.jetbrains.dokka" version "1.8.20"
+    id 'pl.allegro.tech.build.axion-release' version '1.15.3'
+    id 'com.github.ben-manes.versions' version '0.47.0'
+    id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
 }
 
 allprojects {
@@ -34,7 +34,6 @@ def publicationPassword = secrets.getProperty("publication.password") ?: System.
 group "com.ensody.reactivestate"
 subprojects {
     group rootProject.group
-    version = rootProject.version
 
     ext {
         isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
@@ -92,8 +91,7 @@ subprojects {
 
                     sourceSets {
                         androidMain { dependsOn(jvmCommonMain) }
-                        // TODO: Adapt this once we upgrade to Kotlin 1.8.x
-                        androidTest { dependsOn(jvmCommonTest) }.kotlin.srcDirs("$projectDir/src/androidUnitTest")
+                        androidUnitTest { dependsOn(jvmCommonTest) }
                     }
                 }
 
@@ -129,7 +127,7 @@ subprojects {
                         iosMain { dependsOn(appleMobileMain) }
                         iosTest { dependsOn(appleMobileTest) }
                         iosArm64Main { dependsOn(iosMain) }
-                        iosArm64Test { dependsOn(iosMain) }
+                        iosArm64Test { dependsOn(iosTest) }
                         iosX64Main { dependsOn(iosMain) }
                         iosX64Test { dependsOn(iosTest) }
                         iosSimulatorArm64Main { dependsOn(iosMain) }

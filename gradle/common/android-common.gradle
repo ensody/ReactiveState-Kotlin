@@ -64,15 +64,6 @@ ext.androidCommon = { args = [:] ->
         packagingOptions {
             pickFirst 'META-INF/*.kotlin_module'
         }
-
-        if (isMultiplatform) {
-            sourceSets {
-                main {
-                    setRoot("src/androidMain")
-                    assets.srcDir("src/commonMain/assets")
-                }
-            }
-        }
     }
 
     dependencies {

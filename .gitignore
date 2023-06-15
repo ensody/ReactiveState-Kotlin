@@ -16,3 +16,4 @@
 .externalNativeBuild
 .cxx
 /kotlin-js-store
+*.podspec

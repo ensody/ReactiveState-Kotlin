@@ -231,8 +231,6 @@ internal class LifecycleTest : AndroidCoroutineTest() {
 }
 
 internal class MockLifecycleOwner : LifecycleOwner {
-    val lifecycle = LifecycleRegistry(this)
+    override val lifecycle = LifecycleRegistry(this)
     var lifecycleValue: String by validUntil(::onStop)
-
-    override fun getLifecycle(): Lifecycle = lifecycle
 }

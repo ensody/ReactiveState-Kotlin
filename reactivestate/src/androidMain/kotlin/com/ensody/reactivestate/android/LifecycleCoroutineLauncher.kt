@@ -1,14 +1,13 @@
 package com.ensody.reactivestate.android
 
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.whenStarted
 import com.ensody.reactivestate.ErrorEvents
 import com.ensody.reactivestate.SimpleCoroutineLauncher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 
 /** A [SimpleCoroutineLauncher] that launches coroutines in the `STARTED` state. */
@@ -20,15 +19,14 @@ public class LifecycleCoroutineLauncher(
         context: CoroutineContext,
         start: CoroutineStart,
         block: suspend CoroutineScope.() -> Unit,
-    ): Job {
-        return owner.lifecycleScope.launch(context, start) {
-            owner.whenStarted(block)
+    ): Job =
+        owner.launchOnceStateAtLeast(Lifecycle.State.STARTED, context, start) {
+            block()
         }
-    }
 
     override fun onError(error: Throwable) {
         if (owner is ErrorEvents) {
-            owner.lifecycleScope.launchWhenStarted { owner.onError(error) }
+            owner.launchOnceStateAtLeast(Lifecycle.State.STARTED) { owner.onError(error) }
         } else {
             super.onError(error)
         }

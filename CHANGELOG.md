@@ -1,5 +1,12 @@
 # Changelog
 
+## 5.4.0
+
+* Upgraded to Kotlin 1.8.21 which fixes the compilation speed regression.
+* Added `LifecycleOwner.withLifecycleStateFlow` for observing the lifecycle state as a `StateFlow`.
+* Added `LifecycleOwner.launchOnceStateAtLeast` which can be used in place of Android's deprecated `launchWhenStarted` etc.
+* Added `LifecycleOwner.onceStateAtLeast` which can be used in place of Android's deprecated `whenStarted` etc. and which can run a `suspend fun` unlike Android's `withStateAtLeast`.
+
 ## 5.3.0
 
 * Added `T.runCatchingNonFatal`. Contributed by @brudaswen. Thank you!

@@ -3,6 +3,7 @@ package com.ensody.reactivestate.android
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ensody.reactivestate.Disposable
@@ -10,6 +11,20 @@ import com.ensody.reactivestate.OnDispose
 import com.ensody.reactivestate.autoRun
 import com.ensody.reactivestate.get
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private abstract class DisposableObserver(private val lifecycle: Lifecycle) :
     DefaultLifecycleObserver,
@@ -265,3 +280,78 @@ public fun LifecycleOwner.onPause(block: () -> Unit): Disposable =
  */
 public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
     addObserver(OnPauseObserver(lifecycle, true, block))
+
+/**
+ * A lifecycle observer that provides the current [state] as a [StateFlow].
+ *
+ * The observer is registered with [start] and unregistered with [dispose].
+ */
+public class LifecycleStateObserver(public val lifecycle: Lifecycle) : LifecycleEventObserver, Disposable {
+    private val _state = MutableStateFlow(lifecycle.currentState)
+    public val state: StateFlow<Lifecycle.State> = _state.asStateFlow()
+
+    override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
+        _state.value = event.targetState
+    }
+
+    public fun start() {
+        lifecycle.addObserver(this)
+    }
+
+    override fun dispose() {
+        lifecycle.removeObserver(this)
+    }
+}
+
+/** Tracks the current lifecycle state as a [StateFlow] and passes it to the given [block]. */
+public suspend fun <T> LifecycleOwner.withLifecycleStateFlow(block: suspend (StateFlow<Lifecycle.State>) -> T): T {
+    val observer = LifecycleStateObserver(lifecycle)
+    return try {
+        observer.start()
+        block(observer.state)
+    } finally {
+        observer.dispose()
+    }
+}
+
+/**
+ * Waits until the lifecycle reaches the given [state] and then launches a coroutine with the given [block].
+ *
+ * @param cancelWhenBelow Pass `false` to keep the coroutine running even if the state falls below [state].
+ */
+public fun LifecycleOwner.launchOnceStateAtLeast(
+    state: Lifecycle.State,
+    context: CoroutineContext = EmptyCoroutineContext,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    cancelWhenBelow: Boolean = true,
+    block: suspend CoroutineScope.() -> Unit,
+): Job =
+    lifecycleScope.launch(context, start) {
+        onceStateAtLeast(state, cancelWhenBelow = cancelWhenBelow) {
+            block()
+        }
+    }
+
+/**
+ * Waits until the lifecycle reaches the given [state] and then runs [block].
+ *
+ * @param cancelWhenBelow Pass `false` to keep the coroutine running even if the state falls below [state].
+ */
+public suspend fun <T> LifecycleOwner.onceStateAtLeast(
+    state: Lifecycle.State,
+    cancelWhenBelow: Boolean,
+    block: suspend () -> T,
+): T =
+    withLifecycleStateFlow { currentState ->
+        currentState.filter { it >= state }.first()
+        if (cancelWhenBelow) {
+            coroutineScope {
+                val abort = async {
+                    currentState.filter { it < state }.map { this@coroutineScope.cancel() }.first()
+                }
+                block().also { abort.cancel() }
+            }
+        } else {
+            block()
+        }
+    }

@@ -68,7 +68,7 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateFlowViewModel(
     crossinline provider: (handle: SavedStateHandleStore) -> T,
 ): Lazy<T> =
     viewModels {
-        object : AbstractSavedStateViewModelFactory(this, null) {
+        object : AbstractSavedStateViewModelFactory(this@stateFlowViewModel, null) {
             override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
@@ -89,7 +89,7 @@ public inline fun <reified T : ViewModel> Fragment.stateFlowViewModel(
     crossinline provider: (store: SavedStateHandleStore) -> T,
 ): Lazy<T> =
     viewModels {
-        object : AbstractSavedStateViewModelFactory(this, null) {
+        object : AbstractSavedStateViewModelFactory(this@stateFlowViewModel, null) {
             override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
@@ -131,7 +131,7 @@ public inline fun <reified T : ViewModel> Fragment.stateViewModel(
     crossinline provider: (handle: SavedStateHandle) -> T,
 ): Lazy<T> =
     viewModels {
-        object : AbstractSavedStateViewModelFactory(this, null) {
+        object : AbstractSavedStateViewModelFactory(this@stateViewModel, null) {
             override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
@@ -152,7 +152,7 @@ public inline fun <reified T : ViewModel> ComponentActivity.stateViewModel(
     crossinline provider: (handle: SavedStateHandle) -> T,
 ): Lazy<T> =
     viewModels {
-        object : AbstractSavedStateViewModelFactory(this, null) {
+        object : AbstractSavedStateViewModelFactory(this@stateViewModel, null) {
             override fun <T : ViewModel> create(
                 key: String,
                 modelClass: Class<T>,
