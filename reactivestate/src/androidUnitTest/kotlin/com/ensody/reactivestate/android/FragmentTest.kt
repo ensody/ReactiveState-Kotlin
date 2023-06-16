@@ -6,7 +6,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.ensody.reactivestate.test.AndroidCoroutineTest
 import kotlinx.coroutines.test.runCurrent
 import org.junit.runner.RunWith
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -15,7 +14,6 @@ import kotlin.test.assertSame
 
 @RunWith(AndroidJUnit4::class)
 internal class FragmentTest : AndroidCoroutineTest() {
-    @Ignore // The CI sometimes hangs here although locally the test runs successfully
     @Test
     fun creationOfReactiveState() = runTest {
         val scenario = launchFragmentInContainer<TestFragment>()
