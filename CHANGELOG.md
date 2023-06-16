@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.4.1
+
+* Fixed `LifecycleStateFlow` and indirectly `autoRun` and `derived`
+
 ## 5.4.0
 
 * Upgraded to Kotlin 1.8.21 which fixes the compilation speed regression.

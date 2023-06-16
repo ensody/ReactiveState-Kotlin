@@ -287,14 +287,17 @@ public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
  */
 public fun LifecycleStateFlow(lifecycle: Lifecycle): StateFlow<Lifecycle.State> =
     callbackFlow {
-        val observer = LifecycleEventObserver { _, event -> trySend(event.targetState) }
+        var startingState: Lifecycle.State? = lifecycle.currentState
+        val observer = LifecycleEventObserver { _, event ->
+            val compareTo = startingState?.let { listOf(it, lifecycle.currentState).min() }
+            if (compareTo == null || event.targetState >= compareTo) {
+                startingState = null
+                trySend(event.targetState)
+            }
+        }
         lifecycle.addObserver(observer)
         awaitClose { lifecycle.removeObserver(observer) }
     }.stateOnDemand { lifecycle.currentState }
-
-/** Tracks the current lifecycle state as a [StateFlow] and passes it to the given [block]. */
-public suspend fun <T> LifecycleOwner.withLifecycleStateFlow(block: suspend (StateFlow<Lifecycle.State>) -> T): T =
-    block(LifecycleStateFlow(lifecycle))
 
 /**
  * Waits until the lifecycle reaches the given [state] and then launches a coroutine with the given [block].
