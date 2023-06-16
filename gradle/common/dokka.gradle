@@ -1,6 +1,6 @@
 apply plugin: 'org.jetbrains.dokka'
 
-tasks.named("dokkaGfm").configure {
+tasks.named("dokkaGfmPartial").configure {
     outputDirectory.set(rootProject.file("docs/reference"))
 
     dokkaSourceSets {
