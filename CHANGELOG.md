@@ -9,6 +9,7 @@
 * Added `LifecycleOwner.launchOnceStateAtLeast` which can be used in place of Android's deprecated `launchWhenStarted` etc.
 * Added `LifecycleOwner.onceStateAtLeast` which can be used in place of Android's deprecated `whenStarted` etc. and which can run a `suspend fun` unlike Android's `withStateAtLeast`.
 * Re-added Jetpack Compose helpers. Currently only available for Android.
+* Added `StateFlow.toMutable` which can turn a `StateFlow` into a `MutableStateFlow` with a custom setter.
 
 ## 5.3.0
 

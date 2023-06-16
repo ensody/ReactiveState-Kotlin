@@ -147,3 +147,26 @@ class MyFragment : Fragment(), OnReactiveStateAttached, ErrorEvents {
     }
 }
 ```
+
+## MutableStateFlow interceptors
+
+You can use `beforeUpdate`/`afterUpdate`/`withSetter` on a `MutableStateFlow` to execute additional code on every
+update. This can also be helpful to reduce boilerplate in ViewModels because you can turn this:
+
+```kotlin
+private val _state = MutableStateFlow("value")
+public val state: StateFlow<String> = _state.asStateFlow()
+
+public fun updateState(value: String) {
+    _state.value = value
+    // ...some extra logic...
+}
+```
+
+into this:
+
+```kotlin
+public val state: MutableStateFlow<String> = MutableStateFlow("value").afterUpdate {
+  // ...some extra logic...
+}
+```

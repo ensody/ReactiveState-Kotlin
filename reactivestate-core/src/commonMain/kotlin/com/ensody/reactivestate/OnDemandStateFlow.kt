@@ -7,6 +7,7 @@ import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
@@ -65,7 +66,7 @@ public inline fun <T> sharedFlow(
 ): SharedFlow<T> =
     callbackFlow { observer() }.shareOnDemand(replay = replay, context = context)
 
-private fun <T> Flow<T>.internalShareOnDemand(
+internal fun <T> Flow<T>.internalShareOnDemand(
     replay: Int = 0,
     context: CoroutineContext = EmptyCoroutineContext,
 ): DefaultOnDemandSharedFlow<T> =
@@ -75,7 +76,7 @@ private fun <T> Flow<T>.internalShareOnDemand(
         DefaultOnDemandSharedFlow(this, replay, context, MutableSharedFlow(replay = replay))
     }
 
-private class DefaultOnDemandSharedFlow<T>(
+internal class DefaultOnDemandSharedFlow<T>(
     val flow: Flow<T>,
     val replay: Int,
     val context: CoroutineContext,
@@ -84,11 +85,11 @@ private class DefaultOnDemandSharedFlow<T>(
 
     private val mutex = Mutex()
     private var job: Job? = null
-    var subscriptionCount = 0
+    val subscriptionCount = MutableStateFlow(0)
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
         mutex.withLock {
-            subscriptionCount += 1
+            subscriptionCount.value += 1
             if (job == null) {
                 job = mainScope.launch(context = context) {
                     flow.collect { delegate.emit(it) }
@@ -100,8 +101,8 @@ private class DefaultOnDemandSharedFlow<T>(
         } finally {
             withContext(NonCancellable) {
                 mutex.withLock {
-                    subscriptionCount -= 1
-                    if (subscriptionCount == 0) {
+                    subscriptionCount.value -= 1
+                    if (subscriptionCount.value == 0) {
                         job?.cancel()
                         job = null
                     }
@@ -111,14 +112,14 @@ private class DefaultOnDemandSharedFlow<T>(
     }
 }
 
-private class DefaultOnDemandStateFlow<T>(
-    private val delegate: DefaultOnDemandSharedFlow<T>,
-    private val getter: (previous: Wrapped<T>?) -> T,
+internal class DefaultOnDemandStateFlow<T>(
+    val delegate: DefaultOnDemandSharedFlow<T>,
+    val getter: (previous: Wrapped<T>?) -> T,
 ) : StateFlow<T>, SharedFlow<T> by delegate {
 
     override val value: T
         get() =
-            if (delegate.subscriptionCount == 0 || delegate.replayCache.isEmpty()) {
+            if (delegate.subscriptionCount.value == 0 || delegate.replayCache.isEmpty()) {
                 val previous = if (delegate.replayCache.isNotEmpty()) Wrapped(delegate.replayCache.first()) else null
                 getter(previous).also {
                     if (previous == null || it !== previous.value) {
@@ -131,7 +132,7 @@ private class DefaultOnDemandStateFlow<T>(
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
         // Ensure the first emitted value is up to date
-        if (delegate.subscriptionCount == 0) {
+        if (delegate.subscriptionCount.value == 0) {
             value
         }
         delegate.collect(collector)

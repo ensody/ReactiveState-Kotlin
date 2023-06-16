@@ -31,32 +31,34 @@ Ideally you wouldn't have to deal with `CoroutineScope`.
 This library provides `stateOnDemand` and `shareOnDemand` and `sharedFlow` which only launch an internal coroutine
 while someone is subscribed, but can safely get garbage collected when nobody is subscribed, anymore.
 
-For example, a database `query()` function might want to return the current result but also allow observing for updates.
-With `stateOnDemand` you can create such a result:
+For example, if you want to create a `getIntFlow()` function for a key-value store (e.g. `SharedPreferences` or `NSUserDefaults`) you might want to return the current result but also allow observing/collecting to receive updates.
+With `stateOnDemand` you can create such a result and using `toMutable` you can make it mutable:
 
-```
-suspend fun query(sql: String): StateFlow<QueryResult> =
+```kotlin
+suspend fun KeyValueStore.getIntFlow(key: String, default: Int): StateFlow<Int> =
     callbackFlow {
-        // Pseudo-API for getting notified whenever a SQL query's results get updated
-        val observer = QueryObserver(sql) { newResult ->
-            send(newResult)
+        // With callbackFlow we define the collect() behavior.
+        // In this example, let's use a pseudo-API for getting notified whenever a key gets updated:
+        val listener = KeyValueStore.OnChangeListener { changedKey: String ->
+            if (changedKey == key) {
+                send(getInt(key))
+            }
         }
-        observer.start()
-        awaitClose { observer.dispose() }
-    }.stateOnDemand { previous: Wrapped<QueryResult>? ->
-        // stateOnDemand takes a getter function which defines StateFlow.value when nobody collects.
+        addListener(listener)
+        awaitClose { removeListener(listener) }
+    }.stateOnDemand { previous: Wrapped<Int>? ->
+        // stateOnDemand takes a getter function which defines the StateFlow.value behavior when nobody collects.
         // The previous value is also passed here, wrapped in a Wrapped() instance (which can be null if this is the
-        // first value access).
-        previous?.value
-            ?: executeQueryAndGetResult(sql)
+        // first value access). This can be useful for caching.
+        getInt(key, default)
+    }.toMutable { value: Int ->
+        // withSetter defines the StateFlow.value = ... behavior
+        putInt(key, value)
     }
-
-/** Executes a non-observable query. Used internally to fill the initial StateFlow.value. */
-private suspend fun executeQueryAndGetResult(sql: String): QueryResult = ...
 ```
 
 Here we've turned a simple `Flow` (via `callbackFlow`) into a `StateFlow` that is safe for returning from a function
-and we didn't need any `CoroutineScope`.
+and we didn't need any `CoroutineScope`. Then we've used `toMutable` to turn that into a `MutableStateFlow`.
 
 ## News ticker example
 
