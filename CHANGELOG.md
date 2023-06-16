@@ -3,7 +3,8 @@
 ## 5.4.0
 
 * Upgraded to Kotlin 1.8.21 which fixes the compilation speed regression.
-* Added `OnDemandStateFlow` which creates a computed or callback-based `StateFlow` without requiring a `CoroutineScope` (unlike `stateIn`).
+* Added `Flow<T>.stateOnDemand { ...getter... }` which creates a `StateFlow` without requiring a `CoroutineScope` (unlike `stateIn`).
+* Added `Flow<T>.shareOnDemand()` and `sharedFlow {} which creates a `SharedFlow` without requiring a `CoroutineScope` (unlike `shareIn`).
 * Added `LifecycleStateFlow` for observing the lifecycle state as a `StateFlow`.
 * Added `LifecycleOwner.launchOnceStateAtLeast` which can be used in place of Android's deprecated `launchWhenStarted` etc.
 * Added `LifecycleOwner.onceStateAtLeast` which can be used in place of Android's deprecated `whenStarted` etc. and which can run a `suspend fun` unlike Android's `withStateAtLeast`.

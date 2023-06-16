@@ -7,17 +7,19 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.ensody.reactivestate.Disposable
-import com.ensody.reactivestate.OnDemandStateFlow
 import com.ensody.reactivestate.OnDispose
 import com.ensody.reactivestate.autoRun
 import com.ensody.reactivestate.get
+import com.ensody.reactivestate.stateOnDemand
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -284,11 +286,11 @@ public fun LifecycleOwner.onPauseOnce(block: () -> Unit): Disposable =
  * A [StateFlow] that tracks the current [Lifecycle.State].
  */
 public fun LifecycleStateFlow(lifecycle: Lifecycle): StateFlow<Lifecycle.State> =
-    OnDemandStateFlow({ lifecycle.currentState }) {
-        val observer = LifecycleEventObserver { _, event -> value = event.targetState }
+    callbackFlow {
+        val observer = LifecycleEventObserver { _, event -> trySend(event.targetState) }
         lifecycle.addObserver(observer)
-        invokeOnCancellation { lifecycle.removeObserver(observer) }
-    }
+        awaitClose { lifecycle.removeObserver(observer) }
+    }.stateOnDemand { lifecycle.currentState }
 
 /** Tracks the current lifecycle state as a [StateFlow] and passes it to the given [block]. */
 public suspend fun <T> LifecycleOwner.withLifecycleStateFlow(block: suspend (StateFlow<Lifecycle.State>) -> T): T =

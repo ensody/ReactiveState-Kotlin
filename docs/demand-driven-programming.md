@@ -17,6 +17,47 @@ Imagine the a new requirement where you want to show the news widget in a few mo
 The way to model this problem is that some screens "demand" the news ticker.
 In other words, they have a dependency on the news ticker.
 
+## StateFlow and SharedFlow
+
+The coroutines library only provides `stateIn` and `shareIn` functions which take a `CoroutineScope`.
+This can be quite annoying if you want to e.g. create a function that returns a `StateFlow` because
+`stateIn` keeps a coroutine running in the background as long as the provided `CoroutineScope` exists.
+Also, very often in reusable/library code you don't want to pass scopes around through your whole codebase because
+that's just ugly and feels unnecessary. Moreover, you might not even have a proper `CoroutineScope` available because
+your computed `StateFlow` shouldn't bind to a single ViewModel's scope, but rather be shared maybe even by multiple
+ViewModels, but still not consume resources when nobody is using that `StateFlow`.
+Ideally you wouldn't have to deal with `CoroutineScope`.
+
+This library provides `stateOnDemand` and `shareOnDemand` and `sharedFlow` which only launch an internal coroutine
+while someone is subscribed, but can safely get garbage collected when nobody is subscribed, anymore.
+
+For example, a database `query()` function might want to return the current result but also allow observing for updates.
+With `stateOnDemand` you can create such a result:
+
+```
+suspend fun query(sql: String): StateFlow<QueryResult> =
+    callbackFlow {
+        // Pseudo-API for getting notified whenever a SQL query's results get updated
+        val observer = QueryObserver(sql) { newResult ->
+            send(newResult)
+        }
+        observer.start()
+        awaitClose { observer.dispose() }
+    }.stateOnDemand { previous: Wrapped<QueryResult>? ->
+        // stateOnDemand takes a getter function which defines StateFlow.value when nobody collects.
+        // The previous value is also passed here, wrapped in a Wrapped() instance (which can be null if this is the
+        // first value access).
+        previous?.value
+            ?: executeQueryAndGetResult(sql)
+    }
+
+/** Executes a non-observable query. Used internally to fill the initial StateFlow.value. */
+private suspend fun executeQueryAndGetResult(sql: String): QueryResult = ...
+```
+
+Here we've turned a simple `Flow` (via `callbackFlow`) into a `StateFlow` that is safe for returning from a function
+and we didn't need any `CoroutineScope`.
+
 ## News ticker example
 
 Imagine you want to show the breaking news only, but the backend only provides a list of all latest news.

@@ -2,6 +2,7 @@ package com.ensody.reactivestate
 
 import com.ensody.reactivestate.test.CoroutineTest
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
@@ -13,8 +14,10 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
     @Test
     fun onDemandTest() = runTest {
         val source = MutableStateFlow(0)
-        val flow = OnDemandStateFlow<Int>({ source.value }) {
-            source.collectLatest { value = it }
+        val flow = callbackFlow {
+            source.collectLatest { send(it) }
+        }.stateOnDemand {
+            source.value
         }
         assertEquals(0, flow.value)
         source.value = 1
@@ -22,7 +25,7 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
 
         var data = -1
         source.value = 2
-        backgroundScope.launch { flow.collectLatest { data = it } }
+        backgroundScope.launch { flow.collect { data = it } }
         runCurrent()
         assertEquals(2, data)
         source.value = 3
