@@ -35,7 +35,7 @@ For example, if you want to create a `getIntFlow()` function for a key-value sto
 With `stateOnDemand` you can create such a result and using `toMutable` you can make it mutable:
 
 ```kotlin
-suspend fun KeyValueStore.getIntFlow(key: String, default: Int): StateFlow<Int> =
+suspend fun KeyValueStore.getIntFlow(key: String, default: Int): MutableStateFlow<Int> =
     callbackFlow {
         // With callbackFlow we define the collect() behavior.
         // In this example, let's use a pseudo-API for getting notified whenever a key gets updated:
@@ -52,7 +52,7 @@ suspend fun KeyValueStore.getIntFlow(key: String, default: Int): StateFlow<Int> 
         // first value access). This can be useful for caching.
         getInt(key, default)
     }.toMutable { value: Int ->
-        // withSetter defines the StateFlow.value = ... behavior
+        // toMutable defines the StateFlow.value = ... setter behavior
         putInt(key, value)
     }
 ```
