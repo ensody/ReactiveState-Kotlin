@@ -20,7 +20,9 @@ ext.setupScmVersion = { args ->
             }
             branchVersionCreator.putAll([
                 'main': 'simple',
-                '.*'  : { version, position -> "999999.0.0-${position.branch}".toString() },
+                '.*'  : { version, position ->
+                    position.branch == "HEAD" ? version : "999999.0.0-${position.branch}".toString()
+                },
             ])
             snapshotCreator { version, position ->
                 position.branch == "main" ? "-SNAPSHOT" : ""
