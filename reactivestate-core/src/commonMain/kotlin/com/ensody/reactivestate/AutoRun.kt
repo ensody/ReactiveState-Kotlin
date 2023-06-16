@@ -124,6 +124,7 @@ public abstract class BaseAutoRunner : AttachedDisposables {
 
 public abstract class InternalBaseAutoRunner(
     final override val launcher: CoroutineLauncher,
+    immediate: Boolean,
     protected val flowTransformer: AutoRunFlowTransformer,
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
@@ -135,7 +136,7 @@ public abstract class InternalBaseAutoRunner(
     private var flowConsumer: Job? = null
 
     init {
-        consumeChangeFlow()
+        if (immediate) consumeChangeFlow()
     }
 
     protected fun consumeChangeFlow() {
@@ -151,7 +152,7 @@ public abstract class InternalBaseAutoRunner(
         }
     }
 
-    override val isActive: Boolean = flowConsumer != null
+    override val isActive: Boolean get() = flowConsumer != null
 
     protected abstract suspend fun worker()
 
@@ -185,27 +186,31 @@ public abstract class InternalBaseAutoRunner(
  * @param onChange Gets called when the observables change. Your onChange handler has to
  *                 manually call [run] at any point (e.g. asynchronously) to change the tracked observables.
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
+ * @param immediate Whether to start tracking in a background coroutine immediately.
  * @param observer The callback which is used to track the observables.
  */
 public class AutoRunner<T>(
     launcher: CoroutineLauncher,
     onChange: AutoRunOnChangeCallback<T>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
+    immediate: Boolean = true,
     private val observer: AutoRunCallback<T>,
-) : InternalBaseAutoRunner(launcher, flowTransformer) {
+) : InternalBaseAutoRunner(launcher, immediate, flowTransformer) {
     private val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
 
-    /** Calls [observer] and tracks its dependencies. */
-    public fun run(): T {
-        consumeChangeFlow()
-        return observe(observer)
+    /** Calls [observer] and tracks its dependencies unless [once] is `true`. */
+    public fun run(once: Boolean = false): T {
+        if (!once) consumeChangeFlow()
+        return observe(once, observer)
     }
 
     override suspend fun worker() {
         listener(this)
     }
 
-    private fun <T> observe(observer: AutoRunCallback<T>): T {
+    private fun <T> observe(once: Boolean, observer: AutoRunCallback<T>): T {
+        if (once) return Resolver(this, once).observer()
+
         val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
@@ -242,6 +247,7 @@ public class AutoRunner<T>(
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
  * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
+ * @param immediate Whether to start tracking in a background coroutine immediately.
  * @param observer The callback which is used to track the observables.
  */
 public class CoAutoRunner<T>(
@@ -250,24 +256,27 @@ public class CoAutoRunner<T>(
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
     override val withLoading: MutableValueFlow<Int>? = launcher.loading,
+    immediate: Boolean = true,
     private val observer: CoAutoRunCallback<T>,
-) : InternalBaseAutoRunner(launcher, flowTransformer) {
+) : InternalBaseAutoRunner(launcher, immediate, flowTransformer) {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     private val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
     override var resolver: Resolver = Resolver(this)
 
-    /** Calls [observer] and tracks its dependencies. */
-    public suspend fun run(): T =
+    /** Calls [observer] and tracks its dependencies unless [once] is `true`. */
+    public suspend fun run(once: Boolean = false): T =
         dispatcher {
-            consumeChangeFlow()
-            observe(observer)
+            if (!once) consumeChangeFlow()
+            observe(once, observer)
         }
 
     override suspend fun worker() {
         listener(this)
     }
 
-    private suspend fun <T> observe(observer: CoAutoRunCallback<T>): T {
+    private suspend fun <T> observe(once: Boolean, observer: CoAutoRunCallback<T>): T {
+        if (once) return Resolver(this, once).observer()
+
         val previousResolver = resolver
         val nextResolver = Resolver(this)
         try {
@@ -286,7 +295,7 @@ public class CoAutoRunner<T>(
 }
 
 /** Tracks observables for [AutoRunner] and [CoAutoRunner]. */
-public class Resolver(public val autoRunner: BaseAutoRunner) {
+public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Boolean = false) {
     internal val observables = mutableMapOf<Any, AutoRunnerObservable<*>>()
 
     /**
@@ -307,7 +316,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner) {
         val castExisting = existing as? T
         val observable = castExisting ?: getObservable()
         observables[underlyingObservable] = observable
-        if (autoRunner.isActive && castExisting == null) {
+        if (!once && autoRunner.isActive && castExisting == null) {
             observable.addObserver()
             existing?.removeObserver()
         }
@@ -333,3 +342,15 @@ public interface AutoRunnerObservable<T> {
     public fun addObserver()
     public fun removeObserver()
 }
+
+/**
+ * Runs [block] with a [Resolver] as the `this` argument, so you can evaluate an observer block without subscribing.
+ */
+public fun <T> runWithResolver(block: Resolver.() -> T): T =
+    AutoRunner(scopelessCoroutineLauncher, immediate = false, observer = block).run(once = true)
+
+/**
+ * Runs [block] with a [Resolver] as the `this` argument, so you can evaluate an observer block without subscribing.
+ */
+public suspend fun <T> coRunWithResolver(block: suspend Resolver.() -> T): T =
+    CoAutoRunner(scopelessCoroutineLauncher, immediate = false, observer = block).run(once = true)

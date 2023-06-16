@@ -7,6 +7,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 internal class AutoRunnerStateFlowTest : CoroutineTest() {
     @Test
@@ -18,6 +20,7 @@ internal class AutoRunnerStateFlowTest : CoroutineTest() {
         val job = launch {
             val runner = autoRun { target.value = 2 * get(source) }
             val corunner = coAutoRun { cotarget.value = 2 * get(source) }
+            assertTrue(runner.isActive)
 
             // Right after creation of the AutoRunner the values should be in sync
             assertEquals(0, target.value)
@@ -56,5 +59,16 @@ internal class AutoRunnerStateFlowTest : CoroutineTest() {
         val oldValue = source.value * 2
         source.value += 5
         assertEquals(oldValue, target.value)
+    }
+
+    @Test
+    fun autoRunOnce() = runTest {
+        val source = MutableStateFlow(0)
+        val runner = AutoRunner(SimpleCoroutineLauncher(backgroundScope), immediate = false) { get(source) }
+        assertEquals(0, runner.run(once = true))
+        assertFalse(runner.isActive)
+        source.value = 5
+        assertEquals(5, runWithResolver { get(source) })
+        assertEquals(5, coRunWithResolver { get(source) })
     }
 }

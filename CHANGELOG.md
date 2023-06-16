@@ -3,6 +3,7 @@
 ## 5.4.1
 
 * Fixed `LifecycleStateFlow` and indirectly `autoRun` and `derived`
+* Added `runWithResolver`/`coRunWithResolver` helpers for evaluating an `AutoRunner` observer block without subscribing.
 
 ## 5.4.0
 

@@ -2,6 +2,7 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 
 private abstract class BaseDerivedStateFlow<T>(
     protected val launcher: CoroutineLauncher,
@@ -54,6 +56,7 @@ private class DerivedStateFlow<T>(
         ) {
             observer().also { cachedValue = Wrapped(it) }
         }
+
     override val flow = onChangeFlow.map { cachedValue.value }.distinctUntilChanged()
 
     /** The values of the observed dependencies. We only track this if nobody is subscribed. */
@@ -68,10 +71,9 @@ private class DerivedStateFlow<T>(
                 mutex.withSpinLock {
                     // The above subscriberCount check was the fast path without the lock
                     if (started == 0) {
-                        val resolver = Resolver(autoRunner)
+                        val resolver = Resolver(autoRunner, once = true)
                         cachedValue = Wrapped(resolver.observer())
                         dependencyValues = resolver.getValues()
-                        autoRunner.resolver = resolver
                     }
                 }
             }
@@ -90,9 +92,11 @@ private class DerivedStateFlow<T>(
             mutex.withLock { start() }
             flow.collect(collector)
         } finally {
-            mutex.withLock { stop() }
+            withContext(NonCancellable) {
+                mutex.withLock { stop() }
+            }
         }
-        throw IllegalStateException("Should never get here")
+        error("Should never get here")
     }
 
     private fun start() {
@@ -130,6 +134,7 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
         ) {
             observer().also { cachedValue = it }
         }
+
     override val flow = onChangeFlow.flowTransformer {
         launcher.track(withLoading = withLoading) {
             emit(autoRunner.run())
@@ -146,9 +151,11 @@ private class CoDerivedWhileSubscribedStateFlow<T>(
             mutex.withLock { start() }
             flow.collect(collector)
         } finally {
-            mutex.withLock { stop() }
+            withContext(NonCancellable) {
+                mutex.withLock { stop() }
+            }
         }
-        throw IllegalStateException("Should never get here")
+        error("Should never get here")
     }
 
     private suspend fun start() {
