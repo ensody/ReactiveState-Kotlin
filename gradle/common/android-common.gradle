@@ -19,7 +19,7 @@ ext.androidCommon = { args = [:] ->
     int minVersion = config.minVersion ?: 19
     int targetVersion = config.targetVersion ?: 33
     int compileVersion = config.compileSdkVersion ?: targetVersion
-    def javaVersion = JavaVersion.VERSION_11
+    def javaVersion = JavaVersion.VERSION_17
 
     kotlinCommon()
 
