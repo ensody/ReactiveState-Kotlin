@@ -2,6 +2,7 @@ ext.kotlinCommon = {
     tasks.withType(Test) {
         testLogging {
             exceptionFormat "full"
+            showStandardStreams = true
         }
     }
 }
