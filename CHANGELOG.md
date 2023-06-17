@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.4.2
+
+* Downgraded to coroutines 1.6.4 to prevent build failures with Ktor.
+
 ## 5.4.1
 
 * Fixed `LifecycleStateFlow` and indirectly `autoRun` and `derived`
