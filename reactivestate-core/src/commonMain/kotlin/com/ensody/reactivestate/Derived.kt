@@ -2,17 +2,12 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
 
 private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getFrozenValues(): List<Any?> = values.map { it.value }
@@ -47,7 +42,7 @@ private fun <T> derivedCached(
                 getCached {
                     runWithResolver {
                         observer().also {
-                            dependencyValues = prevObservables.getFrozenValues()
+                            dependencyValues = observables.getFrozenValues()
                             prevObservables = observables
                             cachedValue = Wrapped(it)
                         }
@@ -157,28 +152,17 @@ public fun <T> derivedWhileSubscribed(
 public fun <T> CoroutineLauncher.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
-    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
-    val onChangeFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    onChangeFlow.tryEmit(Unit)
-    val autoRunner =
-        CoAutoRunner(
-            launcher = this,
-            onChange = { onChangeFlow.tryEmit(Unit) },
-            flowTransformer = Flow<Unit>::transform,
-            dispatcher = dispatcher,
-            withLoading = null,
-            observer = observer,
-        )
-    val flow = onChangeFlow.onCompletion { autoRunner.dispose() }.flowTransformer {
-        track(withLoading = withLoading) {
-            emit(autoRunner.run())
+    return callbackFlow {
+        coAutoRun(flowTransformer = flowTransformer, dispatcher = dispatcher, withLoading = withLoading) {
+            trySend(observer())
         }
-    }
-    return flow.stateIn(scope = launcherScope, started = started, initialValue = initial)
+        awaitClose {}
+    }.stateIn(scope = launcherScope, started = started, initialValue = initial)
 }
 
 /**
@@ -199,7 +183,7 @@ public fun <T> CoroutineScope.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
-    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,

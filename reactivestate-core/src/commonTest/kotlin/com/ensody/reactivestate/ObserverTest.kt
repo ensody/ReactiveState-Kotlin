@@ -59,8 +59,15 @@ internal class ObserverTest : CoroutineTest() {
     fun derivedObservableOnCoroutineScope() = runTest {
         val rawSource = MutableValueFlow(0)
         val source = scopelessDerived { get(rawSource) }
+
+        assertEquals(0, source.value)
+        rawSource.value = 1
+        assertEquals(1, source.value)
+        rawSource.value = 0
+        assertEquals(0, source.value)
         assertEquals(0, source.first())
         assertEquals(0, source.first())
+
         lateinit var target: StateFlow<Int>
         lateinit var scopelessTarget: StateFlow<Int>
         val job = launch {

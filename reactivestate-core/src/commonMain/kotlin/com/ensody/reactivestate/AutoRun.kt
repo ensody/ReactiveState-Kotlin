@@ -326,7 +326,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
         val existing = autoRunner.resolver.observables[underlyingObservable]
 
         @Suppress("UNCHECKED_CAST")
-        val castExisting = existing as? T
+        val castExisting = existing?.observable as? T
         val observable = FrozenAutoRunnerObservable<V, T>(castExisting ?: getObservable())
         observables[underlyingObservable] = observable
         if (!once && autoRunner.isActive && castExisting == null) {
@@ -338,7 +338,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
 
     internal fun switchTo(next: Resolver) {
         for ((underlyingObservable, item) in observables) {
-            if (item.observable != next.observables[underlyingObservable]) {
+            if (item.observable != next.observables[underlyingObservable]?.observable) {
                 item.observable.removeObserver()
             }
         }

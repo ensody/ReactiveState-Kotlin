@@ -18,10 +18,7 @@ public typealias CoAutoRunCallback<T> = suspend Resolver.() -> T
 public typealias CoAutoRunOnChangeCallback<T> = suspend (CoAutoRunner<T>) -> Unit
 
 /** Collector of the change events used by [autoRun], [AutoRunner], [coAutoRun] and [CoAutoRunner]. */
-public typealias AutoRunFlowTransformer = DerivedFlowTransformer<Unit>
-
-/** Collector of the change events used by [derived]. */
-public typealias DerivedFlowTransformer<T> = ApplyFlowTransform<Unit, T>
+public typealias AutoRunFlowTransformer = ApplyFlowTransform<Unit, Unit>
 
 /** A function applying a [Flow.transform] and possibly additional [Flow] configurations. */
 public typealias ApplyFlowTransform<T, R> = Flow<T>.(FlowTransform<T, R>) -> Flow<R>

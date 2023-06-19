@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.1
+
+* Simplified `derived` implementation
+
 ## 5.5.0
 
 * `derived` without `CoroutineScope` now computes on demand only

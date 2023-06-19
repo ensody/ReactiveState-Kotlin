@@ -36,7 +36,7 @@ public fun <T> Flow<T>.stateOnDemand(
     context: CoroutineContext = EmptyCoroutineContext,
     getter: (previous: Wrapped<T>?) -> T,
 ): StateFlow<T> =
-    DefaultOnDemandStateFlow(internalShareOnDemand(replay = 1, context = context), getter)
+    DefaultOnDemandStateFlow(this, context, getter)
 
 /**
  * Turns this [Flow] into a [SharedFlow] without requiring a [CoroutineScope] (unlike [shareIn]).
@@ -76,9 +76,8 @@ internal fun <T> Flow<T>.internalShareOnDemand(
         DefaultOnDemandSharedFlow(this, replay, context, MutableSharedFlow(replay = replay))
     }
 
-internal class DefaultOnDemandSharedFlow<T>(
+internal class SharedCollect<T>(
     val flow: Flow<T>,
-    val replay: Int,
     val context: CoroutineContext,
     val delegate: MutableSharedFlow<T>,
 ) : SharedFlow<T> by delegate {
@@ -112,29 +111,55 @@ internal class DefaultOnDemandSharedFlow<T>(
     }
 }
 
+internal class DefaultOnDemandSharedFlow<T>(
+    val flow: Flow<T>,
+    val replay: Int,
+    val context: CoroutineContext,
+    val delegate: MutableSharedFlow<T>,
+) : SharedFlow<T> by SharedCollect(flow, context, delegate)
+
 internal class DefaultOnDemandStateFlow<T>(
-    val delegate: DefaultOnDemandSharedFlow<T>,
+    val flow: Flow<T>,
+    val context: CoroutineContext,
     val getter: (previous: Wrapped<T>?) -> T,
-) : StateFlow<T>, SharedFlow<T> by delegate {
+) : StateFlow<T> {
+
+    private lateinit var delegate: MutableStateFlow<T>
+    private val sharedCollect by lazy { SharedCollect(flow, context, delegate) }
+    private val mutex = Mutex()
+
+    override val replayCache: List<T> get() = listOf(value)
 
     override val value: T
         get() =
-            if (delegate.subscriptionCount.value == 0 || delegate.replayCache.isEmpty()) {
-                val previous = if (delegate.replayCache.isNotEmpty()) Wrapped(delegate.replayCache.first()) else null
+            if (!::delegate.isInitialized) {
+                getter(null).also {
+                    if (mutex.tryLock()) {
+                        try {
+                            if (!::delegate.isInitialized) {
+                                delegate = MutableStateFlow(it)
+                            }
+                        } finally {
+                            mutex.unlock()
+                        }
+                    }
+                }
+            } else if (delegate.subscriptionCount.value == 0) {
+                val previous = Wrapped(delegate.value)
                 getter(previous).also {
-                    if (previous == null || it !== previous.value) {
-                        delegate.delegate.tryEmit(it)
+                    if (it !== previous.value) {
+                        delegate.value = it
                     }
                 }
             } else {
-                delegate.replayCache.first()
+                delegate.value
             }
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
         // Ensure the first emitted value is up to date
-        if (delegate.subscriptionCount.value == 0) {
+        if (!::delegate.isInitialized || delegate.subscriptionCount.value == 0) {
             value
         }
-        delegate.collect(collector)
+        sharedCollect.collect(collector)
     }
 }

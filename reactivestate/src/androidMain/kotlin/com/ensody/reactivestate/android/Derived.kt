@@ -4,9 +4,9 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ensody.reactivestate.AutoRunCallback
+import com.ensody.reactivestate.AutoRunFlowTransformer
 import com.ensody.reactivestate.CoAutoRunCallback
 import com.ensody.reactivestate.CoroutineLauncher
-import com.ensody.reactivestate.DerivedFlowTransformer
 import com.ensody.reactivestate.MutableValueFlow
 import com.ensody.reactivestate.SimpleCoroutineLauncher
 import com.ensody.reactivestate.autoRun
@@ -49,7 +49,7 @@ public fun <T> ViewModel.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
-    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,
@@ -94,7 +94,7 @@ public fun <T> LifecycleOwner.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
-    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = if (this is CoroutineLauncher) launcher.loading else null,
     observer: CoAutoRunCallback<T>,

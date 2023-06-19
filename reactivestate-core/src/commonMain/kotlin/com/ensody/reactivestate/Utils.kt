@@ -24,4 +24,7 @@ private class LazyProperty<T>(block: (property: KProperty<*>) -> T) : ReadOnlyPr
 /** Wraps a value. Together with nullability can model an `Option`/`Maybe`. */
 public class Wrapped<T>(public val value: T) : Serializable, ReadOnlyProperty<Any?, T> {
     override fun getValue(thisRef: Any?, property: KProperty<*>): T = value
+
+    override fun toString(): String =
+        "Wrapped($value)"
 }
