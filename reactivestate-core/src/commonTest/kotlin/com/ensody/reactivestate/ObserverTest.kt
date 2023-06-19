@@ -172,5 +172,5 @@ internal class ObserverTest : CoroutineTest() {
         assertEquals(oldValue + 10, scopelessTarget.value)
     }
 
-    private fun <T> scopelessDerived(observer: AutoRunCallback<T>) = derived(observer)
+    private fun <T> scopelessDerived(observer: AutoRunCallback<T>) = derived(observer = observer)
 }

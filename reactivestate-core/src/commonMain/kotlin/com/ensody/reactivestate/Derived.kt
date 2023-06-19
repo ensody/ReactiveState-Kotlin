@@ -2,197 +2,99 @@ package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.transform
 import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
 
-private abstract class BaseDerivedStateFlow<T>(
-    protected val launcher: CoroutineLauncher,
-) : StateFlow<T> {
+private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getFrozenValues(): List<Any?> = values.map { it.value }
+private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getNewValues(): List<Any?> = values.map { it.observable.value }
 
-    protected var started = 0
-    protected val mutex = Mutex()
+private fun <T> derivedCached(
+    observer: AutoRunCallback<T>,
+): StateFlow<T> {
+    // The values of the observed dependencies. We only track this if nobody is subscribed.
+    var prevObservables = mapOf<Any, FrozenAutoRunnerObservable<*, *>>()
+    var dependencyValues: List<Any?>? = null
+    var cachedValue: Wrapped<T>? = null
+    val mutex = Mutex()
 
-    protected val onChangeFlow = MutableSharedFlow<Unit>(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
-    protected abstract val flow: Flow<T>
-    protected abstract val autoRunner: InternalBaseAutoRunner
-
-    override val replayCache: List<T> get() = listOf(value)
-
-    init {
-        onChangeFlow.tryEmit(Unit)
-        launcher.invokeOnCompletion { autoRunner.dispose() }
+    fun getCached(block: () -> T): T {
+        val cached = cachedValue
+        return if (cached != null && prevObservables.getNewValues() == dependencyValues) cached.value else block()
     }
 
-    protected fun Resolver.getValues(): List<Any?> = observables.values.map { it.value }
-}
-
-private class DerivedStateFlow<T>(
-    launcher: CoroutineLauncher = scopelessCoroutineLauncher,
-    private val observer: AutoRunCallback<T>,
-) : BaseDerivedStateFlow<T>(launcher) {
-
-    private val hasScope get() = launcher !== scopelessCoroutineLauncher
-
-    override val autoRunner =
-        AutoRunner(
-            launcher = launcher,
-            onChange = {
-                if (started > 0) it.run()
-                onChangeFlow.tryEmit(Unit)
-            },
-        ) {
-            observer().also { cachedValue = Wrapped(it) }
+    return callbackFlow {
+        autoRun {
+            val next = observer()
+            trySend(next)
+            prevObservables = observables
+            dependencyValues = prevObservables.getFrozenValues()
+            cachedValue = Wrapped(next)
         }
-
-    override val flow = onChangeFlow.map { cachedValue.value }.distinctUntilChanged()
-
-    /** The values of the observed dependencies. We only track this if nobody is subscribed. */
-    private var dependencyValues: List<Any?>? = null
-
-    /** Caches the last computed value. */
-    private lateinit var cachedValue: Wrapped<T>
-
-    override val value: T
-        get() {
-            if (started == 0 && autoRunner.resolver.getValues() != dependencyValues) {
-                mutex.withSpinLock {
-                    // The above subscriberCount check was the fast path without the lock
-                    if (started == 0) {
-                        val resolver = Resolver(autoRunner, once = true)
-                        cachedValue = Wrapped(resolver.observer())
-                        dependencyValues = resolver.getValues()
+        awaitClose {}
+    }.stateOnDemand {
+        getCached {
+            mutex.withSpinLock {
+                getCached {
+                    runWithResolver {
+                        observer().also {
+                            dependencyValues = prevObservables.getFrozenValues()
+                            prevObservables = observables
+                            cachedValue = Wrapped(it)
+                        }
                     }
                 }
             }
-            return cachedValue.value
-        }
-
-    init {
-        // If we have our own CoroutineScope we can start immediately. Otherwise everything is computed on-demand only.
-        if (hasScope) {
-            start()
-        }
-    }
-
-    override suspend fun collect(collector: FlowCollector<T>): Nothing {
-        try {
-            mutex.withLock { start() }
-            flow.collect(collector)
-        } finally {
-            withContext(NonCancellable) {
-                mutex.withLock { stop() }
-            }
-        }
-        error("Should never get here")
-    }
-
-    private fun start() {
-        started += 1
-        if (started == 1) {
-            autoRunner.run()
-            dependencyValues = null
-        }
-    }
-
-    protected fun stop() {
-        if (--started == 0) {
-            dependencyValues = autoRunner.resolver.getValues()
-            autoRunner.dispose()
         }
     }
 }
 
-private class CoDerivedWhileSubscribedStateFlow<T>(
-    initial: T,
-    flowTransformer: DerivedFlowTransformer<T>,
-    dispatcher: CoroutineDispatcher,
-    private val withLoading: MutableValueFlow<Int>?,
-    launcher: CoroutineLauncher = scopelessCoroutineLauncher,
-    private val observer: CoAutoRunCallback<T>,
-) : BaseDerivedStateFlow<T>(launcher) {
+private fun <T> derivedOnDemand(
+    observer: AutoRunCallback<T>,
+): StateFlow<T> =
+    callbackFlow {
+        autoRun { trySend(observer()) }
+        awaitClose {}
+    }.stateOnDemand {
+        runWithResolver(observer)
+    }
 
-    override val autoRunner =
-        CoAutoRunner(
-            launcher = launcher,
-            onChange = { onChangeFlow.tryEmit(Unit) },
-            flowTransformer = Flow<Unit>::transform,
-            dispatcher = dispatcher,
-            withLoading = null,
-        ) {
-            observer().also { cachedValue = it }
-        }
+/**
+ * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
+ *
+ * This variant doesn't need a [CoroutineScope]/[CoroutineLauncher].
+ *
+ * @param cache Caching of [StateFlow.value] expensive computations while nobody collects. Defaults to `true`.
+ */
+public fun <T> derived(cache: Boolean = true, observer: AutoRunCallback<T>): StateFlow<T> =
+    if (cache) derivedCached(observer) else derivedOnDemand(observer = observer)
 
-    override val flow = onChangeFlow.flowTransformer {
-        launcher.track(withLoading = withLoading) {
-            emit(autoRunner.run())
-        }
-    }.distinctUntilChanged()
-
-    /** Caches the last computed value. */
-    private var cachedValue: T = initial
-
-    override val value: T get() = cachedValue
-
-    override suspend fun collect(collector: FlowCollector<T>): Nothing {
-        try {
-            mutex.withLock { start() }
-            flow.collect(collector)
-        } finally {
-            withContext(NonCancellable) {
-                mutex.withLock { stop() }
+/**
+ * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
+ */
+public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlow<T> {
+    lateinit var result: MutableStateFlow<T>
+    var initialized = false
+    autoRun {
+        observer().also {
+            if (!initialized) {
+                result = MutableStateFlow(it)
+                initialized = true
             }
-        }
-        error("Should never get here")
-    }
-
-    private suspend fun start() {
-        started += 1
-        if (started == 1) {
-            autoRunner.run()
+            result.value = it
         }
     }
-
-    protected fun stop() {
-        if (--started == 0) {
-            autoRunner.dispose()
-        }
-    }
+    return result
 }
-
-/**
- * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
- *
- * This behaves like [SharingStarted.Eagerly] and computes the initial value by executing the [observer] function
- * immediately.
- *
- * This doesn't need a [CoroutineScope]/[CoroutineLauncher] and has [SharingStarted.WhileSubscribed] behavior.
- * If you have access to a [CoroutineScope]/[CoroutineLauncher] you should better use the normal [derived]
- * functions.
- */
-public fun <T> derived(observer: AutoRunCallback<T>): StateFlow<T> =
-    DerivedStateFlow(observer = observer)
-
-/**
- * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
- *
- * This behaves like [SharingStarted.Eagerly] and computes the initial value by executing the [observer] function
- * immediately.
- */
-public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlow<T> =
-    DerivedStateFlow(launcher = this, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
@@ -221,18 +123,23 @@ public fun <T> CoroutineScope.derived(
  */
 public fun <T> derivedWhileSubscribed(
     initial: T,
-    flowTransformer: DerivedFlowTransformer<T> = { conflatedWorker(transform = it) },
+    flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.default,
     withLoading: MutableValueFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
-): StateFlow<T> =
-    CoDerivedWhileSubscribedStateFlow(
-        initial = initial,
-        flowTransformer = flowTransformer,
-        dispatcher = dispatcher,
-        withLoading = withLoading,
-        observer = observer,
-    )
+): StateFlow<T> {
+    var value = initial
+    return callbackFlow {
+        coAutoRun(flowTransformer = flowTransformer, dispatcher = dispatcher, withLoading = withLoading) {
+            val next = observer()
+            trySend(next)
+            value = next
+        }
+        awaitClose {}
+    }.stateOnDemand {
+        value
+    }
+}
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via a suspendable [coAutoRun] block.

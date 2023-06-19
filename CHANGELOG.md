@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.0
+
+* `derived` without `CoroutineScope` now computes on demand only
+
 ## 5.4.2
 
 * Downgraded to coroutines 1.6.4 to prevent build failures with Ktor.

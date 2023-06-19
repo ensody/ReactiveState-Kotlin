@@ -102,15 +102,25 @@ public fun CoroutineScope.autoRun(
  * @param onChange Gets called when the observables change. If you provide a handler you have to
  * manually call [run].
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param withLoading Tracks loading state for the (re-)computation. Defaults to `launcher.loading`.
  * @param observer The callback which is used to track the observables.
  */
 public fun CoroutineScope.coAutoRun(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
+    dispatcher: CoroutineDispatcher = dispatchers.default,
+    withLoading: MutableValueFlow<Int>? = launcher.loading,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
-    launcher.coAutoRun(onChange = onChange, flowTransformer = flowTransformer, observer = observer)
+    launcher.coAutoRun(
+        onChange = onChange,
+        flowTransformer = flowTransformer,
+        dispatcher = dispatcher,
+        withLoading = withLoading,
+        observer = observer,
+    )
 
 /** Just the minimum interface needed for [Resolver]. No generic types. */
 public abstract class BaseAutoRunner : AttachedDisposables {
@@ -296,7 +306,7 @@ public class CoAutoRunner<T>(
 
 /** Tracks observables for [AutoRunner] and [CoAutoRunner]. */
 public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Boolean = false) {
-    internal val observables = mutableMapOf<Any, AutoRunnerObservable<*>>()
+    internal val observables = mutableMapOf<Any, FrozenAutoRunnerObservable<*, *>>()
 
     /**
      * Tracks an arbitrary observable.
@@ -309,24 +319,27 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
      *
      * @return The instantiated [AutoRunnerObservable] of type [T].
      */
-    public fun <S : Any, T : AutoRunnerObservable<V>, V> track(underlyingObservable: S, getObservable: () -> T): T {
+    public fun <S : Any, T : AutoRunnerObservable<V>, V> track(
+        underlyingObservable: S,
+        getObservable: () -> T,
+    ): FrozenAutoRunnerObservable<V, T> {
         val existing = autoRunner.resolver.observables[underlyingObservable]
 
         @Suppress("UNCHECKED_CAST")
         val castExisting = existing as? T
-        val observable = castExisting ?: getObservable()
+        val observable = FrozenAutoRunnerObservable<V, T>(castExisting ?: getObservable())
         observables[underlyingObservable] = observable
         if (!once && autoRunner.isActive && castExisting == null) {
-            observable.addObserver()
-            existing?.removeObserver()
+            observable.observable.addObserver()
+            existing?.observable?.removeObserver()
         }
         return observable
     }
 
     internal fun switchTo(next: Resolver) {
         for ((underlyingObservable, item) in observables) {
-            if (item != next.observables[underlyingObservable]) {
-                item.removeObserver()
+            if (item.observable != next.observables[underlyingObservable]) {
+                item.observable.removeObserver()
             }
         }
     }
@@ -341,6 +354,12 @@ public interface AutoRunnerObservable<T> {
     public val value: T
     public fun addObserver()
     public fun removeObserver()
+}
+
+public class FrozenAutoRunnerObservable<T, O : AutoRunnerObservable<T>>(
+    public val observable: AutoRunnerObservable<T>,
+) {
+    public val value: T by lazy { observable.value }
 }
 
 /**

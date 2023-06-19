@@ -4,10 +4,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 
 /** Returns [StateFlow.value] and tracks the observable (on the `MainScope`). */
-public fun <T> Resolver.get(data: StateFlow<T>): T {
-    track(data) { StateFlowObservable(data, autoRunner) }
-    return data.value
-}
+public fun <T> Resolver.get(data: StateFlow<T>): T =
+    track(data) { StateFlowObservable(data, autoRunner) }.value
 
 private class StateFlowObservable<T>(
     private val data: StateFlow<T>,

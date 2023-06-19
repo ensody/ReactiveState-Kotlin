@@ -4,10 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 
 /** Returns [LiveData.getValue] and tracks the observable. */
-public fun <T> Resolver.get(data: LiveData<T>): T? {
-    track(data) { LiveDataObservable(data, autoRunner) }
-    return data.value
-}
+public fun <T> Resolver.get(data: LiveData<T>): T? =
+    track(data) { LiveDataObservable(data, autoRunner) }.value
 
 private class LiveDataObservable<T>(
     private val data: LiveData<T>,
