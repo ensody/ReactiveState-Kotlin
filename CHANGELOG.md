@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.2
+
+* Downgraded to Gradle 7 since some libraries aren't ready yet for JDK 17
+
 ## 5.5.1
 
 * Simplified `derived` implementation
