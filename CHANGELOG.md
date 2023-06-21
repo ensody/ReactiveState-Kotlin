@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.3
+
+* Fixed race condition where suspend-based `derived` would do the first evaluation outside of the flow coroutine, thus preventing cancellation on value change when using `transformLatest` or other `...Latest` based workers.
+
 ## 5.5.2
 
 * Downgraded to Gradle 7 since some libraries aren't ready yet for JDK 17

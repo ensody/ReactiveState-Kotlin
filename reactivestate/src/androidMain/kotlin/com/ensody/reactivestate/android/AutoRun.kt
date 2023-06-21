@@ -142,6 +142,7 @@ public fun LifecycleOwner.coAutoRun(
         onChange = onChange,
         dispatcher = dispatcher,
         withLoading = withLoading,
+        immediate = true,
         flowTransformer = flowTransformer,
     ) {
         if (!active) {

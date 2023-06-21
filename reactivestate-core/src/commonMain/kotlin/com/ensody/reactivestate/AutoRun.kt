@@ -3,7 +3,9 @@ package com.ensody.reactivestate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.invoke
 
@@ -25,9 +27,8 @@ public fun CoroutineLauncher.autoRun(
     onChange: AutoRunOnChangeCallback<Unit>? = null,
     observer: AutoRunCallback<Unit>,
 ): AutoRunner<Unit> =
-    AutoRunner(launcher = this, onChange = onChange, observer = observer).apply {
+    AutoRunner(launcher = this, onChange = onChange, immediate = true, observer = observer).apply {
         disposeOnCompletionOf(this@autoRun)
-        run()
     }
 
 /**
@@ -60,10 +61,10 @@ public fun CoroutineLauncher.coAutoRun(
         flowTransformer = flowTransformer,
         dispatcher = dispatcher,
         withLoading = withLoading,
+        immediate = true,
         observer = observer,
     ).apply {
         disposeOnCompletionOf(this@coAutoRun)
-        launch { run() }
     }
 
 /**
@@ -134,8 +135,8 @@ public abstract class BaseAutoRunner : AttachedDisposables {
 
 public abstract class InternalBaseAutoRunner(
     final override val launcher: CoroutineLauncher,
-    immediate: Boolean,
     protected val flowTransformer: AutoRunFlowTransformer,
+    immediate: Boolean,
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     override var resolver: Resolver = Resolver(this)
@@ -146,19 +147,26 @@ public abstract class InternalBaseAutoRunner(
     private var flowConsumer: Job? = null
 
     init {
-        if (immediate) consumeChangeFlow()
+        if (immediate) consumeChangeFlow(initial = true)
     }
 
-    protected fun consumeChangeFlow() {
+    protected fun consumeChangeFlow(initial: Boolean = false) {
         if (flowConsumer != null) {
             return
         }
         flowConsumer = launcher.launch(withLoading = null) {
-            changeFlow.flowTransformer {
-                launcher.track(withLoading = withLoading) {
-                    emit(worker())
+            coroutineScope {
+                if (initial) {
+                    async {
+                        changeFlow.emit(Unit)
+                    }
                 }
-            }.collect()
+                changeFlow.flowTransformer {
+                    launcher.track(withLoading = withLoading) {
+                        emit(worker())
+                    }
+                }.collect()
+            }
         }
     }
 
@@ -203,10 +211,14 @@ public class AutoRunner<T>(
     launcher: CoroutineLauncher,
     onChange: AutoRunOnChangeCallback<T>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
-    immediate: Boolean = true,
+    immediate: Boolean = false,
     private val observer: AutoRunCallback<T>,
-) : InternalBaseAutoRunner(launcher, immediate, flowTransformer) {
+) : InternalBaseAutoRunner(launcher, flowTransformer, immediate = false) {
     private val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
+
+    init {
+        if (immediate) run()
+    }
 
     /** Calls [observer] and tracks its dependencies unless [once] is `true`. */
     public fun run(once: Boolean = false): T {
@@ -266,9 +278,9 @@ public class CoAutoRunner<T>(
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     private val dispatcher: CoroutineDispatcher = dispatchers.default,
     override val withLoading: MutableValueFlow<Int>? = launcher.loading,
-    immediate: Boolean = true,
+    immediate: Boolean = false,
     private val observer: CoAutoRunCallback<T>,
-) : InternalBaseAutoRunner(launcher, immediate, flowTransformer) {
+) : InternalBaseAutoRunner(launcher, flowTransformer, immediate) {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     private val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
     override var resolver: Resolver = Resolver(this)
@@ -366,10 +378,10 @@ public class FrozenAutoRunnerObservable<T, O : AutoRunnerObservable<T>>(
  * Runs [block] with a [Resolver] as the `this` argument, so you can evaluate an observer block without subscribing.
  */
 public fun <T> runWithResolver(block: Resolver.() -> T): T =
-    AutoRunner(scopelessCoroutineLauncher, immediate = false, observer = block).run(once = true)
+    AutoRunner(scopelessCoroutineLauncher, observer = block).run(once = true)
 
 /**
  * Runs [block] with a [Resolver] as the `this` argument, so you can evaluate an observer block without subscribing.
  */
 public suspend fun <T> coRunWithResolver(block: suspend Resolver.() -> T): T =
-    CoAutoRunner(scopelessCoroutineLauncher, immediate = false, observer = block).run(once = true)
+    CoAutoRunner(scopelessCoroutineLauncher, observer = block).run(once = true)

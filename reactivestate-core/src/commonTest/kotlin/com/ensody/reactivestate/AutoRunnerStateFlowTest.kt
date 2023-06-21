@@ -64,7 +64,7 @@ internal class AutoRunnerStateFlowTest : CoroutineTest() {
     @Test
     fun autoRunOnce() = runTest {
         val source = MutableStateFlow(0)
-        val runner = AutoRunner(SimpleCoroutineLauncher(backgroundScope), immediate = false) { get(source) }
+        val runner = AutoRunner(SimpleCoroutineLauncher(backgroundScope)) { get(source) }
         assertEquals(0, runner.run(once = true))
         assertFalse(runner.isActive)
         source.value = 5

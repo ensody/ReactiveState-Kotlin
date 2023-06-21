@@ -3,12 +3,14 @@ package com.ensody.reactivestate
 import com.ensody.reactivestate.test.CoroutineTest
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.SharingStarted.Companion.Lazily
 import kotlinx.coroutines.flow.SharingStarted.Companion.WhileSubscribed
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -177,6 +179,26 @@ internal class ObserverTest : CoroutineTest() {
         runCurrent()
         assertEquals(oldValue, target.value)
         assertEquals(oldValue + 10, scopelessTarget.value)
+    }
+
+    @Test
+    fun derivedWithTransform() = runTest {
+        val input = MutableStateFlow(0)
+        val calc = backgroundScope.derived(initial = 0, flowTransformer = { transformLatest(it) }) {
+            get(input).also {
+                delay(1000)
+            }
+        }
+
+        input.value = 1
+        advanceTimeBy(800)
+        assertEquals(0, calc.value)
+        input.value = 2
+        advanceTimeBy(800)
+        assertEquals(0, calc.value)
+        input.value = 3
+        advanceTimeBy(1100)
+        assertEquals(3, calc.value)
     }
 
     private fun <T> scopelessDerived(observer: AutoRunCallback<T>) = derived(observer = observer)
