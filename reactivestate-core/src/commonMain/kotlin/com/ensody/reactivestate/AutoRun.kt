@@ -364,6 +364,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
  */
 public interface AutoRunnerObservable<T> {
     public val value: T
+    public val revisionedValue: Pair<T, ULong> get() = value to 0U
     public fun addObserver()
     public fun removeObserver()
 }
@@ -371,7 +372,8 @@ public interface AutoRunnerObservable<T> {
 public class FrozenAutoRunnerObservable<T, O : AutoRunnerObservable<T>>(
     public val observable: AutoRunnerObservable<T>,
 ) {
-    public val value: T by lazy { observable.value }
+    public val value: T by lazy { revisionedValue.first }
+    public val revisionedValue: Pair<T, ULong> by lazy { observable.revisionedValue }
 }
 
 /**

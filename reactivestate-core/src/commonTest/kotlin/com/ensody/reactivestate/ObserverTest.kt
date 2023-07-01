@@ -75,6 +75,8 @@ internal class ObserverTest : CoroutineTest() {
         val job = launch {
             target = derived { 2 * get(source) }
             scopelessTarget = scopelessDerived { 2 * get(source) }
+            val indirectTarget = derived { 10 * get(target) }
+            val scopelessIndirectTarget = scopelessDerived { 10 * get(indirectTarget) }
             val lazyTarget = derived(0, Lazily) { 2 * get(source) }
             val superLazyTargetInner = derivedWhileSubscribed(0) { get(source) }
             val superLazyTarget = derived(0, WhileSubscribed()) { 2 * get(superLazyTargetInner) }
@@ -88,6 +90,7 @@ internal class ObserverTest : CoroutineTest() {
             assertEquals(0, scopelessTarget.value)
             assertEquals(0, scopelessTarget.first())
             assertEquals(0, scopelessTarget.first())
+            assertEquals(0, scopelessIndirectTarget.value)
             assertEquals(0, lazyTarget.value)
             assertEquals(0, superLazyTarget.value)
             assertEquals(0, superLazyTarget.first())
@@ -104,6 +107,8 @@ internal class ObserverTest : CoroutineTest() {
             var superLazyScopelessJob = launch { superLazyScopelessTarget.collect() }
             listOf(2, 5, 0).forEach {
                 rawSource.value = it
+                // Accessing .value should synchronously recompute when necessary
+                assertEquals(200 * it, scopelessIndirectTarget.value)
                 runCurrent()
                 assertEquals(2 * it, target.value)
                 assertEquals(2 * it, scopelessTarget.value)
@@ -114,6 +119,7 @@ internal class ObserverTest : CoroutineTest() {
             // Now we stop collecting, so the values won't update anymore
             superLazyJob.cancel()
             superLazyScopelessJob.cancel()
+            val indirectJob = launch { scopelessIndirectTarget.collect() }
 
             advanceTimeBy(120)
             assertEquals(0, asyncTarget.value)
@@ -121,6 +127,8 @@ internal class ObserverTest : CoroutineTest() {
             // Setting value multiple times should work
             listOf(2, 5, 10).forEach {
                 rawSource.value = it
+                // Accessing .value should synchronously recompute when necessary
+                assertEquals(200 * it, scopelessIndirectTarget.value)
                 runCurrent()
                 assertEquals(2 * it, target.value)
                 assertEquals(2 * it, scopelessTarget.value)
@@ -156,6 +164,7 @@ internal class ObserverTest : CoroutineTest() {
 
             superLazyJob.cancel()
             superLazyScopelessJob.cancel()
+            indirectJob.cancel()
 
             assertEquals(2 * 10, lazyTarget.value)
             assertEquals(2 * 10, superLazyTarget.value)
@@ -177,7 +186,7 @@ internal class ObserverTest : CoroutineTest() {
         val oldValue = source.value * 2
         rawSource.value += 5
         runCurrent()
-        assertEquals(oldValue, target.value)
+        assertEquals(oldValue + 10, target.value)
         assertEquals(oldValue + 10, scopelessTarget.value)
     }
 
@@ -201,5 +210,12 @@ internal class ObserverTest : CoroutineTest() {
         assertEquals(3, calc.value)
     }
 
-    private fun <T> scopelessDerived(observer: AutoRunCallback<T>) = derived(observer = observer)
+    @Test
+    fun derivedOverMutation() = runTest {
+        val data = MutableValueFlow(mutableListOf(1))
+        val observer = derived { get(data).size }
+        assertEquals(1, observer.value)
+        data.updateThis { add(5) }
+        assertEquals(2, observer.value)
+    }
 }

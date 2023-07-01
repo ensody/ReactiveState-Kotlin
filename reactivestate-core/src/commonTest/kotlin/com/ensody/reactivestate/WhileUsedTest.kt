@@ -22,7 +22,7 @@ internal class WhileUsedTest : CoroutineTest() {
 
         val completion = CompletableDeferred<Unit>()
         var job1 = launch {
-            derived {
+            derived(synchronous = false) {
                 data1 = get(someValue)
             }
             completion.await()

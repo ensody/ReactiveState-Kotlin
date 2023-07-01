@@ -12,6 +12,10 @@ import kotlinx.coroutines.flow.receiveAsFlow
 public interface MutableFlow<T> : Flow<T>, FlowCollector<T> {
     /** Adds a value to this Flow if there's still capacity left. */
     public fun tryEmit(value: T): Boolean
+
+    public fun isEmpty(): Boolean
+
+    public fun cancel()
 }
 
 /** Creates a [MutableFlow]. */
@@ -35,5 +39,12 @@ private class MutableFlowImpl<T>(
 
     override suspend fun emit(value: T) {
         flow.send(value)
+    }
+
+    override fun isEmpty(): Boolean =
+        flow.isEmpty
+
+    override fun cancel() {
+        flow.cancel()
     }
 }

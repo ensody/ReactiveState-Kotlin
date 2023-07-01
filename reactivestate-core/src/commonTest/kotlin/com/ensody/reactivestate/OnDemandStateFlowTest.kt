@@ -28,8 +28,10 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
         source.value = 2
         backgroundScope.launch { flow.collect { data = it } }
         runCurrent()
+        assertEquals(2, flow.value)
         assertEquals(2, data)
         source.value = 3
+        assertEquals(3, flow.value)
         runCurrent()
         assertEquals(3, data)
     }

@@ -15,6 +15,10 @@ private class StateFlowObservable<T>(
 
     override val value: T get() = data.value
 
+    @Suppress("UNCHECKED_CAST")
+    override val revisionedValue: Pair<T, ULong>
+        get() = (data as? RevisionedValue<T>)?.revisionedValue ?: value to 0U
+
     override fun addObserver() {
         if (observer == null) {
             var ignore: Wrapped<T>? = Wrapped(data.value)

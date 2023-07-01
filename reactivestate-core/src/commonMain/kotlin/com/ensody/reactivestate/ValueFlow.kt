@@ -96,7 +96,7 @@ private class ValueFlowImpl<T> constructor(
     private val flow: MutableSharedFlow<T>,
     initial: T,
     private val setter: ((value: T) -> Unit)?,
-) : MutableValueFlow<T>, MutableSharedFlow<T> by flow {
+) : MutableValueFlow<T>, MutableSharedFlow<T> by flow, RevisionedValue<T> {
 
     constructor(initial: T, setter: ((value: T) -> Unit)?) : this(
         flow = MutableSharedFlow(replay = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST),
@@ -104,9 +104,10 @@ private class ValueFlowImpl<T> constructor(
         setter = setter,
     )
 
-    private val mutex by lazy { Mutex() }
+    private val mutex = Mutex()
     private val queueProcessLock = Mutex()
     private var queue: MutableList<T> = mutableListOf()
+    private var revision: ULong = 0U
 
     init {
         tryEmit(initial)
@@ -114,7 +115,7 @@ private class ValueFlowImpl<T> constructor(
 
     private fun <S> withLockAndEmit(block: () -> S): S {
         val result = mutex.withSpinLock {
-            block()
+            block().also { revision += 1U }
         }
         processQueue()
         return result
@@ -162,6 +163,8 @@ private class ValueFlowImpl<T> constructor(
                 }
             }
         }
+
+    override val revisionedValue get() = mutex.withSpinLock { value to revision }
 
     override fun compareAndSet(expect: T, update: T): Boolean =
         withLockAndEmit {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.4
+
+* Made `.value` access on `derived` and `stateOnDemand` synchronously return/recompute an up-to-date value. This prevents race conditions when mutating MutableStateFlows and directly reading derived values.
+
 ## 5.5.3
 
 * Fixed race condition where suspend-based `derived` would do the first evaluation outside of the flow coroutine, thus preventing cancellation on value change when using `transformLatest` or other `...Latest` based workers.

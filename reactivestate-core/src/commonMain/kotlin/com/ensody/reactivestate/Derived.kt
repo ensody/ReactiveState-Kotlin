@@ -3,17 +3,20 @@ package com.ensody.reactivestate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
 
-private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getFrozenValues(): List<Any?> = values.map { it.value }
-private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getNewValues(): List<Any?> = values.map { it.observable.value }
+private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getFrozenValues(): List<Any?> =
+    values.map { it.revisionedValue }
+
+private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getNewValues(): List<Any?> =
+    values.map { it.observable.revisionedValue }
 
 private fun <T> derivedCached(
+    synchronous: Boolean,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> {
     // The values of the observed dependencies. We only track this if nobody is subscribed.
@@ -36,7 +39,7 @@ private fun <T> derivedCached(
             cachedValue = Wrapped(next)
         }
         awaitClose {}
-    }.stateOnDemand {
+    }.stateOnDemand(synchronous = synchronous) {
         getCached {
             mutex.withSpinLock {
                 getCached {
@@ -54,13 +57,25 @@ private fun <T> derivedCached(
 }
 
 private fun <T> derivedOnDemand(
+    synchronous: Boolean,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
     callbackFlow {
         autoRun { trySend(observer()) }
         awaitClose {}
-    }.stateOnDemand {
+    }.stateOnDemand(synchronous = synchronous) {
         runWithResolver(observer)
+    }
+
+internal fun <T> scopelessDerived(
+    synchronous: Boolean = true,
+    cache: Boolean = true,
+    observer: AutoRunCallback<T>,
+): StateFlow<T> =
+    if (cache) {
+        derivedCached(synchronous = synchronous, observer = observer)
+    } else {
+        derivedOnDemand(synchronous = synchronous, observer = observer)
     }
 
 /**
@@ -68,28 +83,27 @@ private fun <T> derivedOnDemand(
  *
  * This variant doesn't need a [CoroutineScope]/[CoroutineLauncher].
  *
+ * @param synchronous Whether `.value` access synchronously recomputes even if someone collects. Defaults to `true`.
  * @param cache Caching of [StateFlow.value] expensive computations while nobody collects. Defaults to `true`.
  */
-public fun <T> derived(cache: Boolean = true, observer: AutoRunCallback<T>): StateFlow<T> =
-    if (cache) derivedCached(observer) else derivedOnDemand(observer = observer)
+public fun <T> derived(synchronous: Boolean = true, cache: Boolean = true, observer: AutoRunCallback<T>): StateFlow<T> =
+    scopelessDerived(synchronous = synchronous, cache = cache, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
+ *
+ * @param synchronous Whether `.value` access synchronously recomputes even if someone collects. Defaults to `true`.
+ * @param cache Caching of [StateFlow.value] expensive computations while nobody collects. Defaults to `true`.
  */
-public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlow<T> {
-    lateinit var result: MutableStateFlow<T>
-    var initialized = false
-    autoRun {
-        observer().also {
-            if (!initialized) {
-                result = MutableStateFlow(it)
-                initialized = true
-            }
-            result.value = it
-        }
+public fun <T> CoroutineLauncher.derived(
+    synchronous: Boolean = true,
+    cache: Boolean = synchronous,
+    observer: AutoRunCallback<T>,
+): StateFlow<T> =
+    scopelessDerived(synchronous = synchronous, cache = cache, observer = observer).also {
+        // Keep the value asynchronously updated in the background
+        if (!synchronous) launch { it.collect {} }
     }
-    return result
-}
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
@@ -99,9 +113,11 @@ public fun <T> CoroutineLauncher.derived(observer: AutoRunCallback<T>): StateFlo
  */
 public fun <T> CoroutineScope.derived(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
+    synchronous: Boolean = true,
+    cache: Boolean = synchronous,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
-    launcher.derived(observer = observer)
+    launcher.derived(synchronous = synchronous, cache = cache, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via a suspendable [coAutoRun] block.

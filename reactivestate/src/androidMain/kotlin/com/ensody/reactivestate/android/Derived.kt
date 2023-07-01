@@ -26,9 +26,10 @@ import kotlinx.coroutines.flow.StateFlow
  */
 public fun <T> ViewModel.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else SimpleCoroutineLauncher(viewModelScope),
+    synchronous: Boolean = true,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
-    launcher.derived(observer = observer)
+    launcher.derived(synchronous = synchronous, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via a suspendable [coAutoRun] block.
@@ -71,9 +72,10 @@ public fun <T> ViewModel.derived(
  */
 public fun <T> LifecycleOwner.derived(
     launcher: CoroutineLauncher = if (this is CoroutineLauncher) this else LifecycleCoroutineLauncher(this),
+    synchronous: Boolean = true,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
-    launcher.derived(observer = observer)
+    launcher.derived(synchronous = synchronous, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via a suspendable [coAutoRun] block.

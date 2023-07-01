@@ -1,5 +1,6 @@
 package com.ensody.reactivestate
 
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
@@ -34,9 +35,10 @@ import kotlin.coroutines.EmptyCoroutineContext
  */
 public fun <T> Flow<T>.stateOnDemand(
     context: CoroutineContext = EmptyCoroutineContext,
+    synchronous: Boolean = true,
     getter: (previous: Wrapped<T>?) -> T,
 ): StateFlow<T> =
-    DefaultOnDemandStateFlow(this, context, getter)
+    DefaultOnDemandStateFlow(this, context, synchronous, getter)
 
 /**
  * Turns this [Flow] into a [SharedFlow] without requiring a [CoroutineScope] (unlike [shareIn]).
@@ -80,6 +82,7 @@ internal class SharedCollect<T>(
     val flow: Flow<T>,
     val context: CoroutineContext,
     val delegate: MutableSharedFlow<T>,
+    val awaitFirstEmit: Boolean = false,
 ) : SharedFlow<T> by delegate {
 
     private val mutex = Mutex()
@@ -87,15 +90,22 @@ internal class SharedCollect<T>(
     val subscriptionCount = MutableStateFlow(0)
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
+        val hasFirstEmit = CompletableDeferred<Unit>()
         mutex.withLock {
             subscriptionCount.value += 1
             if (job == null) {
                 job = mainScope.launch(context = context) {
-                    flow.collect { delegate.emit(it) }
+                    flow.collect {
+                        delegate.emit(it)
+                        hasFirstEmit.complete(Unit)
+                    }
                 }
+            } else {
+                hasFirstEmit.complete(Unit)
             }
         }
         try {
+            if (awaitFirstEmit) hasFirstEmit.await()
             delegate.collect(collector)
         } finally {
             withContext(NonCancellable) {
@@ -121,45 +131,36 @@ internal class DefaultOnDemandSharedFlow<T>(
 internal class DefaultOnDemandStateFlow<T>(
     val flow: Flow<T>,
     val context: CoroutineContext,
+    val synchronous: Boolean,
     val getter: (previous: Wrapped<T>?) -> T,
 ) : StateFlow<T> {
 
-    private lateinit var delegate: MutableStateFlow<T>
-    private val sharedCollect by lazy { SharedCollect(flow, context, delegate) }
-    private val mutex = Mutex()
+    private val delegate = MutableStateFlow<Any?>(NIL)
+    private val sharedCollect = SharedCollect(flow, context, delegate, awaitFirstEmit = true)
 
     override val replayCache: List<T> get() = listOf(value)
 
     override val value: T
         get() =
-            if (!::delegate.isInitialized) {
-                getter(null).also {
-                    if (mutex.tryLock()) {
-                        try {
-                            if (!::delegate.isInitialized) {
-                                delegate = MutableStateFlow(it)
-                            }
-                        } finally {
-                            mutex.unlock()
-                        }
-                    }
-                }
-            } else if (delegate.subscriptionCount.value == 0) {
-                val previous = Wrapped(delegate.value)
+            if (synchronous || delegate.subscriptionCount.value == 0 || delegate.value === NIL) {
+                @Suppress("UNCHECKED_CAST")
+                val previous = if (delegate.value === NIL) null else Wrapped(delegate.value as T)
                 getter(previous).also {
-                    if (it !== previous.value) {
+                    if (previous == null || it !== previous.value) {
                         delegate.value = it
                     }
                 }
             } else {
-                delegate.value
+                @Suppress("UNCHECKED_CAST")
+                delegate.value as T
             }
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
-        // Ensure the first emitted value is up to date
-        if (!::delegate.isInitialized || delegate.subscriptionCount.value == 0) {
-            value
+        sharedCollect.collect {
+            @Suppress("UNCHECKED_CAST")
+            if (it !== NIL) collector.emit(it as T)
         }
-        sharedCollect.collect(collector)
     }
 }
+
+internal val NIL = object {}
