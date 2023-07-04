@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.5
+
+* Made `stateOnDemand` emit current value directly on start by default, so the flow doesn't have to do it. Pass `emitValueOnStart = false` as an optimization in case you emit the first value yourself.
+
 ## 5.5.4
 
 * Made `.value` access on `derived` and `stateOnDemand` synchronously return/recompute an up-to-date value. This prevents race conditions when mutating MutableStateFlows and directly reading derived values.

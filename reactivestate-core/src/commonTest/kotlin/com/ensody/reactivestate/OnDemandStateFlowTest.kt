@@ -1,10 +1,12 @@
 package com.ensody.reactivestate
 
 import com.ensody.reactivestate.test.CoroutineTest
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlin.test.Test
@@ -44,5 +46,20 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
         }.stateOnDemand {
             source.value
         }.first()
+    }
+
+    @Test
+    fun initialValueCollect() = runTest {
+        val result = mutableListOf<Int>()
+        callbackFlow {
+            send(0)
+            send(1)
+            awaitClose()
+        }.stateOnDemand {
+            0
+        }.take(2).collect {
+            result.add(it)
+        }
+        assertEquals(listOf(0, 1), result)
     }
 }

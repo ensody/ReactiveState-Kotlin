@@ -39,7 +39,7 @@ private fun <T> derivedCached(
             cachedValue = Wrapped(next)
         }
         awaitClose {}
-    }.stateOnDemand(synchronous = synchronous) {
+    }.stateOnDemand(synchronous = synchronous, emitValueOnStart = false) {
         getCached {
             mutex.withSpinLock {
                 getCached {
@@ -63,7 +63,7 @@ private fun <T> derivedOnDemand(
     callbackFlow {
         autoRun { trySend(observer()) }
         awaitClose {}
-    }.stateOnDemand(synchronous = synchronous) {
+    }.stateOnDemand(synchronous = synchronous, emitValueOnStart = false) {
         runWithResolver(observer)
     }
 
@@ -147,7 +147,7 @@ public fun <T> derivedWhileSubscribed(
             value = next
         }
         awaitClose {}
-    }.stateOnDemand {
+    }.stateOnDemand(emitValueOnStart = false) {
         value
     }
 }

@@ -36,9 +36,10 @@ import kotlin.coroutines.EmptyCoroutineContext
 public fun <T> Flow<T>.stateOnDemand(
     context: CoroutineContext = EmptyCoroutineContext,
     synchronous: Boolean = true,
+    emitValueOnStart: Boolean = true,
     getter: (previous: Wrapped<T>?) -> T,
 ): StateFlow<T> =
-    DefaultOnDemandStateFlow(this, context, synchronous, getter)
+    DefaultOnDemandStateFlow(this, context, synchronous, emitValueOnStart, getter)
 
 /**
  * Turns this [Flow] into a [SharedFlow] without requiring a [CoroutineScope] (unlike [shareIn]).
@@ -132,6 +133,7 @@ internal class DefaultOnDemandStateFlow<T>(
     val flow: Flow<T>,
     val context: CoroutineContext,
     val synchronous: Boolean,
+    val emitValueOnStart: Boolean,
     val getter: (previous: Wrapped<T>?) -> T,
 ) : StateFlow<T> {
 
@@ -156,9 +158,16 @@ internal class DefaultOnDemandStateFlow<T>(
             }
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
+        // Emit current value
+        var initialValue: Any? = if (emitValueOnStart) {
+            value.also { collector.emit(it) }
+        } else {
+            NIL
+        }
         sharedCollect.collect {
             @Suppress("UNCHECKED_CAST")
-            if (it !== NIL) collector.emit(it as T)
+            if (it !== NIL && (initialValue === NIL || it != initialValue)) collector.emit(it as T)
+            initialValue = NIL
         }
     }
 }
