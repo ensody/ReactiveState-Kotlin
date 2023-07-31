@@ -174,10 +174,16 @@ public fun <T> CoroutineLauncher.derived(
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
     return callbackFlow {
-        coAutoRun(flowTransformer = flowTransformer, dispatcher = dispatcher, withLoading = withLoading) {
+        val runner = this@derived.coAutoRun(
+            flowTransformer = flowTransformer,
+            dispatcher = dispatcher,
+            withLoading = withLoading,
+        ) {
             trySend(observer())
         }
-        awaitClose {}
+        awaitClose {
+            runner.dispose()
+        }
     }.stateIn(scope = launcherScope, started = started, initialValue = initial)
 }
 

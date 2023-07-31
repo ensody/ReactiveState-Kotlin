@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.runCurrent
 import kotlin.test.Test
@@ -50,16 +51,13 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
 
     @Test
     fun initialValueCollect() = runTest {
-        val result = mutableListOf<Int>()
-        callbackFlow {
+        val result = callbackFlow {
             send(0)
             send(1)
             awaitClose()
         }.stateOnDemand {
             0
-        }.take(2).collect {
-            result.add(it)
-        }
+        }.take(2).toList()
         assertEquals(listOf(0, 1), result)
     }
 }

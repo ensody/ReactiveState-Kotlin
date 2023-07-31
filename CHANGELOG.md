@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.6
+
+* Fixed error propagation for `CoroutineLauncher.derived`.
+
 ## 5.5.5
 
 * Made `stateOnDemand` emit current value directly on start by default, so the flow doesn't have to do it. Pass `emitValueOnStart = false` as an optimization in case you emit the first value yourself.
