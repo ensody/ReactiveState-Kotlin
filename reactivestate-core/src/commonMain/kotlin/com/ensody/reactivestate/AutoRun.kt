@@ -136,7 +136,7 @@ public abstract class BaseAutoRunner : AttachedDisposables {
 public abstract class InternalBaseAutoRunner(
     final override val launcher: CoroutineLauncher,
     protected val flowTransformer: AutoRunFlowTransformer,
-    immediate: Boolean,
+    private val immediate: Boolean,
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     override var resolver: Resolver = Resolver(this)
@@ -146,7 +146,7 @@ public abstract class InternalBaseAutoRunner(
     private val changeFlow: MutableFlow<Unit> = MutableFlow(Channel.CONFLATED)
     private var flowConsumer: Job? = null
 
-    init {
+    protected fun init() {
         if (immediate) consumeChangeFlow(initial = true)
     }
 
@@ -217,6 +217,7 @@ public class AutoRunner<T>(
     private val listener: AutoRunOnChangeCallback<T> = onChange ?: { run() }
 
     init {
+        init()
         if (immediate) run()
     }
 
@@ -284,6 +285,10 @@ public class CoAutoRunner<T>(
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     private val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
     override var resolver: Resolver = Resolver(this)
+
+    init {
+        init()
+    }
 
     /** Calls [observer] and tracks its dependencies unless [once] is `true`. */
     public suspend fun run(once: Boolean = false): T =

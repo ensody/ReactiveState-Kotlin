@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.5.7
+
+* Fixed rare multi-threading race condition during initialization of (Co)AutoRunner where the worker coroutine would trigger the listener before the constructor has finished executing.
+
 ## 5.5.6
 
 * Fixed error propagation for `CoroutineLauncher.derived`.
