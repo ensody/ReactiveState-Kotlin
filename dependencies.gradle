@@ -19,11 +19,9 @@ dependencies {
             if (isTestProject) {
                 androidMainApi args
             } else {
-                androidUnitTestImplementation args
+                androidTestImplementation args
             }
         }
-        // TODO: Remove this once we use Kotlin 1.8.x
-        androidUnitTestImplementation = { args -> androidTestImplementation args }
 
         if (!isMultiplatform) {
             commonMainApi = { args -> api args }
@@ -31,7 +29,7 @@ dependencies {
         }
 
         versionConstraints = {
-            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.6.4")
+            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.7.3")
         }
 
         base = {

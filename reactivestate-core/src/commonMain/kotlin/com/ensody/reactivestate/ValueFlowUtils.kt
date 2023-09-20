@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.flow.StateFlow
+import kotlin.jvm.JvmName
 
 /** Atomically increment this [MutableValueFlow] by [amount]. */
 public fun MutableValueFlow<Int>.increment(amount: Int = 1): Int =
@@ -27,4 +28,15 @@ public suspend fun MutableValueFlow<Int>.incrementFrom(flow: StateFlow<Int>) {
     } finally {
         decrement(previous)
     }
+}
+
+/**
+ * Keeps this [MutableValueFlow] [incremented][increment] by the latest value in the given [flow].
+ *
+ * For example, if this [MutableValueFlow] is initially set to 1 and [flow] is set to true, false, true then the value
+ * of this [MutableValueFlow] will be set to 2, then 1, then 2.
+ */
+@JvmName("incrementFromBoolean")
+public suspend fun MutableValueFlow<Int>.incrementFrom(flow: StateFlow<Boolean>) {
+    incrementFrom(derived { if (get(flow)) 1 else 0 })
 }

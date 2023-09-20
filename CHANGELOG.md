@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.6.0
+
+* Upgraded to kotlinx.coroutines 1.7.3.
+* Added `MutableStateFlow<Int>.incrementFrom(MutableStateFlow<Boolean>)`.
+
 ## 5.5.7
 
 * Fixed rare multi-threading race condition during initialization of (Co)AutoRunner where the worker coroutine would trigger the listener before the constructor has finished executing.
