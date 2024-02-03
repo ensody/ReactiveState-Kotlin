@@ -2,8 +2,6 @@ class Config {
     Integer minVersion = null
     Integer targetVersion = null
     Integer compileSdkVersion = null
-    Boolean kotlinExplicitApiMode = false
-    List<String> kotlinCompilerArgs = []
 }
 
 def isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
@@ -17,9 +15,9 @@ ext.androidCommon = { args = [:] ->
     Config config = new Config(args)
 
     int minVersion = config.minVersion ?: 19
-    int targetVersion = config.targetVersion ?: 33
+    int targetVersion = config.targetVersion ?: 34
     int compileVersion = config.compileSdkVersion ?: targetVersion
-    def javaVersion = JavaVersion.VERSION_11
+    def javaVersion = JavaVersion.VERSION_17
 
     kotlinCommon()
 
@@ -30,14 +28,6 @@ ext.androidCommon = { args = [:] ->
             coreLibraryDesugaringEnabled true
             sourceCompatibility javaVersion
             targetCompatibility javaVersion
-        }
-
-        kotlinOptions {
-            jvmTarget = javaVersion.toString()
-            freeCompilerArgs = getCompilerArgs(
-                kotlinExplicitApiMode: config.kotlinExplicitApiMode,
-                kotlinCompilerArgs: config.kotlinCompilerArgs,
-            )
         }
 
         namespace = "$group.${name.replace('-', '.')}"

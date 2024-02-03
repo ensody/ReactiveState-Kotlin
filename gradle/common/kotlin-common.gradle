@@ -15,6 +15,7 @@ ext.getCompilerArgs = { args = [:] ->
     CompilerArgsConfig config = new CompilerArgsConfig(args)
     def compilerArgs = [
         "-opt-in=kotlin.RequiresOptIn",
+        "-Xexpect-actual-classes",
     ] + config.kotlinCompilerArgs
     if (config.kotlinExplicitApiMode) {
         compilerArgs.add("-Xexplicit-api=strict")

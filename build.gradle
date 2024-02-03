@@ -1,13 +1,13 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
-    ext.kotlin_version = '1.8.21'
+    ext.kotlin_version = '1.9.22'
 }
 
 plugins {
-    id 'com.android.application' version '7.4.2' apply false
+    id 'com.android.application' version '8.2.0' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
-    id "org.jetbrains.dokka" version "1.8.20"
+    id "org.jetbrains.dokka" version "1.9.10"
     id 'pl.allegro.tech.build.axion-release' version '1.15.3'
     id 'com.github.ben-manes.versions' version '0.47.0'
     id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
@@ -80,7 +80,7 @@ subprojects {
                 }
 
                 if (isAndroidProject) {
-                    android {
+                    androidTarget {
                         publishLibraryVariants("release")
                     }
 
@@ -107,17 +107,22 @@ subprojects {
 
 //                wasm32()
 
+                applyDefaultHierarchyTemplate()
+
                 if (isIosProject) {
-                    ios()
+                    iosArm64()
+                    iosX64()
                     iosSimulatorArm64()
                     testAll.dependsOn "iosSimulatorArm64Test"
                     testAll.dependsOn "iosX64Test"
 
-                    tvos()
+                    tvosArm64()
+                    tvosX64()
                     tvosSimulatorArm64()
 
-                    watchos()
-                    watchosX86()
+                    watchosArm32()
+                    watchosArm64()
+                    watchosX64()
                     watchosSimulatorArm64()
 
                     sourceSets {
@@ -146,8 +151,6 @@ subprojects {
                         watchosArm32Test { dependsOn(watchosTest) }
                         watchosX64Main { dependsOn(watchosMain) }
                         watchosX64Test { dependsOn(watchosTest) }
-                        watchosX86Main { dependsOn(watchosMain) }
-                        watchosX86Test { dependsOn(watchosTest) }
                         watchosSimulatorArm64Main { dependsOn(watchosMain) }
                         watchosSimulatorArm64Test { dependsOn(watchosTest) }
                     }
@@ -197,7 +200,6 @@ subprojects {
         if (isAndroidProject) {
             androidLibrary(
                 minVersion: isComposeProject ? 21 : 19,
-                kotlinCompilerArgs: kotlinCompilerArgs,
             )
 
             android {

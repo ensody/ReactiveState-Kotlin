@@ -128,14 +128,14 @@ public fun <T> CoroutineScope.derived(
  *
  * @param initial The initial value (until the first computation finishes).
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
- * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.main`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to `null`.
  * @param observer The callback which is used to track the observables.
  */
 public fun <T> derivedWhileSubscribed(
     initial: T,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
-    dispatcher: CoroutineDispatcher = dispatchers.default,
+    dispatcher: CoroutineDispatcher = dispatchers.main,
     withLoading: MutableValueFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
@@ -161,7 +161,7 @@ public fun <T> derivedWhileSubscribed(
  * @param started When the value should be updated. Pass [SharingStarted.WhileSubscribed] to compute only on demand.
  *                Defaults to [SharingStarted.Eagerly].
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
- * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.main`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to [CoroutineLauncher.loading].
  * @param observer The callback which is used to track the observables.
  */
@@ -169,7 +169,7 @@ public fun <T> CoroutineLauncher.derived(
     initial: T,
     started: SharingStarted = SharingStarted.Eagerly,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
-    dispatcher: CoroutineDispatcher = dispatchers.default,
+    dispatcher: CoroutineDispatcher = dispatchers.main,
     withLoading: MutableValueFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
@@ -197,7 +197,7 @@ public fun <T> CoroutineLauncher.derived(
  *                Defaults to [SharingStarted.Eagerly].
  * @param launcher The [CoroutineLauncher] to use.
  * @param flowTransformer How changes should be executed/collected. Defaults to [conflatedWorker].
- * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.default`.
+ * @param dispatcher The [CoroutineDispatcher] to use. Defaults to `dispatchers.main`.
  * @param withLoading Tracks loading state for the (re-)computation. Defaults to `null`.
  * @param observer The callback which is used to track the observables.
  */
@@ -206,7 +206,7 @@ public fun <T> CoroutineScope.derived(
     started: SharingStarted = SharingStarted.Eagerly,
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
-    dispatcher: CoroutineDispatcher = dispatchers.default,
+    dispatcher: CoroutineDispatcher = dispatchers.main,
     withLoading: MutableValueFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =

@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.7.0
+
+* Upgraded to Kotlin 1.9.22.
+* Switched `derived` and `AutoRunner` default dispatcher to `dispatcher.main`, to prevent threading errors on iOS by default.
+* Added `MutableStateFlow<T>.onStateSubscription {}` and `StateFlow<T>.onStateSubscription {}` which behave like `onSubscription` but return a `MutableStateFlow`/`StateFlow`.
+
 ## 5.6.0
 
 * Upgraded to kotlinx.coroutines 1.7.3.

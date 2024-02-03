@@ -70,11 +70,11 @@ dependencies {
             androidTestDependency "androidx.fragment:fragment-testing:$fragmentVersion"
             androidTestDependency "androidx.test:core-ktx:1.5.0"
             androidTestDependency "androidx.test.ext:junit-ktx:1.1.5"
-            androidTestDependency "org.robolectric:robolectric:4.10.3"
+            androidTestDependency "org.robolectric:robolectric:4.11.1"
         }
 
-        composeVersion = "1.4.3"
-        composeCompilerVersion = "1.4.7"
+        composeVersion = "1.6.0"
+        composeCompilerVersion = "1.5.8"
         jetpackCompose = {
             android {
                 buildFeatures {

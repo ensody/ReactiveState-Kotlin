@@ -2,8 +2,6 @@ class Config {
     Integer minVersion = null
     Integer targetVersion = null
     Integer compileSdkVersion = null
-    Boolean kotlinExplicitApiMode = true
-    List<String> kotlinCompilerArgs = []
 }
 
 apply plugin: 'com.android.library'
@@ -16,8 +14,6 @@ ext.androidLibrary = { args = [:] ->
         minVersion: config.minVersion,
         targetVersion: config.targetVersion,
         compileSdkVersion: config.compileSdkVersion,
-        kotlinExplicitApiMode: config.kotlinExplicitApiMode,
-        kotlinCompilerArgs: config.kotlinCompilerArgs,
     )
 
     android {
