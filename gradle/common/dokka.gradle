@@ -1,8 +1,6 @@
 apply plugin: 'org.jetbrains.dokka'
 
 tasks.named("dokkaGfmPartial").configure {
-    outputDirectory.set(rootProject.file("docs/reference"))
-
     dokkaSourceSets {
         configureEach {
             noAndroidSdkLink.set(false)

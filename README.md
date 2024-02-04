@@ -137,7 +137,7 @@ This library is based on [reactive_state](https://github.com/ensody/reactive_sta
 ## License
 
 ```
-Copyright 2022 Ensody GmbH, Waldemar Kornewald
+Copyright 2024 Ensody GmbH, Waldemar Kornewald
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

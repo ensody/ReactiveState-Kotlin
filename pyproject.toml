@@ -1,14 +1,14 @@
 [tool.poetry]
 name = "ReactiveState-Kotlin"
-version = "4.6.0"
+version = "5.7.0"
 description = "reactivestate"
 authors = []
 
 [tool.poetry.dependencies]
-python = "^3.6"
-mkdocs = "^1.2.3"
-mkdocs-material = "^8.1.4"
+python = "^3.10"
+mkdocs = "^1.5.3"
+mkdocs-material = "^9.5.7"
 
 [build-system]
-requires = ["poetry>=1.1.6"]
+requires = ["poetry>=1.7.1"]
 build-backend = "poetry.masonry.api"
