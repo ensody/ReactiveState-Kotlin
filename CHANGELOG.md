@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.8.0
+
+* Upgraded to Kotlin 2.0.0.
+
 ## 5.7.0
 
 * Upgraded to Kotlin 1.9.22.

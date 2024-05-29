@@ -29,7 +29,7 @@ dependencies {
         }
 
         versionConstraints = {
-            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.7.3")
+            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.8.1")
         }
 
         base = {
@@ -46,9 +46,9 @@ dependencies {
             jvmCommonTestImplementation "io.mockk:mockk:1.13.5"
         }
 
-        activityVersion = "1.7.2"
+        activityVersion = "1.8.2"
         fragmentVersion = "1.5.7"
-        lifecycleVersion = "2.6.1"
+        lifecycleVersion = "2.8.0"
         androidBase = {
             androidMainApi "androidx.annotation:annotation:1.6.0"
             androidMainApi "androidx.appcompat:appcompat:1.6.1"
@@ -73,23 +73,19 @@ dependencies {
             androidTestDependency "org.robolectric:robolectric:4.11.1"
         }
 
-        composeVersion = "1.6.0"
-        composeCompilerVersion = "1.5.8"
+        composeVersion = "1.6.7"
         jetpackCompose = {
-            android {
-                buildFeatures {
-                    compose = true
-                }
+            apply plugin: "org.jetbrains.compose"
+            apply plugin: "org.jetbrains.kotlin.plugin.compose"
 
-                composeOptions {
-                    kotlinCompilerExtensionVersion = composeCompilerVersion
-                }
+            composeCompiler {
+                enableStrongSkippingMode = true
             }
 
             androidMainApi "androidx.activity:activity-compose:$activityVersion"
             androidMainApi "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
 
-            androidMainApi "androidx.compose.runtime:runtime:$composeVersion"
+            commonMainApi "androidx.compose.runtime:runtime:$composeVersion"
             constraints {
                 api "androidx.compose.foundation:foundation:$composeVersion"
                 api "androidx.compose.ui:ui:$composeVersion"

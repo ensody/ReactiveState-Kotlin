@@ -1,16 +1,19 @@
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
-    ext.kotlin_version = '1.9.22'
+    ext.kotlin_version = '2.0.0'
+    ext.composeCompilerVersion = '1.6.10'
 }
 
 plugins {
-    id 'com.android.application' version '8.2.0' apply false
+    id 'com.android.application' version '8.4.0' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
-    id "org.jetbrains.dokka" version "1.9.10"
-    id 'pl.allegro.tech.build.axion-release' version '1.15.3'
-    id 'com.github.ben-manes.versions' version '0.47.0'
-    id "io.github.gradle-nexus.publish-plugin" version "1.3.0"
+    id "org.jetbrains.compose" version "$composeCompilerVersion" apply false
+    id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version" apply false
+    id "org.jetbrains.dokka" version "1.9.20"
+    id 'pl.allegro.tech.build.axion-release' version '1.17.2'
+    id 'com.github.ben-manes.versions' version '0.51.0'
+    id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
 }
 
 allprojects {
@@ -38,7 +41,11 @@ subprojects {
     ext {
         isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
         isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
-        isIosProject = isMultiplatform && DefaultNativePlatform.currentOperatingSystem.macOsX && ["iosMain", "appleMobileMain", "nativeMain", "nonJvmMain", "commonMain"].any { project.file("src/$it").exists() }
+        isIosProject = !project.name.endsWith("-compose") && isMultiplatform && DefaultNativePlatform.currentOperatingSystem.macOsX && ["iosMain", "appleMobileMain", "nativeMain", "nonJvmMain", "commonMain"].any { project.file("src/$it").exists() }
+        isJsProject = !project.name.endsWith("-compose")
+        isMacosProject = !project.name.endsWith("-compose")
+        isLinuxProject = !project.name.endsWith("-compose")
+        isWindowsProject = !project.name.endsWith("-compose")
         isPlatformProject = project.name.endsWith("-bom")
         isTestProject = project.name.endsWith("-test")
         isComposeProject = project.name.endsWith("-compose")
@@ -95,14 +102,16 @@ subprojects {
                     }
                 }
 
-                js(IR) {
-                    browser()
-                    nodejs()
-                }
-//                testAll.dependsOn "jsIrNodeTest"
-                sourceSets {
-                    jsMain { dependsOn(nonJvmMain) }
-                    jsTest { dependsOn(nonJvmTest) }
+                if (isJsProject) {
+                    js(IR) {
+                        browser()
+                        nodejs()
+                    }
+//                    testAll.dependsOn "jsIrNodeTest"
+                    sourceSets {
+                        jsMain { dependsOn(nonJvmMain) }
+                        jsTest { dependsOn(nonJvmTest) }
+                    }
                 }
 
 //                wasm32()
@@ -156,41 +165,51 @@ subprojects {
                     }
                 }
 
-                macosArm64()
-                testAll.dependsOn "macosArm64Test"
-                macosX64()
-                testAll.dependsOn "macosX64Test"
+                if (isMacosProject) {
+                    macosArm64()
+                    testAll.dependsOn "macosArm64Test"
+                    macosX64()
+                    testAll.dependsOn "macosX64Test"
 
-//                linuxArm64()
-//                testAll.dependsOn "linuxArm64Test"
-                linuxX64()
-                testAll.dependsOn "linuxX64Test"
-//                linuxArm32Hfp()
-//                linuxMips32()
-//                linuxMipsel32()
+                    sourceSets {
+                        macosMain { dependsOn(desktopMain) }
+                        macosTest { dependsOn(desktopTest) }
+                        macosArm64Main { dependsOn(macosMain) }
+                        macosArm64Test { dependsOn(macosTest) }
+                        macosX64Main { dependsOn(macosMain) }
+                        macosX64Test { dependsOn(macosTest) }
+                    }
+                }
 
-                mingwX64()
-                testAll.dependsOn "mingwX64Test"
-//                mingwX86()
-//                testAll.dependsOn "mingwX86Test"
+                if (isLinuxProject) {
+//                    linuxArm64()
+//                    testAll.dependsOn "linuxArm64Test"
+                    linuxX64()
+                    testAll.dependsOn "linuxX64Test"
+//                    linuxArm32Hfp()
+//                    linuxMips32()
+//                    linuxMipsel32()
 
-                sourceSets {
-                    linuxMain { dependsOn(desktopMain) }
-                    linuxTest { dependsOn(desktopTest) }
-                    linuxX64Main { dependsOn(linuxMain) }
-                    linuxX64Test { dependsOn(linuxTest) }
+                    sourceSets {
+                        linuxMain { dependsOn(desktopMain) }
+                        linuxTest { dependsOn(desktopTest) }
+                        linuxX64Main { dependsOn(linuxMain) }
+                        linuxX64Test { dependsOn(linuxTest) }
+                    }
+                }
 
-                    macosMain { dependsOn(desktopMain) }
-                    macosTest { dependsOn(desktopTest) }
-                    macosArm64Main { dependsOn(macosMain) }
-                    macosArm64Test { dependsOn(macosTest) }
-                    macosX64Main { dependsOn(macosMain) }
-                    macosX64Test { dependsOn(macosTest) }
+                if (isWindowsProject) {
+                    mingwX64()
+                    testAll.dependsOn "mingwX64Test"
+//                    mingwX86()
+//                    testAll.dependsOn "mingwX86Test"
 
-                    mingwMain { dependsOn(desktopMain) }
-                    mingwTest { dependsOn(desktopTest) }
-                    mingwX64Main { dependsOn(mingwMain) }
-                    mingwX64Test { dependsOn(mingwTest) }
+                    sourceSets {
+                        mingwMain { dependsOn(desktopMain) }
+                        mingwTest { dependsOn(desktopTest) }
+                        mingwX64Main { dependsOn(mingwMain) }
+                        mingwX64Test { dependsOn(mingwTest) }
+                    }
                 }
             }
         }

@@ -13,12 +13,23 @@ indent_size = 4
 
 [*.{kt,kts}]
 ij_kotlin_imports_layout=*,java.**,javax.**,kotlin.**,^
-ktlint_experimental=disabled
-ktlint_annotation=disabled
-ktlint_enum-entry-name-case=disabled
-ktlint_filename=disabled
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
 ij_kotlin_name_count_to_use_star_import = 1000000
 ij_kotlin_name_count_to_use_star_import_for_members = 1000000
 ij_kotlin_packages_to_use_import_on_demand = unset
+ktlint_code_style = intellij_idea
+ktlint_standard_annotation = disabled
+ktlint_standard_argument-list-wrapping = disabled
+ktlint_standard_blank-line-before-declaration = disabled
+ktlint_standard_enum-entry-name-case = disabled
+ktlint_standard_enum-wrapping = disabled
+ktlint_standard_filename = disabled
+ktlint_standard_function-naming = disabled
+ktlint_standard_function-signature = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+ktlint_standard_no-empty-first-line-in-class-body = disabled
+ktlint_standard_parameter-list-wrapping = disabled
+ktlint_standard_property-naming = disabled
+ktlint_standard_statement-wrapping = disabled
+ktlint_standard_string-template-indent = disabled
