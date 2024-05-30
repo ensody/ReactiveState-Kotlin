@@ -75,9 +75,6 @@ dependencies {
 
         composeVersion = "1.6.7"
         jetpackCompose = {
-            apply plugin: "org.jetbrains.compose"
-            apply plugin: "org.jetbrains.kotlin.plugin.compose"
-
             composeCompiler {
                 enableStrongSkippingMode = true
             }
@@ -85,14 +82,7 @@ dependencies {
             androidMainApi "androidx.activity:activity-compose:$activityVersion"
             androidMainApi "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
 
-            commonMainApi "androidx.compose.runtime:runtime:$composeVersion"
-            constraints {
-                api "androidx.compose.foundation:foundation:$composeVersion"
-                api "androidx.compose.ui:ui:$composeVersion"
-                api "androidx.compose.animation:animation:$composeVersion"
-                api "androidx.compose.material:material:$composeVersion"
-                api "androidx.compose.ui:ui-tooling:$composeVersion"
-            }
+            commonMainApi compose.runtime
         }
     }
 }

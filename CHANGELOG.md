@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.8.1
+
+* Build reactivestate-compose for all targets.
+* Added WASM target.
+
 ## 5.8.0
 
 * Upgraded to Kotlin 2.0.0.

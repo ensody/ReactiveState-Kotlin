@@ -41,11 +41,7 @@ subprojects {
     ext {
         isAndroidProject = ["main", "androidMain"].any { project.file("src/$it/AndroidManifest.xml").exists() }
         isMultiplatform = ["androidMain", "jvmMain", "jvmCommonMain", "commonMain"].any { project.file("src/$it").exists() }
-        isIosProject = !project.name.endsWith("-compose") && isMultiplatform && DefaultNativePlatform.currentOperatingSystem.macOsX && ["iosMain", "appleMobileMain", "nativeMain", "nonJvmMain", "commonMain"].any { project.file("src/$it").exists() }
-        isJsProject = !project.name.endsWith("-compose")
-        isMacosProject = !project.name.endsWith("-compose")
-        isLinuxProject = !project.name.endsWith("-compose")
-        isWindowsProject = !project.name.endsWith("-compose")
+        isIosProject = isMultiplatform && DefaultNativePlatform.currentOperatingSystem.macOsX && ["iosMain", "appleMobileMain", "nativeMain", "nonJvmMain", "commonMain"].any { project.file("src/$it").exists() }
         isPlatformProject = project.name.endsWith("-bom")
         isTestProject = project.name.endsWith("-test")
         isComposeProject = project.name.endsWith("-compose")
@@ -78,8 +74,8 @@ subprojects {
                     nonJvmTest { dependsOn(commonTest) }
                     nativeMain { dependsOn(nonJvmMain) }
                     nativeTest { dependsOn(nonJvmTest) }
-                    desktopMain { dependsOn(nativeMain) }
-                    desktopTest { dependsOn(nativeTest) }
+                    wasmJsMain { dependsOn(nonJvmMain) }
+                    wasmJsTest { dependsOn(nonJvmTest) }
                     jvmCommonMain { dependsOn(commonMain) }
                     jvmCommonTest { dependsOn(commonTest) }
                     jvmMain { dependsOn(jvmCommonMain) }
@@ -102,115 +98,50 @@ subprojects {
                     }
                 }
 
-                if (isJsProject) {
-                    js(IR) {
-                        browser()
-                        nodejs()
-                    }
-//                    testAll.dependsOn "jsIrNodeTest"
-                    sourceSets {
-                        jsMain { dependsOn(nonJvmMain) }
-                        jsTest { dependsOn(nonJvmTest) }
-                    }
+                js(IR) {
+                    browser()
+                    nodejs()
+                }
+//                testAll.dependsOn "jsIrNodeTest"
+                sourceSets {
+                    jsMain { dependsOn(nonJvmMain) }
+                    jsTest { dependsOn(nonJvmTest) }
                 }
 
-//                wasm32()
+                wasmJs {
+                    browser()
+                    nodejs()
+                }
 
                 applyDefaultHierarchyTemplate()
 
-                if (isIosProject) {
-                    iosArm64()
-                    iosX64()
-                    iosSimulatorArm64()
-                    testAll.dependsOn "iosSimulatorArm64Test"
-                    testAll.dependsOn "iosX64Test"
+                iosArm64()
+                iosX64()
+                iosSimulatorArm64()
+                testAll.dependsOn "iosSimulatorArm64Test"
+                testAll.dependsOn "iosX64Test"
 
-                    tvosArm64()
-                    tvosX64()
-                    tvosSimulatorArm64()
+                tvosArm64()
+                tvosX64()
+                tvosSimulatorArm64()
 
-                    watchosArm32()
-                    watchosArm64()
-                    watchosX64()
-                    watchosSimulatorArm64()
+                watchosArm32()
+                watchosArm64()
+                watchosX64()
+                watchosSimulatorArm64()
 
-                    sourceSets {
-                        appleMobileMain { dependsOn(nativeMain) }
-                        appleMobileTest { dependsOn(nativeTest) }
+                macosArm64()
+                testAll.dependsOn "macosArm64Test"
+                macosX64()
+                testAll.dependsOn "macosX64Test"
 
-                        iosMain { dependsOn(appleMobileMain) }
-                        iosTest { dependsOn(appleMobileTest) }
-                        iosArm64Main { dependsOn(iosMain) }
-                        iosArm64Test { dependsOn(iosTest) }
-                        iosX64Main { dependsOn(iosMain) }
-                        iosX64Test { dependsOn(iosTest) }
-                        iosSimulatorArm64Main { dependsOn(iosMain) }
-                        iosSimulatorArm64Test { dependsOn(iosTest) }
+                linuxArm64()
+//                testAll.dependsOn "linuxArm64Test"
+                linuxX64()
+                testAll.dependsOn "linuxX64Test"
 
-                        tvosMain { dependsOn(appleMobileMain) }
-                        tvosTest { dependsOn(appleMobileTest) }
-                        tvosSimulatorArm64Main { dependsOn(tvosMain) }
-                        tvosSimulatorArm64Test { dependsOn(tvosTest) }
-
-                        watchosMain { dependsOn(appleMobileMain) }
-                        watchosTest { dependsOn(appleMobileTest) }
-                        watchosArm64Main { dependsOn(watchosMain) }
-                        watchosArm64Test { dependsOn(watchosTest) }
-                        watchosArm32Main { dependsOn(watchosMain) }
-                        watchosArm32Test { dependsOn(watchosTest) }
-                        watchosX64Main { dependsOn(watchosMain) }
-                        watchosX64Test { dependsOn(watchosTest) }
-                        watchosSimulatorArm64Main { dependsOn(watchosMain) }
-                        watchosSimulatorArm64Test { dependsOn(watchosTest) }
-                    }
-                }
-
-                if (isMacosProject) {
-                    macosArm64()
-                    testAll.dependsOn "macosArm64Test"
-                    macosX64()
-                    testAll.dependsOn "macosX64Test"
-
-                    sourceSets {
-                        macosMain { dependsOn(desktopMain) }
-                        macosTest { dependsOn(desktopTest) }
-                        macosArm64Main { dependsOn(macosMain) }
-                        macosArm64Test { dependsOn(macosTest) }
-                        macosX64Main { dependsOn(macosMain) }
-                        macosX64Test { dependsOn(macosTest) }
-                    }
-                }
-
-                if (isLinuxProject) {
-//                    linuxArm64()
-//                    testAll.dependsOn "linuxArm64Test"
-                    linuxX64()
-                    testAll.dependsOn "linuxX64Test"
-//                    linuxArm32Hfp()
-//                    linuxMips32()
-//                    linuxMipsel32()
-
-                    sourceSets {
-                        linuxMain { dependsOn(desktopMain) }
-                        linuxTest { dependsOn(desktopTest) }
-                        linuxX64Main { dependsOn(linuxMain) }
-                        linuxX64Test { dependsOn(linuxTest) }
-                    }
-                }
-
-                if (isWindowsProject) {
-                    mingwX64()
-                    testAll.dependsOn "mingwX64Test"
-//                    mingwX86()
-//                    testAll.dependsOn "mingwX86Test"
-
-                    sourceSets {
-                        mingwMain { dependsOn(desktopMain) }
-                        mingwTest { dependsOn(desktopTest) }
-                        mingwX64Main { dependsOn(mingwMain) }
-                        mingwX64Test { dependsOn(mingwTest) }
-                    }
-                }
+                mingwX64()
+                testAll.dependsOn "mingwX64Test"
             }
         }
 
