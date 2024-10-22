@@ -19,6 +19,8 @@ ext.kotlinLibrary = { args = [:] ->
             explicitApi()
         }
 
+        jvmToolchain(17)
+
         targets.all {
             compilations.all {
                 kotlinOptions {

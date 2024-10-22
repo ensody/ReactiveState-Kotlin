@@ -59,7 +59,7 @@ dependencies {
             androidMainApi "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
             androidMainApi "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
             androidMainApi "androidx.lifecycle:lifecycle-service:$lifecycleVersion"
-            androidMainApi "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
+//            androidMainApi "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
             constraints {
                 api "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
                 api "androidx.lifecycle:lifecycle-service:$lifecycleVersion"
@@ -73,8 +73,8 @@ dependencies {
             androidTestDependency "org.robolectric:robolectric:4.11.1"
         }
 
-        composeVersion = "1.6.7"
         jetpackCompose = {
+            api platform('androidx.compose:compose-bom:2024.08.00')
             composeCompiler {
                 enableStrongSkippingMode = true
             }

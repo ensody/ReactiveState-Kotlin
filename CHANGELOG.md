@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.9.0
+
+* Added `JvmSerializable`. Deprecated `Serializable` which is now an alias for `JvmSerializable`.
+* Added `RawSerializer` interface which can serialize an object to/from `ByteArray`.
+* Added `JvmSerializerReplacement` which can be used with `writeReplace()`.
+
 ## 5.8.1
 
 * Build reactivestate-compose for all targets.

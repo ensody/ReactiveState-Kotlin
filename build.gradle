@@ -2,11 +2,11 @@ import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
 buildscript {
     ext.kotlin_version = '2.0.0'
-    ext.composeCompilerVersion = '1.6.10'
+    ext.composeCompilerVersion = '1.6.11'
 }
 
 plugins {
-    id 'com.android.application' version '8.4.0' apply false
+    id 'com.android.application' version '8.4.2' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
     id "org.jetbrains.compose" version "$composeCompilerVersion" apply false
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version" apply false
