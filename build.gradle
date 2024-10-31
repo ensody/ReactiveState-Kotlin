@@ -6,12 +6,12 @@ buildscript {
 }
 
 plugins {
-    id 'com.android.application' version '8.4.2' apply false
+    id 'com.android.application' version '8.6.1' apply false
     id 'org.jetbrains.kotlin.android' version "$kotlin_version" apply false
     id "org.jetbrains.compose" version "$composeCompilerVersion" apply false
     id "org.jetbrains.kotlin.plugin.compose" version "$kotlin_version" apply false
     id "org.jetbrains.dokka" version "1.9.20"
-    id 'pl.allegro.tech.build.axion-release' version '1.17.2'
+    id 'pl.allegro.tech.build.axion-release' version '1.18.13'
     id 'com.github.ben-manes.versions' version '0.51.0'
     id "io.github.gradle-nexus.publish-plugin" version "2.0.0"
 }
@@ -67,17 +67,25 @@ subprojects {
             )
 
             kotlin {
+                applyDefaultHierarchyTemplate()
+
                 jvm()
                 testAll.dependsOn "jvmTest"
                 sourceSets {
+                    composeMain { dependsOn(commonMain) }
+                    composeTest { dependsOn(commonTest) }
                     nonJvmMain { dependsOn(commonMain) }
                     nonJvmTest { dependsOn(commonTest) }
                     nativeMain { dependsOn(nonJvmMain) }
                     nativeTest { dependsOn(nonJvmTest) }
+                    iosMain { dependsOn(composeMain) }
+                    iosTest { dependsOn(composeTest) }
+                    macosMain { dependsOn(composeMain) }
+                    macosTest { dependsOn(composeTest) }
                     wasmJsMain { dependsOn(nonJvmMain) }
                     wasmJsTest { dependsOn(nonJvmTest) }
-                    jvmCommonMain { dependsOn(commonMain) }
-                    jvmCommonTest { dependsOn(commonTest) }
+                    jvmCommonMain { dependsOn(composeMain) }
+                    jvmCommonTest { dependsOn(composeTest) }
                     jvmMain { dependsOn(jvmCommonMain) }
                     jvmTest { dependsOn(jvmCommonTest) }
                 }
@@ -104,16 +112,20 @@ subprojects {
                 }
 //                testAll.dependsOn "jsIrNodeTest"
                 sourceSets {
-                    jsMain { dependsOn(nonJvmMain) }
-                    jsTest { dependsOn(nonJvmTest) }
+                    jsMain {
+                        dependsOn(nonJvmMain)
+                        dependsOn(composeMain)
+                    }
+                    jsTest {
+                        dependsOn(nonJvmTest)
+                        dependsOn(composeTest)
+                    }
                 }
 
                 wasmJs {
                     browser()
                     nodejs()
                 }
-
-                applyDefaultHierarchyTemplate()
 
                 iosArm64()
                 iosX64()

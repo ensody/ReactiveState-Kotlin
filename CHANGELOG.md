@@ -1,5 +1,10 @@
 # Changelog
 
+## 5.10.0
+
+* Improved experimental Jetpack Compose APIs (`ReactiveViewModel`, `by reactiveViewModel`).
+* Support for Compose APIs on iOS and JS targets.
+
 ## 5.9.0
 
 * Added `JvmSerializable`. Deprecated `Serializable` which is now an alias for `JvmSerializable`.

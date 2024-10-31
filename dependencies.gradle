@@ -48,7 +48,7 @@ dependencies {
 
         activityVersion = "1.8.2"
         fragmentVersion = "1.5.7"
-        lifecycleVersion = "2.8.0"
+        lifecycleVersion = "2.8.3"
         androidBase = {
             androidMainApi "androidx.annotation:annotation:1.6.0"
             androidMainApi "androidx.appcompat:appcompat:1.6.1"
@@ -74,15 +74,17 @@ dependencies {
         }
 
         jetpackCompose = {
-            api platform('androidx.compose:compose-bom:2024.08.00')
             composeCompiler {
                 enableStrongSkippingMode = true
             }
 
-            androidMainApi "androidx.activity:activity-compose:$activityVersion"
-            androidMainApi "androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
+            implementation platform('androidx.compose:compose-bom:2024.08.00')
 
             commonMainApi compose.runtime
+            composeMainApi compose.foundation
+            composeMainApi compose.runtime
+            composeMainApi compose.ui
+            composeMainApi "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
         }
     }
 }

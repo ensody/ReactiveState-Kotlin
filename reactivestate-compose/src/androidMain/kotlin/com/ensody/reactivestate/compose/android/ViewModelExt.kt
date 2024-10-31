@@ -4,14 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStoreOwner
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
-import com.ensody.reactivestate.ReactiveState
-import com.ensody.reactivestate.compose.ReactiveStateBuildContext
-import com.ensody.reactivestate.compose.reactiveState
-import kotlinx.coroutines.CoroutineScope
 
 /**
  * Returns an existing [ViewModel] or creates a new one in the given owner (usually, a fragment or
@@ -46,29 +41,4 @@ public inline fun <reified VM : ViewModel> viewModel(
     },
 )
 
-/**
- * Creates an object living on a wrapper [ViewModel]. This allows for building multiplatform ViewModels.
- *
- * The [provider] should instantiate the object directly.
- *
- * @see [reactiveState] if you want to instantiate a multiplatform [ReactiveState] ViewModel directly.
- */
-@ExperimentalReactiveStateApi
-@Composable
-public inline fun <reified T : Any?> onViewModel(
-    viewModelStoreOwner: ViewModelStoreOwner = checkNotNull(LocalViewModelStoreOwner.current) {
-        "No ViewModelStoreOwner was provided via LocalViewModelStoreOwner"
-    },
-    key: String? = null,
-    crossinline provider: ReactiveStateBuildContext.() -> T,
-): T {
-    val fullKey = (key ?: "") + ":onViewModel:${T::class.qualifiedName}"
-    return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
-        WrapperViewModel { scope -> ReactiveStateBuildContext(scope).provider() }
-    }.value
-}
-
-/** A wrapper ViewModel used to hold an arbitrary [value]. */
-public class WrapperViewModel<T : Any?>(provider: (CoroutineScope) -> T) : ViewModel() {
-    public val value: T = provider(viewModelScope)
-}
+public typealias WrapperViewModel<T> = com.ensody.reactivestate.compose.WrapperViewModel<T>
