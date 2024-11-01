@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.11.0
+
+* Added `MutableStateFlow<T>.collectAsMutableState()` to create a two-way binding.
+* Added `MutableState.beforeUpdate`, `MutableState.afterUpdate` and `MutableState.withSetter` setter interceptors (similar to the existing `MutableStateFlow` based API).
+* Added `State.toMutable` which can turn a `State` into a `MutableState` with a custom setter (similar to the existing `StateFlow` based API).
+
 ## 5.10.0
 
 * Improved experimental Jetpack Compose APIs (`ReactiveViewModel`, `by reactiveViewModel`).

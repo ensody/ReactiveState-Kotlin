@@ -45,7 +45,7 @@ public fun <T> MutableStateFlow<T>.withSetter(
     MutableStateFlowInterceptor(this, setter)
 
 /**
- * Returns a [MutableStateFlow] that calls [setter] for doing the actual value update.
+ * Converts this [StateFlow] to a [MutableStateFlow] that calls [setter] for doing the actual value update.
  */
 public fun <T> StateFlow<T>.toMutable(
     setter: StateFlow<T>.(T) -> Unit,
