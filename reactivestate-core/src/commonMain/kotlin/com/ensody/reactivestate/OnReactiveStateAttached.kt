@@ -9,9 +9,3 @@ package com.ensody.reactivestate
 public interface OnReactiveStateAttached {
     public fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>)
 }
-
-public fun ReactiveState<out ErrorEvents>.attachTo(owner: Any) {
-    if (owner is OnReactiveStateAttached) {
-        owner.onReactiveStateAttached(this)
-    }
-}

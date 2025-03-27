@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.12.0
+
+* Fixed `by childReactiveState` to call `onReactiveStateAttached(child)` (the arguments were inverted).
+
 ## 5.11.0
 
 * Added `MutableStateFlow<T>.collectAsMutableState()` to create a two-way binding.

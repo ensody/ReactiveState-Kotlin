@@ -104,7 +104,7 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
     launch(withLoading = null) {
         eventNotifier.emitAll(child.eventNotifier)
     }
-    attachTo(child)
+    (this as? OnReactiveStateAttached)?.onReactiveStateAttached(child)
     return WrapperProperty(child)
 }
 
