@@ -1,9 +1,7 @@
 package com.ensody.reactivestate
 
 /**
- * Implement this interface to get notified when your [ReactiveState] is attached its parent (screen or ReactiveState).
- *
- * This can be useful e.g. to check if the parent
+ * Implement this interface on your [ReactiveState] to get notified it's attached to a parent (screen or ReactiveState).
  */
 public interface OnReactiveStateAttachedTo {
     public fun onReactiveStateAttachedTo(parent: Any)
