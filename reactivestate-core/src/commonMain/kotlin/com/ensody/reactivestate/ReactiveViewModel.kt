@@ -13,8 +13,8 @@ package com.ensody.reactivestate
 public abstract class ReactiveViewModel(
     /** This is `open` to allow overriding with a more specific type. */
     public open val context: ReactiveViewModelContext,
-) : BaseReactiveState<ErrorEvents>(context.scope) {
-    init {
+) : BaseReactiveState<ErrorEvents>(context.scope), OnReactiveStateAttachedTo {
+    override fun onReactiveStateAttachedTo(parent: Any) {
         context.preInit.trigger(this)
     }
 }

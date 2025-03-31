@@ -7,5 +7,5 @@ package com.ensody.reactivestate
  * method in every UI screen (e.g. on Android you could have a `BaseFragment` implementing this interface).
  */
 public interface OnReactiveStateAttached {
-    public fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>)
+    public fun onReactiveStateAttached(child: ReactiveState<out ErrorEvents>)
 }

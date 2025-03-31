@@ -48,7 +48,7 @@ internal class TestFragment : Fragment(), ErrorEvents, OnReactiveStateAttached {
         errors.add(error)
     }
 
-    override fun onReactiveStateAttached(reactiveState: ReactiveState<out ErrorEvents>) {
-        attachedReactiveStates.add(reactiveState)
+    override fun onReactiveStateAttached(child: ReactiveState<out ErrorEvents>) {
+        attachedReactiveStates.add(child)
     }
 }

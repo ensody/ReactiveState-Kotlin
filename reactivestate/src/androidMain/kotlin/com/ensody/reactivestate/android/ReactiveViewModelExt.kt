@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.ensody.reactivestate.ErrorEvents
 import com.ensody.reactivestate.NamespacedStateFlowStore
 import com.ensody.reactivestate.OnReactiveStateAttached
+import com.ensody.reactivestate.OnReactiveStateAttachedTo
 import com.ensody.reactivestate.ReactiveState
 import com.ensody.reactivestate.StateFlowStore
 import kotlinx.coroutines.CoroutineScope
@@ -48,6 +49,7 @@ public fun <E : ErrorEvents> Lazy<ReactiveState<E>>.attachLazyReactiveState(
     }
     owner.launchOnceStateAtLeast(Lifecycle.State.CREATED) {
         (owner as? OnReactiveStateAttached)?.onReactiveStateAttached(value)
+        (value as? OnReactiveStateAttachedTo)?.onReactiveStateAttachedTo(owner)
     }
 }
 

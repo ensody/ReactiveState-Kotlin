@@ -14,6 +14,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ensody.reactivestate.ErrorEvents
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
 import com.ensody.reactivestate.InMemoryStateFlowStore
+import com.ensody.reactivestate.OnReactiveStateAttached
+import com.ensody.reactivestate.OnReactiveStateAttachedTo
 import com.ensody.reactivestate.ReactiveState
 import com.ensody.reactivestate.ReactiveStateContext
 import com.ensody.reactivestate.ReactiveViewModel
@@ -55,6 +57,8 @@ public inline fun <reified E : ErrorEvents, reified VM : ReactiveState<E>> E.rea
     observeLoadingEffect(viewModel)
     LaunchedEffect(this, viewModel.eventNotifier) {
         viewModel.eventNotifier.handleEvents(this@reactiveState)
+        (this@reactiveState as? OnReactiveStateAttached)?.onReactiveStateAttached(viewModel)
+        (viewModel as? OnReactiveStateAttachedTo)?.onReactiveStateAttachedTo(this@reactiveState)
     }
     return viewModel
 }

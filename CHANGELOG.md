@@ -1,5 +1,9 @@
 # Changelog
 
+## 5.13.0
+
+* Added `OnReactiveStateAttachedTo.onReactiveStateAttachedTo(parent)`, so the ViewModel can finish its initialization and do additional checks against the parent (which can be the UI or a parent ViewModel).
+
 ## 5.12.0
 
 * Fixed `by childReactiveState` to call `onReactiveStateAttached(child)` (the arguments were inverted).
