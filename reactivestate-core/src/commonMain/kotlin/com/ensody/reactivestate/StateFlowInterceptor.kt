@@ -70,7 +70,7 @@ private class StateFlowInterceptor<T>(
 
     override val replayCache: List<T> get() = delegate.replayCache
 
-    override val subscriptionCount = MutableValueFlow(0)
+    override val subscriptionCount = MutableStateFlow(0)
 
     override var value: T
         get() = delegate.value

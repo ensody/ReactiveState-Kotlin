@@ -29,48 +29,45 @@ dependencies {
         }
 
         versionConstraints = {
-            commonMainApi platform("org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.8.1")
+            commonMainApi platform(libs.coroutines.bom)
         }
 
         base = {
             versionConstraints()
 
-            commonMainApi "org.jetbrains.kotlinx:kotlinx-coroutines-core"
+            commonMainApi libs.coroutines.core
 
-            commonTestDependency "org.jetbrains.kotlin:kotlin-test"
+            commonTestDependency libs.kotlin.test.main
 
-            jvmCommonTestDependency "org.jetbrains.kotlin:kotlin-test-junit"
-            jvmCommonTestDependency "junit:junit:4.13.2"
-            commonTestDependency "org.jetbrains.kotlinx:kotlinx-coroutines-test"
+            jvmCommonTestDependency libs.kotlin.test.junit
+            jvmCommonTestDependency libs.junit
+            commonTestDependency libs.coroutines.test
 
-            jvmCommonTestImplementation "io.mockk:mockk:1.13.5"
+            jvmCommonTestImplementation libs.mockk
         }
 
-        activityVersion = "1.8.2"
-        fragmentVersion = "1.5.7"
-        lifecycleVersion = "2.8.3"
         androidBase = {
-            androidMainApi "androidx.annotation:annotation:1.6.0"
-            androidMainApi "androidx.appcompat:appcompat:1.6.1"
-            androidMainApi "androidx.core:core-ktx:1.10.1"
-            androidMainApi "androidx.activity:activity-ktx:$activityVersion"
-            androidMainApi "androidx.fragment:fragment-ktx:$fragmentVersion"
+            androidMainApi libs.androidx.annotation
+            androidMainApi libs.androidx.appcompat
+            androidMainApi libs.androidx.core
+            androidMainApi libs.androidx.activity
+            androidMainApi libs.androidx.fragment
 
-            androidMainApi "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
-            androidMainApi "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycleVersion"
-            androidMainApi "androidx.lifecycle:lifecycle-service:$lifecycleVersion"
-//            androidMainApi "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
+            androidMainApi libs.androidx.lifecycle.runtime
+            androidMainApi libs.androidx.lifecycle.livedata
+            androidMainApi libs.androidx.lifecycle.service
+//            androidMainApi libs.androidx.lifecycle.viewmodel
             constraints {
-                api "androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion"
-                api "androidx.lifecycle:lifecycle-service:$lifecycleVersion"
-                api "androidx.lifecycle:lifecycle-process:$lifecycleVersion"
+                api libs.androidx.lifecycle.common
+                api libs.androidx.lifecycle.service
+                api libs.androidx.lifecycle.process
             }
 
-            androidTestDependency "androidx.arch.core:core-testing:2.2.0"
-            androidTestDependency "androidx.fragment:fragment-testing:$fragmentVersion"
-            androidTestDependency "androidx.test:core-ktx:1.5.0"
-            androidTestDependency "androidx.test.ext:junit-ktx:1.1.5"
-            androidTestDependency "org.robolectric:robolectric:4.11.1"
+            androidTestDependency libs.androidx.arch.testing
+            androidTestDependency libs.androidx.fragment.testing
+            androidTestDependency libs.androidx.test.core
+            androidTestDependency libs.androidx.test.junit
+            androidTestDependency libs.robolectric
         }
 
         jetpackCompose = {
@@ -78,13 +75,13 @@ dependencies {
                 enableStrongSkippingMode = true
             }
 
-            implementation platform('androidx.compose:compose-bom:2024.08.00')
+            implementation platform(libs.compose.bom)
 
             commonMainApi compose.runtime
             composeMainApi compose.foundation
             composeMainApi compose.runtime
             composeMainApi compose.ui
-            composeMainApi "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:$lifecycleVersion"
+            composeMainApi libs.androidx.lifecycle.viewmodel.compose
         }
     }
 }

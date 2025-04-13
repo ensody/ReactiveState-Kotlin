@@ -2,6 +2,7 @@ package com.ensody.reactivestate
 
 import com.ensody.reactivestate.test.ReactiveStateTest
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runCurrent
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -35,11 +36,11 @@ internal class BaseReactiveStateTest : ReactiveStateTest<ChildEvents>() {
 internal class ParentViewModel(scope: CoroutineScope) : BaseReactiveState<ChildEvents>(scope) {
     val childViewModel by childReactiveState { ChildViewModel(scope) }
 
-    val count = MutableValueFlow(0)
+    val count = MutableStateFlow(0)
     val doubled = derived { get(count) * 2 }
     val lazyDoubled = derived(0) { get(doubled) }
-    val countAutoRun = MutableValueFlow(0)
-    val countCoAutoRun = MutableValueFlow(0)
+    val countAutoRun = MutableStateFlow(0)
+    val countCoAutoRun = MutableStateFlow(0)
 
     init {
         autoRun {

@@ -126,7 +126,7 @@ public fun CoroutineScope.invokeOnCompletion(handler: CompletionHandler): Dispos
 
 /** Helper for adding a completion handler to a [CoroutineLauncher]. */
 public fun CoroutineLauncher.invokeOnCompletion(handler: CompletionHandler): Disposable =
-    launcherScope.invokeOnCompletion(handler)
+    scope.invokeOnCompletion(handler)
 
 /** Disposes the [Disposable] when [Job] completes (including cancellation). */
 public fun Disposable.disposeOnCompletionOf(job: Job): Disposable =

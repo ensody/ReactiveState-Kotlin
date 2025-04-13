@@ -18,6 +18,3 @@ apt-get install -y --no-install-recommends ca-certificates curl gettext git gnup
 
 apt-get install -y --no-install-recommends ca-certificates python3 python3-pip python3-venv
 ln -sf "$(command -v python3)" /usr/bin/python
-
-# Install poetry
-pip3 install "poetry==1.7.1"

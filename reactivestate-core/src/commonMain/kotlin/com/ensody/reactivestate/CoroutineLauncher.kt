@@ -3,6 +3,7 @@ package com.ensody.reactivestate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -10,20 +11,20 @@ import kotlin.coroutines.EmptyCoroutineContext
 /**
  * Interface for launching coroutines with error handling and loading state tracking.
  *
- * You can track multiple different kinds of loading states by defining separate [MutableValueFlow].
+ * You can track multiple different kinds of loading states by defining separate [MutableStateFlow].
  *
- * @see [ReactiveState] for a full implementation that you'll usually want to use.
+ * @see [ReactiveViewModel] or [ReactiveState] for a full implementation that you'll usually want to use.
  */
 public interface CoroutineLauncher {
     /** The underlying [CoroutineScope] of this launcher. */
-    public val launcherScope: CoroutineScope
+    public val scope: CoroutineScope
 
     /**
      * The default loading tracker.
      *
      * Use [increment]/[decrement] to safely update the loading counter.
      */
-    public val loading: MutableValueFlow<Int>
+    public val loading: MutableStateFlow<Int>
 
     /**
      * Launches a coroutine without any error handling or loading state tracking.
@@ -37,14 +38,14 @@ public interface CoroutineLauncher {
         start: CoroutineStart,
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
-        launcherScope.launch(context = context, start = start, block = block)
+        scope.launch(context = context, start = start, block = block)
 
     /**
      * Launches a coroutine. Mark long-running coroutines by setting [withLoading] to loading state.
      *
      * @param context additional to [CoroutineScope.coroutineContext] context of the coroutine.
      * @param start coroutine start option. The default value is [CoroutineStart.DEFAULT].
-     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [loading].
+     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [ContextualLoading].
      *                    This should be `null` for long-running / never-terminating coroutines (e.g. `flow.collect`).
      * @param onError Optional custom error handler.
      * @param block the coroutine code which will be invoked in the context of the provided scope.
@@ -52,7 +53,7 @@ public interface CoroutineLauncher {
     public fun launch(
         context: CoroutineContext = EmptyCoroutineContext,
         start: CoroutineStart = CoroutineStart.DEFAULT,
-        withLoading: MutableValueFlow<Int>? = loading,
+        withLoading: MutableStateFlow<Int>? = loading,
         onError: (suspend (Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
@@ -67,13 +68,13 @@ public interface CoroutineLauncher {
      *
      * Mark long-running coroutines by setting [withLoading] to loading state.
      *
-     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [loading].
+     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [ContextualLoading].
      *                    This should be `null` for long-running / never-terminating coroutines (e.g. `flow.collect`).
      * @param onError Optional custom error handler.
      * @param block the coroutine code which will be invoked in the context of the provided scope.
      */
     public suspend fun track(
-        withLoading: MutableValueFlow<Int>? = loading,
+        withLoading: MutableStateFlow<Int>? = loading,
         onError: (suspend (Throwable) -> Unit)? = null,
         block: suspend () -> Unit,
     ) {
@@ -90,4 +91,16 @@ public interface CoroutineLauncher {
     public fun onError(error: Throwable) {
         throw error
     }
+}
+
+public val ContextualOnError: ContextualVal<(Throwable) -> Unit> = ContextualVal("ContextualOnError") {
+    { throw it }
+}
+
+public val ContextualStateFlowStore: ContextualVal<StateFlowStore> = ContextualVal("ContextualStateFlowStore") {
+    error("ContextualStateFlowStore missing in CoroutineScope")
+}
+
+public val ContextualLoading: ContextualVal<MutableStateFlow<Int>> = ContextualVal("ContextualLoading") {
+    MutableStateFlow(0)
 }

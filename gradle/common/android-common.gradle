@@ -14,8 +14,8 @@ ext.androidCommon = { args = [:] ->
 
     Config config = new Config(args)
 
-    int minVersion = config.minVersion ?: 19
-    int targetVersion = config.targetVersion ?: 34
+    int minVersion = config.minVersion ?: 21
+    int targetVersion = config.targetVersion ?: 35
     int compileVersion = config.compileSdkVersion ?: targetVersion
     def javaVersion = JavaVersion.VERSION_17
 
@@ -31,6 +31,9 @@ ext.androidCommon = { args = [:] ->
         }
 
         namespace = "$group.${name.replace('-', '.')}"
+        if (namespace.endsWith(".test")) {
+            namespace += "ing"
+        }
 
         defaultConfig {
             minSdkVersion minVersion

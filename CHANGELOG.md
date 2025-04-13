@@ -1,5 +1,17 @@
 # Changelog
 
+## Next release (6.0.0 preview)
+
+* Added `ContextualVal`/`ContextualValSuspend` for coroutine-local variables (like thread-locals or `CompositionLocal` for coroutines).
+* Made the experimental `ReactiveViewModel` more flexible by building it around `ContextualVal`.
+* Changed `loading` and all `withLoading` parameters from `MutableValueFlow` to `MutableStateFlow`.
+* Changed `increment()`/`decrement()` and `replace` to work on `MutableStateFlow` instead of `MutableValueFlow`.
+* Added `MutableStateFlow.replaceAndGet` and `getAndReplace` which are like their similarly named `updateAndGet`/`getAndUpdate` counterparts, but with the value passed as `this`.
+* Changed `StateFlowStore` to return `MutableStateFlow` instead of `MutableValueFlow`.
+* Removed `ValueFlow`, `MutableValueFlow` and `SuspendMutableValueFlow`.
+* Renamed `launcherScope` to `scope` on `CoroutineLauncher` and all subtypes like `BaseReactiveState`.
+* Renamed modules: `reactivestate` -> `reactivestate-android`, `reactivestate-test` -> `reactivestate-android-test`. You might only want to use `reactivestate-compose` in case you don't need to add ViewModels to Activities/Fragments.
+
 ## 5.13.0
 
 * Added `OnReactiveStateAttachedTo.onReactiveStateAttachedTo(parent)`, so the ViewModel can finish its initialization and do additional checks against the parent (which can be the UI or a parent ViewModel).

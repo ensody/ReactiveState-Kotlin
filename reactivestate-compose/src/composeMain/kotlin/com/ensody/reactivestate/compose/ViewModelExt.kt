@@ -3,7 +3,6 @@ package com.ensody.reactivestate.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
@@ -11,64 +10,45 @@ import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.ensody.reactivestate.ErrorEvents
+import com.ensody.reactivestate.ContextualErrorsFlow
+import com.ensody.reactivestate.ContextualOnInit
+import com.ensody.reactivestate.ContextualStateFlowStore
+import com.ensody.reactivestate.ContextualValRoot
+import com.ensody.reactivestate.CoroutineLauncher
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
 import com.ensody.reactivestate.InMemoryStateFlowStore
-import com.ensody.reactivestate.OnReactiveStateAttached
-import com.ensody.reactivestate.OnReactiveStateAttachedTo
-import com.ensody.reactivestate.ReactiveState
 import com.ensody.reactivestate.ReactiveStateContext
-import com.ensody.reactivestate.ReactiveViewModel
-import com.ensody.reactivestate.ReactiveViewModelContext
-import com.ensody.reactivestate.handleEvents
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.plus
 
 /**
- * Creates a multiplatform [ReactiveState] ViewModel and observes its [ReactiveState.eventNotifier].
+ * Creates a multiplatform ViewModel. The [provider] should instantiate the object directly.
  *
- * The [provider] should instantiate the object directly.
+ * You have to pass loading and error effect handlers, so the most basic functionality is taken care of.
  */
 @ExperimentalReactiveStateApi
-@Suppress("UNCHECKED_CAST")
 @Composable
-public inline fun <reified VM : ReactiveViewModel> ErrorEvents.reactiveViewModel(
+public inline fun <reified VM : CoroutineLauncher> reactiveViewModel(
     key: String? = null,
-    crossinline observeLoadingEffect: @Composable (viewModel: VM) -> Unit,
-    crossinline provider: ReactiveViewModelContext.() -> VM,
-): VM =
-    reactiveState(key = key, observeLoadingEffect = observeLoadingEffect) {
-        ReactiveViewModelContext(this).provider()
-    }
-
-/**
- * Creates a multiplatform [ReactiveState] ViewModel and observes its [ReactiveState.eventNotifier].
- *
- * The [provider] should instantiate the object directly.
- */
-@ExperimentalReactiveStateApi
-@Suppress("UNCHECKED_CAST")
-@Composable
-public inline fun <reified E : ErrorEvents, reified VM : ReactiveState<E>> E.reactiveState(
-    key: String? = null,
-    crossinline observeLoadingEffect: @Composable (viewModel: VM) -> Unit,
+    crossinline onError: (Throwable) -> Unit,
     crossinline provider: ReactiveStateContext.() -> VM,
-): VM {
-    val viewModel = onViewModel(key = key, provider = provider)
-    observeLoadingEffect(viewModel)
-    LaunchedEffect(this, viewModel.eventNotifier) {
-        viewModel.eventNotifier.handleEvents(this@reactiveState)
-        (this@reactiveState as? OnReactiveStateAttached)?.onReactiveStateAttached(viewModel)
-        (viewModel as? OnReactiveStateAttachedTo)?.onReactiveStateAttachedTo(this@reactiveState)
+): VM =
+    onViewModel(key = key) {
+        provider().also {
+            ContextualOnInit.get(it.scope).trigger(it)
+        }
+    }.also { viewModel ->
+        LaunchedEffect(viewModel) {
+            ContextualErrorsFlow.get(viewModel.scope).collect { onError(it) }
+        }
     }
-    return viewModel
-}
 
 /**
  * Creates an object living on a wrapper [ViewModel]. This allows for building more flexible (e.g. nestable) ViewModels.
  *
  * The [provider] should instantiate the object directly.
  *
- * @see [reactiveState] if you want to instantiate a multiplatform [ReactiveState] ViewModel directly.
+ * @see [reactiveViewModel] if you want to instantiate a multiplatform ViewModel directly.
  */
 @ExperimentalReactiveStateApi
 @Composable
@@ -82,9 +62,12 @@ public inline fun <reified T : Any?> onViewModel(
     // TODO: Use qualifiedName once JS supports it
     val fullKey = (key ?: "") + ":onViewModel:${T::class.simpleName}"
     val storage = rememberSaveable<SnapshotStateMap<String, Any?>> { mutableStateMapOf() }
-    val stateFlowStore = remember { InMemoryStateFlowStore(storage) }
     return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
-        WrapperViewModel { scope -> ReactiveStateContext(scope, stateFlowStore).provider() }
+        WrapperViewModel { scope ->
+            ReactiveStateContext(
+                scope + ContextualValRoot() + ContextualStateFlowStore.valued { InMemoryStateFlowStore(storage) },
+            ).provider()
+        }
     }.value
 }
 

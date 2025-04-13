@@ -5,5 +5,5 @@ dependencies {
     jetpackCompose()
 
     commonMainApi project(":reactivestate-core")
-    jvmTestImplementation project(":reactivestate-test")
+    jvmTestImplementation project(":reactivestate-android-test")
 }

@@ -6,12 +6,12 @@ pluginManagement {
     }
 }
 
-rootProject.name='ReactiveState'
+rootProject.name = 'ReactiveState'
 
 include ':reactivestate-bom'
 
-include ':reactivestate'
+include ':reactivestate-android'
+include ':reactivestate-android-test'
 include ':reactivestate-compose'
 include ':reactivestate-core'
 include ':reactivestate-core-test'
-include ':reactivestate-test'

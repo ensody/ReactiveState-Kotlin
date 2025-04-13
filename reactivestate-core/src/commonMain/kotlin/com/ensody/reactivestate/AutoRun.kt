@@ -6,6 +6,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.invoke
 
@@ -52,7 +53,7 @@ public fun CoroutineLauncher.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.main,
-    withLoading: MutableValueFlow<Int>? = loading,
+    withLoading: MutableStateFlow<Int>? = loading,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     CoAutoRunner(
@@ -112,7 +113,7 @@ public fun CoroutineScope.coAutoRun(
     onChange: CoAutoRunOnChangeCallback<Unit>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.main,
-    withLoading: MutableValueFlow<Int>? = launcher.loading,
+    withLoading: MutableStateFlow<Int>? = launcher.loading,
     observer: CoAutoRunCallback<Unit>,
 ): CoAutoRunner<Unit> =
     launcher.coAutoRun(
@@ -141,7 +142,7 @@ public abstract class InternalBaseAutoRunner(
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     override var resolver: Resolver = Resolver(this)
         internal set
-    protected open val withLoading: MutableValueFlow<Int>? = null
+    protected open val withLoading: MutableStateFlow<Int>? = null
 
     private val changeFlow: MutableFlow<Unit> = MutableFlow(Channel.CONFLATED)
     private var flowConsumer: Job? = null
@@ -278,7 +279,7 @@ public class CoAutoRunner<T>(
     onChange: CoAutoRunOnChangeCallback<T>? = null,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     private val dispatcher: CoroutineDispatcher = dispatchers.main,
-    override val withLoading: MutableValueFlow<Int>? = launcher.loading,
+    override val withLoading: MutableStateFlow<Int>? = launcher.loading,
     immediate: Boolean = false,
     private val observer: CoAutoRunCallback<T>,
 ) : InternalBaseAutoRunner(launcher, flowTransformer, immediate) {

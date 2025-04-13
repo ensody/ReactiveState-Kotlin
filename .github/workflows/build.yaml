@@ -59,17 +59,23 @@ jobs:
 
       - name: Bundle the build report
         if: failure()
-        run: find . -type d -name 'reports' | zip -@ -r build-reports.zip
+        run: find . -type d -name 'reports' | zip -@ -r build-report.zip
       - name: Upload the build report
         if: failure()
         uses: actions/upload-artifact@master
         with:
-          name: error-report
-          path: build-reports.zip
+          name: build-report
+          path: build-report.zip
 
   docs:
     name: Publish docs
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     if: startsWith(github.ref, 'refs/heads/_publish') || startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
     steps:
       - name: Checkout
@@ -81,13 +87,16 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
           check-latest: true
-      - name: Build project
-        run: ./gradlew assemble --stacktrace
       - name: Install common deps
         run: sudo scripts/build-common.sh
-      - name: Install Python deps
-        run: poetry install
-      - name: Deploy docs
-        run: ./deploy-docs.sh
-        env:
-          GH_PAGES_DEPLOY_KEY: ${{ secrets.GH_PAGES_DEPLOY_KEY }}
+      - name: Generate docs
+        run: ./gradlew dokkaGenerate
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build/docs/html'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

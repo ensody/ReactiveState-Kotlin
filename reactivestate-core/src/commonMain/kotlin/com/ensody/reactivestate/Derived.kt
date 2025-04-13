@@ -3,6 +3,7 @@ package com.ensody.reactivestate
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
@@ -136,7 +137,7 @@ public fun <T> derivedWhileSubscribed(
     initial: T,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.main,
-    withLoading: MutableValueFlow<Int>? = null,
+    withLoading: MutableStateFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> {
     var value = initial
@@ -170,10 +171,10 @@ public fun <T> CoroutineLauncher.derived(
     started: SharingStarted = SharingStarted.Eagerly,
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.main,
-    withLoading: MutableValueFlow<Int>? = loading,
+    withLoading: MutableStateFlow<Int>? = loading,
     observer: CoAutoRunCallback<T>,
-): StateFlow<T> {
-    return callbackFlow {
+): StateFlow<T> =
+    callbackFlow {
         val runner = this@derived.coAutoRun(
             flowTransformer = flowTransformer,
             dispatcher = dispatcher,
@@ -184,8 +185,7 @@ public fun <T> CoroutineLauncher.derived(
         awaitClose {
             runner.dispose()
         }
-    }.stateIn(scope = launcherScope, started = started, initialValue = initial)
-}
+    }.stateIn(scope = scope, started = started, initialValue = initial)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via a suspendable [coAutoRun] block.
@@ -207,7 +207,7 @@ public fun <T> CoroutineScope.derived(
     launcher: CoroutineLauncher = SimpleCoroutineLauncher(this),
     flowTransformer: AutoRunFlowTransformer = { conflatedWorker(transform = it) },
     dispatcher: CoroutineDispatcher = dispatchers.main,
-    withLoading: MutableValueFlow<Int>? = null,
+    withLoading: MutableStateFlow<Int>? = null,
     observer: CoAutoRunCallback<T>,
 ): StateFlow<T> =
     launcher.derived(

@@ -1,36 +1,29 @@
 package com.ensody.reactivestate
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.MutableStateFlow
+
 /**
- * Base class for ViewModels which provide a [context] for common APIs across ViewModels.
+ * Base class for ViewModels.
  *
- * In particular, the [ReactiveViewModelContext.preInit] hook can be used to launch coroutines via a [CoroutineLauncher]
+ * The [scope] is meant to be filled with [ContextualVal] entries.
+ *
+ * For example, the [ContextualOnInit] hook can be used to launch coroutines via a [CoroutineLauncher]
  * directly from the ViewModel constructor, so you can have nicer error handling and loading indicators.
- *
- * Note that [context] is `open` so you can define your own subclass with a customized context class, providing
- * additional useful attributes specific to your app.
  */
 @ExperimentalReactiveStateApi
-public abstract class ReactiveViewModel(
-    /** This is `open` to allow overriding with a more specific type. */
-    public open val context: ReactiveViewModelContext,
-) : BaseReactiveState<ErrorEvents>(context.scope), OnReactiveStateAttachedTo {
-    override fun onReactiveStateAttachedTo(parent: Any) {
-        context.preInit.trigger(this)
+public abstract class ReactiveViewModel(final override val scope: CoroutineScope) : CoroutineLauncher {
+    private val emittedErrors: MutableFlow<Throwable> = ContextualErrorsFlow.get(scope)
+    override val loading: MutableStateFlow<Int> = ContextualLoading.get(scope)
+
+    override fun onError(error: Throwable) {
+        emittedErrors.tryEmit(error)
     }
 }
 
 @ExperimentalReactiveStateApi
-public interface ReactiveViewModelContext : ReactiveStateContext {
-    /** A hook to start initializing e.g. caches when the ViewModel gets constructed. */
-    public val preInit: OneTimeEvent<CoroutineLauncher>
-}
-
-@ExperimentalReactiveStateApi
-public fun ReactiveViewModelContext(reactiveStateContext: ReactiveStateContext): ReactiveViewModelContext =
-    DefaultReactiveViewModelContext(reactiveStateContext)
-
-private class DefaultReactiveViewModelContext(
-    delegate: ReactiveStateContext,
-) : ReactiveViewModelContext, ReactiveStateContext by delegate {
-    override val preInit: OneTimeEvent<CoroutineLauncher> = DefaultOneTimeEvent()
+public val ContextualErrorsFlow: ContextualVal<MutableFlow<Throwable>> = ContextualVal("ContextualErrorsFlow") {
+    MutableFlow(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 }

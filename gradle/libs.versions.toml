@@ -1,0 +1,48 @@
+[versions]
+kotlin = "2.1.20"
+coroutines = "1.10.1"
+androidxCore = "1.16.0"
+androidxFragment = "1.8.6"
+androidxLifecycle = "2.8.7"
+androidxTestCore = "1.6.1"
+
+[libraries]
+coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutines" }
+coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
+coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
+
+compose-bom = { module = "androidx.compose:compose-bom", version = "2025.04.00" }
+
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
+androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
+androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.10.1" }
+androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidxFragment" }
+androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragment" }
+androidx-arch-testing = { module = "androidx.arch.core:core-testing", version = "2.2.0" }
+androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
+androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version = "1.2.1" }
+
+androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "androidxLifecycle" }
+androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxLifecycle" }
+androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
+androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "androidxLifecycle" }
+androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.8.4" }
+
+junit = { module = "junit:junit", version = "4.13.2" }
+kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
+kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
+ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.5.0" }
+mockk = { module = "io.mockk:mockk", version = "1.13.16" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.14.1" }
+
+[plugins]
+android-application = { id = "com.android.application", version = "8.8.2" }
+axionRelease = { id = "pl.allegro.tech.build.axion-release", version = "1.18.17" }
+dokka = { id = "org.jetbrains.dokka", version = "2.0.0" }
+jetbrains-compose = { id = "org.jetbrains.compose", version = "1.7.3" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version = "2.0.0" }
+versions = { id = "com.github.ben-manes.versions", version = "0.52.0" }

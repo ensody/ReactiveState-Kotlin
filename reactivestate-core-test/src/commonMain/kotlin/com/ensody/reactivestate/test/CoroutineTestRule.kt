@@ -1,8 +1,8 @@
 package com.ensody.reactivestate.test
 
+import com.ensody.reactivestate.ContextualValRoot
 import com.ensody.reactivestate.DefaultCoroutineDispatcherConfig
 import com.ensody.reactivestate.dispatchers
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
@@ -28,30 +28,17 @@ import kotlinx.coroutines.test.setMain
 public open class CoroutineTestRule(
     testDispatcherBuilder: (TestCoroutineScheduler) -> TestDispatcher = { StandardTestDispatcher(it) },
 ) {
-    public val testScope: TestScope = TestScope()
+    public val testScope: TestScope = TestScope(ContextualValRoot())
     public val testDispatcher: TestDispatcher = testDispatcherBuilder(testScope.testScheduler)
-
-    @Deprecated("Use testScope", ReplaceWith("testScope"))
-    public val testCoroutineScope: TestScope get() = testScope
-
-    @Deprecated("Use testDispatcher", ReplaceWith("testDispatcher"))
-    public val testCoroutineDispatcher: TestDispatcher get() = testDispatcher
 
     init {
         enterCoroutineTest()
     }
 
-    @Deprecated("Use testScope.backgroundScope", ReplaceWith("testScope.backgroundScope"))
-    public val mainScope: CoroutineScope = testScope.backgroundScope
-
     public open fun runTest(block: suspend TestScope.() -> Unit): TestResult =
         testScope.runTest {
             block()
         }
-
-    @Deprecated("Use runTest instead", ReplaceWith("runTest(block)"))
-    public open fun runBlockingTest(block: suspend TestScope.() -> Unit): TestResult =
-        runTest(block)
 
     public fun enterCoroutineTest() {
         dispatchers = TestDispatcherConfig(testDispatcher)

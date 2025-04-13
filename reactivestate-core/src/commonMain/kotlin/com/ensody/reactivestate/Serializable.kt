@@ -3,12 +3,6 @@ package com.ensody.reactivestate
 /** Alias for `java.io.Serializable` on JVM. Empty interface otherwise. */
 public expect interface JvmSerializable
 
-@Deprecated(
-    "Use JvmSerializable (avoids name clash with kotlinx.serialization)",
-    ReplaceWith("JvmSerializable"),
-)
-public typealias Serializable = JvmSerializable
-
 /**
  * Handles custom serialization/deserialization. Useful e.g. with [JvmSerializerReplacement].
  */

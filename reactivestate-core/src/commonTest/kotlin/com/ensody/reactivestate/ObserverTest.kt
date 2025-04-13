@@ -21,8 +21,8 @@ import kotlin.test.assertEquals
 internal class ObserverTest : CoroutineTest() {
     @Test
     fun autoRunOnCoroutineScope() = runTest {
-        val source = MutableValueFlow(0)
-        val target = MutableValueFlow(-1)
+        val source = MutableStateFlow(0)
+        val target = MutableStateFlow(-1)
         val job = launch {
             val runner = autoRun { target.value = 2 * get(source) }
 
@@ -59,7 +59,7 @@ internal class ObserverTest : CoroutineTest() {
 
     @Test
     fun derivedObservableOnCoroutineScope() = runTest {
-        val rawSource = MutableValueFlow(0)
+        val rawSource = MutableStateFlow(0)
         val source = scopelessDerived { get(rawSource) }
 
         assertEquals(0, source.value)
@@ -212,10 +212,10 @@ internal class ObserverTest : CoroutineTest() {
 
     @Test
     fun derivedOverMutation() = runTest {
-        val data = MutableValueFlow(mutableListOf(1))
+        val data = MutableStateFlow(listOf(1))
         val observer = derived { get(data).size }
         assertEquals(1, observer.value)
-        data.updateThis { add(5) }
+        data.replace { plus(5) }
         assertEquals(2, observer.value)
     }
 }
