@@ -87,3 +87,18 @@ internal val ContextualValRootInternal: ContextualVal<MutableMap<Any, Any?>> =
  */
 public fun ContextualValRoot(): CoroutineContext.Element =
     ContextualValRootInternal.valued { mutableMapOf() }
+
+/** Throws an exception if [ContextualValRoot] was not added to the [CoroutineContext]/[CoroutineScope]. */
+public suspend fun requireContextualValRoot() {
+    requireContextualValRoot(coroutineContext)
+}
+
+/** Throws an exception if [ContextualValRoot] was not added to the [CoroutineContext]/[CoroutineScope]. */
+public fun requireContextualValRoot(scope: CoroutineScope) {
+    requireContextualValRoot(scope.coroutineContext)
+}
+
+/** Throws an exception if [ContextualValRoot] was not added to the [CoroutineContext]/[CoroutineScope]. */
+public fun requireContextualValRoot(context: CoroutineContext) {
+    requireNotNull(context[ContextualValRootInternal.key]) { "ContextualValRoot is missing in the CoroutineScope" }
+}

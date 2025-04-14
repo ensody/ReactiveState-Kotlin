@@ -1,6 +1,6 @@
 # ReactiveState for Kotlin Multiplatform and Android
 
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate?gav=true)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/com.ensody.reactivestate/reactivestate-core?gav=true)
 
 Easy reactive state management and ViewModels for Kotlin Multiplatform.
 

@@ -102,5 +102,6 @@ public val ContextualStateFlowStore: ContextualVal<StateFlowStore> = ContextualV
 }
 
 public val ContextualLoading: ContextualVal<MutableStateFlow<Int>> = ContextualVal("ContextualLoading") {
+    requireContextualValRoot(it)
     MutableStateFlow(0)
 }

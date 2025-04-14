@@ -1,6 +1,5 @@
 package com.ensody.reactivestate.test
 
-import com.ensody.reactivestate.ContextualValRoot
 import com.ensody.reactivestate.DefaultCoroutineDispatcherConfig
 import com.ensody.reactivestate.dispatchers
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +11,8 @@ import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Helper class for unit Tests that sets up [dispatchers] with a [TestDispatcherConfig] on every test run.
@@ -27,8 +28,9 @@ import kotlinx.coroutines.test.setMain
  */
 public open class CoroutineTestRule(
     testDispatcherBuilder: (TestCoroutineScheduler) -> TestDispatcher = { StandardTestDispatcher(it) },
+    context: CoroutineContext = EmptyCoroutineContext,
 ) {
-    public val testScope: TestScope = TestScope(ContextualValRoot())
+    public val testScope: TestScope = TestScope(context)
     public val testDispatcher: TestDispatcher = testDispatcherBuilder(testScope.testScheduler)
 
     init {

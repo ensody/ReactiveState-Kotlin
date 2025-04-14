@@ -11,13 +11,13 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ensody.reactivestate.ContextualErrorsFlow
-import com.ensody.reactivestate.ContextualOnInit
 import com.ensody.reactivestate.ContextualStateFlowStore
 import com.ensody.reactivestate.ContextualValRoot
 import com.ensody.reactivestate.CoroutineLauncher
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
 import com.ensody.reactivestate.InMemoryStateFlowStore
 import com.ensody.reactivestate.ReactiveStateContext
+import com.ensody.reactivestate.triggerOnInit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.plus
 
@@ -35,7 +35,7 @@ public inline fun <reified VM : CoroutineLauncher> reactiveViewModel(
 ): VM =
     onViewModel(key = key) {
         provider().also {
-            ContextualOnInit.get(it.scope).trigger(it)
+            it.triggerOnInit()
         }
     }.also { viewModel ->
         LaunchedEffect(viewModel) {

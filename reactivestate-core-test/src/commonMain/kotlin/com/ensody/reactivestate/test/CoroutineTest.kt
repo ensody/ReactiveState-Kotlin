@@ -14,6 +14,8 @@ import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Base class for unit testing coroutine based code.
@@ -27,8 +29,9 @@ import kotlinx.coroutines.test.TestScope
  * [SharingStarted.WhileSubscribed] based flows created with [derived], for example.
  */
 public open class CoroutineTest(
+    context: CoroutineContext = EmptyCoroutineContext,
     testDispatcherBuilder: (TestCoroutineScheduler) -> TestDispatcher = { StandardTestDispatcher(it) },
-) : CoroutineTestRule(testDispatcherBuilder = testDispatcherBuilder), AttachedDisposables {
+) : CoroutineTestRule(testDispatcherBuilder = testDispatcherBuilder, context = context), AttachedDisposables {
 
     override val attachedDisposables: DisposableGroup = DisposableGroup()
 

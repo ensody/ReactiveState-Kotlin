@@ -6,6 +6,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * Base class for unit testing an [EventNotifier].
@@ -15,7 +17,9 @@ import kotlinx.coroutines.test.TestScope
  * By default this handles events in [runTest]. You can disable this by overriding
  * [handleEventsInRunTest] to `false`. In that case you have to explicitly call [handleEvents] in each test.
  */
-public abstract class EventNotifierTest<E> : CoroutineTest() {
+public abstract class EventNotifierTest<E>(
+    context: CoroutineContext = EmptyCoroutineContext,
+) : CoroutineTest(context = context) {
 
     public open val handleEventsInRunTest: Boolean = true
 

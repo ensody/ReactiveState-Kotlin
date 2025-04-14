@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.emitAll
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -51,8 +52,9 @@ public interface ReactiveState<E : ErrorEvents> : CoroutineLauncher {
  * }
  * ```
  */
-public open class BaseReactiveState<E : ErrorEvents>(scope: CoroutineScope) :
-    ReactiveState<E>, SimpleCoroutineLauncher(scope) {
+public open class BaseReactiveState<E : ErrorEvents>(final override val scope: CoroutineScope) :
+    ReactiveState<E> {
+    override val loading: MutableStateFlow<Int> = ContextualLoading.get(scope)
 
     override val eventNotifier: EventNotifier<E> = EventNotifier()
 
@@ -98,8 +100,10 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
     block: () -> RS,
 ): ReadOnlyProperty<Any?, RS> {
     val child = block()
-    launch(withLoading = null) {
-        loading.incrementFrom(child.loading)
+    if (runCatching { requireContextualValRoot(scope) }.isFailure) {
+        launch(withLoading = null) {
+            loading.incrementFrom(child.loading)
+        }
     }
     launch(withLoading = null) {
         eventNotifier.emitAll(child.eventNotifier)

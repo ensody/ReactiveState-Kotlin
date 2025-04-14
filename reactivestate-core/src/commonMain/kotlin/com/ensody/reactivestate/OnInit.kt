@@ -14,13 +14,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.JsName
 
 /**
  * A mechanism for ViewModel initialization-time tasks like repository cache refresh. Use via [ContextualOnInit].
  *
  * With [observe] you get notified when the ViewModel is ready. On the provided [OnInitContext] you can launch
- * coroutines which are associated with your observer. If
+ * coroutines which are associated with your observer. If any of the coroutines fail the [state] will reflect that
+ * and you can run [trigger] (or the simpler [CoroutineLauncher.triggerOnInit]) again for only the failing observers.
  */
 @ExperimentalReactiveStateApi
 public interface OnInit {
@@ -48,7 +50,19 @@ public interface OnInit {
  * Provides access to a ViewModel's [OnInit] instance.
  */
 @ExperimentalReactiveStateApi
-public val ContextualOnInit: ContextualVal<OnInit> = ContextualVal("ContextualOnInit") { OnInit() }
+public val ContextualOnInit: ContextualVal<OnInit> = ContextualVal("ContextualOnInit") {
+    requireContextualValRoot(it)
+    OnInit()
+}
+
+@ExperimentalReactiveStateApi
+public val CoroutineLauncher.onInit: OnInit get() = ContextualOnInit.get(scope)
+
+/** Runs [OnInit.trigger] for this class. */
+@ExperimentalReactiveStateApi
+public fun CoroutineLauncher.triggerOnInit() {
+    ContextualOnInit.get(scope).trigger(this)
+}
 
 /**
  * When the ViewModel is ready this API allows launching coroutines.
@@ -64,11 +78,34 @@ public interface OnInitContext {
      */
     public val oneShot: CoroutineLauncher
 
-    /** Launcher for tasks that will never terminate (e.g. you're collecting a [StateFlow] until the ViewModel dies). */
-    public val permanent: CoroutineLauncher
-
     /** The underlying ViewModel in case you might need its [CoroutineLauncher.scope] for [ContextualVal] resolution. */
     public val source: CoroutineLauncher
+
+    /**
+     * Launches a coroutine. Mark long-running coroutines by setting [longRunning] to `true`.
+     *
+     * @param context additional to [CoroutineScope.coroutineContext] context of the coroutine.
+     * @param start coroutine start option. The default value is [CoroutineStart.DEFAULT].
+     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [ContextualLoading].
+     *                    This should be `null` for long-running / never-terminating coroutines (e.g. `flow.collect`).
+     * @param onError Optional custom error handler.
+     * @param block the coroutine code which will be invoked in the context of the provided scope.
+     */
+    public fun launch(
+        context: CoroutineContext = EmptyCoroutineContext,
+        longRunning: Boolean = false,
+        start: CoroutineStart = CoroutineStart.DEFAULT,
+        withLoading: MutableStateFlow<Int>? = if (longRunning) null else oneShot.loading,
+        onError: (suspend (Throwable) -> Unit)? = null,
+        block: suspend CoroutineScope.() -> Unit,
+    ): Job =
+        (if (longRunning) source else oneShot).launch(
+            context = context,
+            start = start,
+            withLoading = withLoading,
+            onError = onError,
+            block = block,
+        )
 }
 
 @JsName("createOnInit")
@@ -135,7 +172,10 @@ private class OnInitContextImpl(
     val oneShotJobs: MutableStateFlow<Int> = MutableStateFlow(0)
     val errors: MutableStateFlow<List<Throwable>> = MutableStateFlow(emptyList())
 
-    override val oneShot: CoroutineLauncher = object : CoroutineLauncher by source {
+    override val oneShot: CoroutineLauncher = object : CoroutineLauncher {
+        override val scope: CoroutineScope get() = source.scope
+        override val loading: MutableStateFlow<Int> get() = source.loading
+
         override fun rawLaunch(
             context: CoroutineContext,
             start: CoroutineStart,
@@ -150,8 +190,6 @@ private class OnInitContextImpl(
             }
         }
     }
-
-    override val permanent: CoroutineLauncher = source
 
     suspend fun process() {
         runCatching { observer() }.exceptionOrNull()?.let { errors.replace { plus(it) } }
