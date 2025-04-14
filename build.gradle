@@ -219,16 +219,11 @@ subprojects {
 
 apply from: "$rootDir/gradle/common/dokka.gradle"
 setupDokka()
-dependencies {
-    dokka(project)
-}
 dokka {
-    dokkaSourceSets {
-        configureEach {
-            includes.from("README.md")
-        }
-    }
     dokkaPublications {
+        configureEach {
+            includes.from(rootProject.file("docs/README.md"))
+        }
         html {
             outputDirectory.set(project.file("build/docs/html"))
         }

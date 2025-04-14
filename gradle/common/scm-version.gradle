@@ -30,7 +30,7 @@ ext.setupScmVersion = { args ->
         }
     }
     allprojects {
-        version = scmVersion.version
+        version = System.getenv("OVERRIDE_VERSION") ?: scmVersion.version
     }
     println("Version: $version")
 }

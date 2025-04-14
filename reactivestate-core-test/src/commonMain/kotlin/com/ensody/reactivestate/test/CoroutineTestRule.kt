@@ -1,8 +1,12 @@
 package com.ensody.reactivestate.test
 
+import com.ensody.reactivestate.ContextualErrorsFlow
+import com.ensody.reactivestate.ContextualValRoot
 import com.ensody.reactivestate.DefaultCoroutineDispatcherConfig
 import com.ensody.reactivestate.dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.plus
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestCoroutineScheduler
 import kotlinx.coroutines.test.TestDispatcher
@@ -30,7 +34,7 @@ public open class CoroutineTestRule(
     testDispatcherBuilder: (TestCoroutineScheduler) -> TestDispatcher = { StandardTestDispatcher(it) },
     context: CoroutineContext = EmptyCoroutineContext,
 ) {
-    public val testScope: TestScope = TestScope(context)
+    public val testScope: TestScope = TestScope(ContextualErrorsFlow.valued { ThrowOnEmitFlow() } + context)
     public val testDispatcher: TestDispatcher = testDispatcherBuilder(testScope.testScheduler)
 
     init {
@@ -52,3 +56,7 @@ public open class CoroutineTestRule(
         dispatchers = DefaultCoroutineDispatcherConfig
     }
 }
+
+/** Creates a [TestScope.backgroundScope] with a [ContextualValRoot] for ViewModels. */
+public fun TestScope.contextualBackgroundScope(): CoroutineScope =
+    backgroundScope + ContextualValRoot()

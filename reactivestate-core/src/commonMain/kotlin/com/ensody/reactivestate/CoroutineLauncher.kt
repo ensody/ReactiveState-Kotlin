@@ -93,10 +93,6 @@ public interface CoroutineLauncher {
     }
 }
 
-public val ContextualOnError: ContextualVal<(Throwable) -> Unit> = ContextualVal("ContextualOnError") {
-    { throw it }
-}
-
 public val ContextualStateFlowStore: ContextualVal<StateFlowStore> = ContextualVal("ContextualStateFlowStore") {
     error("ContextualStateFlowStore missing in CoroutineScope")
 }

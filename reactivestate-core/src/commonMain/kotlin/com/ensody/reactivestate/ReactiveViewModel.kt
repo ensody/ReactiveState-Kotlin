@@ -25,5 +25,6 @@ public abstract class ReactiveViewModel(final override val scope: CoroutineScope
 
 @ExperimentalReactiveStateApi
 public val ContextualErrorsFlow: ContextualVal<MutableFlow<Throwable>> = ContextualVal("ContextualErrorsFlow") {
+    requireContextualValRoot(it)
     MutableFlow(capacity = Channel.UNLIMITED, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 }
