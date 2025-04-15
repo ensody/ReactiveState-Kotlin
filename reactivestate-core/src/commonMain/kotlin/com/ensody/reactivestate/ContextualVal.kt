@@ -25,7 +25,7 @@ public class ContextualVal<T>(
     public val name: String,
     public var default: (CoroutineContext) -> T,
 ) {
-    internal val key = ContextKey(this)
+    public val key: ContextKey<T> = ContextKey(this)
     private val globalDefaultCache by lazy { default(EmptyCoroutineContext) }
 
     /** Gets the value for the current [coroutineContext]. */
@@ -57,15 +57,18 @@ public class ContextualVal<T>(
     override fun toString(): String =
         "${super.toString()}<$name>"
 
-    internal data class ContextKey<T>(val value: ContextualVal<T>) : CoroutineContext.Key<ContextElement<T>>
+    public class ContextKey<T>(public val value: ContextualVal<T>) : CoroutineContext.Key<ContextElement<T>> {
+        override fun toString(): String =
+            "${super.toString()}<$value>"
+    }
 
-    internal class ContextElement<T>(
+    public class ContextElement<T>(
         override val key: ContextKey<T>,
         private val valueGetter: (CoroutineContext) -> T,
     ) : CoroutineContext.Element {
         private val value: MutableStateFlow<Wrapped<T>?> = MutableStateFlow(null)
 
-        tailrec fun get(context: CoroutineContext): T {
+        internal tailrec fun get(context: CoroutineContext): T {
             value.value?.let { return it.value }
             value.compareAndSet(null, Wrapped(valueGetter(context)))
             return get(context)
