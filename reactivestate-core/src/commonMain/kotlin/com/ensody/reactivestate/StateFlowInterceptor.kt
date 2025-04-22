@@ -87,7 +87,7 @@ private class StateFlowInterceptor<T>(
 
     override fun compareAndSet(expect: T, update: T): Boolean =
         mutex.withSpinLock {
-            if (value != expect) {
+            if (value == expect) {
                 value = update
                 true
             } else {

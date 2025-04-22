@@ -4,6 +4,7 @@ import com.ensody.reactivestate.test.CoroutineTest
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -17,6 +18,10 @@ internal class InterceptMutableStateFlowTest : CoroutineTest() {
         intercepted.value = 1
         assertEquals(1, base.value)
         assertEquals(1, intercepted.value)
+        // Tests compareAndSwap
+        intercepted.update { 2 }
+        assertEquals(2, base.value)
+        assertEquals(2, intercepted.value)
     }
 
     @Test
