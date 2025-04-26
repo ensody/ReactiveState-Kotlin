@@ -1,3 +1,0 @@
-dependencies {
-    commonTestImplementation project(":reactivestate-core-test")
-}

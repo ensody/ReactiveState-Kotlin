@@ -39,22 +39,14 @@ jobs:
         run: ./gradlew ktlint
 
       # Publish packages
-      - name: Decode key
-        if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
-        run: |
-          set -euo pipefail
-          mkdir -p .credentials
-          echo "$SIGNING_KEY_RING" | base64 -d > ".credentials/$SIGNING_KEY_ID.gpg"
-        env:
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
       - name: Publish package
-        if: startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
-        run: ./gradlew publishToMavenCentral closeAndReleaseMavenCentralStagingRepository
+        if: startsWith(github.ref, 'refs/tags/v-')
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
           PUBLICATION_USERNAME: ${{ secrets.PUBLICATION_USERNAME }}
           PUBLICATION_PASSWORD: ${{ secrets.PUBLICATION_PASSWORD }}
           SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
+          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
           SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Bundle the build report
@@ -76,7 +68,7 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    if: startsWith(github.ref, 'refs/heads/_publish') || startsWith(github.ref, 'refs/tags/v0') || startsWith(github.ref, 'refs/tags/v1') || startsWith(github.ref, 'refs/tags/v2') || startsWith(github.ref, 'refs/tags/v3') || startsWith(github.ref, 'refs/tags/v4') || startsWith(github.ref, 'refs/tags/v5') || startsWith(github.ref, 'refs/tags/v6') || startsWith(github.ref, 'refs/tags/v7') || startsWith(github.ref, 'refs/tags/v8') || startsWith(github.ref, 'refs/tags/v9')
+    if: startsWith(github.ref, 'refs/heads/_publish') || startsWith(github.ref, 'refs/tags/v-')
     steps:
       - name: Checkout
         uses: actions/checkout@v4

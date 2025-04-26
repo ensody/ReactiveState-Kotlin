@@ -1,5 +1,0 @@
-dependencies {
-    androidBase()
-    commonMainApi project(":reactivestate-android")
-    commonMainApi project(":reactivestate-core-test")
-}

@@ -1,0 +1,19 @@
+pluginManagement {
+    includeBuild("build-logic")
+
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "ReactiveState"
+
+include(":reactivestate-bom")
+
+include(":reactivestate-android")
+include(":reactivestate-android-test")
+include(":reactivestate-compose")
+include(":reactivestate-core")
+include(":reactivestate-core-test")

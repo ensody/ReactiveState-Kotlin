@@ -1,9 +1,0 @@
-apply plugin: "org.jetbrains.compose"
-apply plugin: "org.jetbrains.kotlin.plugin.compose"
-
-dependencies {
-    jetpackCompose()
-
-    commonMainApi project(":reactivestate-core")
-    jvmTestImplementation project(":reactivestate-android-test")
-}
