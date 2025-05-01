@@ -53,10 +53,23 @@ internal class OnDemandStateFlowTest : CoroutineTest() {
     fun initialValueCollect() = runTest {
         val result = callbackFlow {
             send(0)
+            send(0)
             send(1)
             awaitClose()
-        }.stateOnDemand {
-            0
+        }.stateOnDemand(0).take(2).toList()
+        assertEquals(listOf(0, 1), result)
+    }
+
+    @Test
+    fun initialValueCollectDerived() = runTest {
+        val origin = callbackFlow {
+            send(0)
+            send(0)
+            send(1)
+            awaitClose()
+        }.stateOnDemand(0)
+        val result = derived {
+            get(origin)
         }.take(2).toList()
         assertEquals(listOf(0, 1), result)
     }

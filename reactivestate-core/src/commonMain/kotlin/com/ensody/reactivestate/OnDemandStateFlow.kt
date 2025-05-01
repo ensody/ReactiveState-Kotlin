@@ -25,6 +25,26 @@ import kotlin.coroutines.EmptyCoroutineContext
  * Turns this [Flow] into a [StateFlow] without requiring a [CoroutineScope] (unlike [stateIn]).
  *
  * When the resulting [StateFlow] gets collected this in turn starts collecting this underlying [Flow].
+ * When nobody collects, the [StateFlow.value] is [initial] or the last collected value.
+ *
+ * When nobody collects, this is safe for garbage collection.
+ *
+ * Normally you'd use this together with [callbackFlow], for example.
+ */
+public fun <T> Flow<T>.stateOnDemand(
+    initial: T,
+    context: CoroutineContext = EmptyCoroutineContext,
+    synchronous: Boolean = true,
+    emitValueOnStart: Boolean = true,
+): StateFlow<T> =
+    stateOnDemand(context = context, synchronous = synchronous, emitValueOnStart = emitValueOnStart) {
+        if (it == null) initial else it.value
+    }
+
+/**
+ * Turns this [Flow] into a [StateFlow] without requiring a [CoroutineScope] (unlike [stateIn]).
+ *
+ * When the resulting [StateFlow] gets collected this in turn starts collecting this underlying [Flow].
  * When nobody collects, the [StateFlow.value] gets computed via [getter] which is also passed the previous value
  * wrapped in a [Wrapped] instance or null if there is no previous value, yet.
  * This way you can implement simple caching.

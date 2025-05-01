@@ -12,6 +12,7 @@
 * Renamed `launcherScope` to `scope` on `CoroutineLauncher` and all subtypes like `BaseReactiveState`.
 * Renamed modules: `reactivestate` -> `reactivestate-android`, `reactivestate-test` -> `reactivestate-android-test`. You might only want to use `reactivestate-compose` in case you don't need to add ViewModels to Activities/Fragments.
 * Fixed `MutableStateFlow.compareAndSet` for `.toMutable`/`.beforeUpdate`/`.afterUpdate`.
+* Added `Flow.stateOnDemand` variant with `initial` value.
 
 ## 5.13.0
 
