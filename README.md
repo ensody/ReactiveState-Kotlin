@@ -64,7 +64,11 @@ See the [ReactiveState documentation](https://ensody.github.io/ReactiveState-Kot
 
 ## Supported platforms
 
-android, jvm, ios, tvos, watchos, macosArm64, macosX64, mingwX64, linuxX64
+* Android
+* JVM
+* All native (including iOS)
+* JS
+* WASM
 
 ## Installation
 

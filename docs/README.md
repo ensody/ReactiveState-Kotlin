@@ -60,7 +60,11 @@ val mutable: MutableStateFlow<Int> = readOnly.toMutable { value: Int ->
 
 ## Supported platforms
 
-android, jvm, ios, tvos, watchos, macosArm64, macosX64, mingwX64, linuxX64
+* Android
+* JVM
+* All native (including iOS)
+* JS
+* WASM
 
 ## Installation
 
