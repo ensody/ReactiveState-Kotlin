@@ -11,6 +11,11 @@ on:
     tags:
       - v-**
   workflow_dispatch:
+    inputs:
+      ref:
+        description: (Optional) Which tag to deploy
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -24,6 +29,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
       - name: Install JDK
         uses: actions/setup-java@v4
         with:
@@ -31,8 +38,6 @@ jobs:
           distribution: "temurin"
           cache: "gradle"
           check-latest: true
-      - name: Install common deps
-        run: sudo scripts/build-common.sh
       - name: Generate docs
         run: ./gradlew dokkaGenerate
       - name: Setup Pages
