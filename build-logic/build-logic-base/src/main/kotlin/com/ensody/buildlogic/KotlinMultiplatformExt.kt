@@ -33,13 +33,8 @@ fun Project.setupKmp(
         compilerOptions {
             allWarningsAsErrors.set(true)
             optIn.add("kotlin.RequiresOptIn")
-            optIn.add("kotlinx.coroutines.ExperimentalCoroutinesApi")
-            optIn.add("kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi")
-            optIn.add("kotlinx.coroutines.FlowPreview")
             optIn.add("kotlin.io.encoding.ExperimentalEncodingApi")
-            optIn.add("com.ensody.reactivestate.ExperimentalReactiveStateApi")
             freeCompilerArgs.add("-Xexpect-actual-classes")
-//            freeCompilerArgs.add("-Xexplicit-api=strict")
         }
         applyKmpHierarchy()
         block()

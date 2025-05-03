@@ -4,6 +4,7 @@ package com.ensody.buildlogic
 
 import com.android.build.gradle.LibraryExtension
 import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPomLicenseSpec
 import org.gradle.api.publish.maven.MavenPublication
@@ -19,6 +20,7 @@ import org.gradle.kotlin.dsl.withType
 import org.gradle.plugins.signing.Sign
 import org.gradle.plugins.signing.SigningExtension
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 fun Project.setupPublication(
@@ -53,15 +55,31 @@ fun Project.setupPublication(
             publishing {
                 withSourcesJar(withSources)
             }
+        } ?: extensions.findByType<KotlinJvmExtension>()?.apply {
+            if (withSources) {
+                extensions.findByType<JavaPluginExtension>()?.withSourcesJar()
+            }
+            configure<PublishingExtension> {
+                if (pluginManager.hasPlugin("java-gradle-plugin")) return@configure
+                publications {
+                    create<MavenPublication>("maven") {
+                        from(components.getByName("java"))
+                    }
+                }
+            }
         }
 
         if (withJavadocJar) {
-            val emptyJar = tasks.register<Jar>("emptyJar") {
-                archiveAppendix = "empty"
-            }
-            configure<PublishingExtension> {
-                publications.withType<MavenPublication> {
-                    artifact(emptyJar) { classifier = "javadoc" }
+            if (extensions.findByType<KotlinMultiplatformExtension>() == null) {
+                extensions.findByType<JavaPluginExtension>()?.apply { withJavadocJar() }
+            } else {
+                val emptyJar = tasks.register<Jar>("emptyJar") {
+                    archiveAppendix = "empty"
+                }
+                configure<PublishingExtension> {
+                    publications.withType<MavenPublication> {
+                        artifact(emptyJar) { classifier = "javadoc" }
+                    }
                 }
             }
         }

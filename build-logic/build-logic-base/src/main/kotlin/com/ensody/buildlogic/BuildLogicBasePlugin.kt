@@ -33,7 +33,6 @@ fun Project.initBuildLogicBase() {
 
 fun Project.setupBuildLogicBase() {
     pluginManager.apply("com.ensody.build-logic-base")
-    setupDependencyUpdates()
 
     if (isRootProject) return
 

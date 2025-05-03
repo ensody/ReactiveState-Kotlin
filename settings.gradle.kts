@@ -5,6 +5,9 @@ pluginManagement {
         google()
         gradlePluginPortal()
         mavenCentral()
+        if (System.getenv("RUNNING_ON_CI") != "true") {
+            mavenLocal()
+        }
     }
 }
 

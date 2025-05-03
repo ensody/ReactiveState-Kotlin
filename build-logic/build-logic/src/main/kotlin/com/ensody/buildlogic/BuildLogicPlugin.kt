@@ -41,6 +41,9 @@ fun Project.setupBuildLogic() {
     repositories {
         google()
         mavenCentral()
+        if (System.getenv("RUNNING_ON_CI") != "true") {
+            mavenLocal()
+        }
     }
 
     if (isRootProject) return
@@ -53,8 +56,14 @@ fun Project.setupBuildLogic() {
         setupAndroid(coreLibraryDesugaring = libs.findLibrary("desugarJdkLibs").get())
         setupKmp {
             addAllTargets(onlyComposeSupport = project.name == "reactivestate-compose")
+            compilerOptions {
+                optIn.add("kotlinx.coroutines.ExperimentalCoroutinesApi")
+                optIn.add("kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi")
+                optIn.add("kotlinx.coroutines.FlowPreview")
+                optIn.add("com.ensody.reactivestate.ExperimentalReactiveStateApi")
+            }
         }
-        tasks.create("testAll") {
+        tasks.register("testAll") {
             group = "verification"
             dependsOn(
                 "testDebugUnitTest",
