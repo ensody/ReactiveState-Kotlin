@@ -40,7 +40,7 @@ junit = { module = "junit:junit", version = "4.13.2" }
 kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.5.0" }
-mockk = { module = "io.mockk:mockk", version = "1.14.0" }
+mockk = { module = "io.mockk:mockk", version = "1.14.2" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.14.1" }
 
 android-gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradle" }
