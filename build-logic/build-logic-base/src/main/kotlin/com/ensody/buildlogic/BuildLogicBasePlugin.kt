@@ -35,6 +35,16 @@ fun Project.setupBuildLogicBase(block: Project.() -> Unit) {
     group = (listOf(rootProject.group) + project.path.trimStart(':').split(".").dropLast(1))
         .joinToString(".")
     block()
+    afterEvaluate {
+        val generatedRoot = getGeneratedBuildFilesRoot()
+        val generatedRelativePaths = generatedFiles[this.path].orEmpty().flatMap { it.relativeTo(generatedRoot).withParents().map { it.toString() } }.toSet()
+        for (file in generatedRoot.walkBottomUp()) {
+            if (file == generatedRoot) continue
+            if (file.relativeTo(generatedRoot).toString() !in generatedRelativePaths) {
+                file.deleteRecursively()
+            }
+        }
+    }
 }
 
 val libs get() = buildLogicBaseDeps.libs

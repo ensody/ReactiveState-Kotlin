@@ -1,15 +1,53 @@
 package com.ensody.buildlogic
 
+import com.android.build.gradle.internal.cxx.io.writeTextIfDifferent
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.findByType
+import org.gradle.kotlin.dsl.get
+import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import java.io.File
 
 val Project.isRootProject get() = this == rootProject
 
-fun shell(command: String): String {
-    val process = ProcessBuilder("/bin/bash", "-c", command).start()
+fun shell(command: String, workingDir: File? = null, inheritIO: Boolean = false): String {
+    val processBuilder = ProcessBuilder("/bin/bash", "-c", command)
+    workingDir?.let { processBuilder.directory(it) }
+    processBuilder.redirectErrorStream(true)
+    val process = processBuilder.start()
     return process.inputStream.bufferedReader().readText().trim().also {
-        process.waitFor()
+        val exitCode = process.waitFor()
+        if (inheritIO) {
+            println(it)
+        }
+        check(exitCode == 0) { "Process exit code was: $exitCode\nOriginal command: $command"}
     }
 }
+
+fun Project.withGeneratedBuildFile(category: String, path: String, sourceSet: String? = null, content: () -> String) {
+    val generatedDir = file("${getGeneratedBuildFilesRoot()}/$category")
+    extensions.findByType<KotlinJvmExtension>()?.apply {
+        sourceSets[sourceSet ?: "main"].kotlin.srcDir(generatedDir)
+    } ?: extensions.findByType<KotlinMultiplatformExtension>()?.apply {
+        sourceSets[sourceSet ?: "commonMain"].kotlin.srcDir(generatedDir)
+    } ?: error("Don't know how to add generated build file because project ${this.path} has unknown type")
+    val outputPath = file("$generatedDir/$path")
+    outputPath.writeTextIfDifferent(content().trimIndent().trimStart() + "\n")
+    generatedFiles.getOrPut(this.path) { mutableSetOf() }.add(outputPath.normalize().absoluteFile)
+}
+
+internal val generatedFiles = mutableMapOf<String, MutableSet<File>>()
+
+internal fun File.withParents(): List<File> =
+    buildList {
+        add(this@withParents)
+        while (true) {
+            add(last().parentFile ?: break)
+        }
+    }
+
+internal fun Project.getGeneratedBuildFilesRoot(): File =
+    file("$projectDir/build/generated/source/build-logic")
 
 internal fun Project.detectProjectVersion(): String =
     System.getenv("OVERRIDE_VERSION")?.takeIf { it.isNotBlank() }
