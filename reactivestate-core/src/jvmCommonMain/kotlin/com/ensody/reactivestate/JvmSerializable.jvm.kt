@@ -19,15 +19,18 @@ internal class DefaultJvmSerializerReplacement<T : Any>(
 
     override fun writeExternal(out: ObjectOutput) {
         out.writeObject(serializer)
+        @Suppress("UnsafeCallOnNullableType")
         out.writeObject(serializer!!.rawSerialize(value!!))
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun readExternal(`in`: ObjectInput) {
         serializer = `in`.readObject() as RawSerializer<T>
+        @Suppress("UnsafeCallOnNullableType")
         value = serializer!!.rawDeserialize(`in`.readObject() as ByteArray)
     }
 
+    @Suppress("UnsafeCallOnNullableType")
     private fun readResolve(): Any =
         value!!
 

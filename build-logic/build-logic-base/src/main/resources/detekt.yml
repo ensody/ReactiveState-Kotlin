@@ -1,0 +1,44 @@
+complexity:
+  active: false
+
+coroutines:
+  InjectDispatcher:
+    dispatcherNames:
+      - 'Main'
+      - 'IO'
+      - 'Default'
+      - 'Unconfined'
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: false
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+
+naming:
+  FunctionNaming:
+    functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
+  MatchingDeclarationName:
+    active: false
+  MemberNameEqualsClassName:
+    active: false
+
+potential-bugs:
+  IgnoredReturnValue:
+    active: false
+
+style:
+  ForbiddenComment:
+    active: false
+  MayBeConst:
+    active: false
+  ReturnCount:
+    active: false
+  UnnecessaryAbstractClass:
+    active: false
+  UnusedPrivateMember:
+    allowedNames: "readResolve"
+  UseOrEmpty:
+    active: false

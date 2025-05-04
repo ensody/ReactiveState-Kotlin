@@ -21,6 +21,7 @@ public class LazySuspend<T>(private val block: suspend () -> T) {
                 value = runCatching { block() }
             }
         }
+        @Suppress("UnsafeCallOnNullableType")
         return value!!.getOrThrow()
     }
 

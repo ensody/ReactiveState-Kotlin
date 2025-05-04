@@ -4,9 +4,9 @@ package com.ensody.buildlogic
 
 import com.android.build.gradle.BaseExtension
 import io.github.gradlenexus.publishplugin.NexusPublishExtension
+import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.plugins.JavaPlatformExtension
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.kotlin.dsl.assign
@@ -32,6 +32,7 @@ class BuildLogicPlugin : Plugin<Project> {
                         pluginManager.apply("org.jetbrains.compose")
                         pluginManager.apply("org.jetbrains.kotlin.plugin.compose")
                     }
+                    pluginManager.apply("io.gitlab.arturbosch.detekt")
                 }
                 pluginManager.apply("maven-publish")
             }
@@ -110,6 +111,9 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
         }
         if (extensions.findByType<KotlinBaseExtension>() != null) {
             setupKtLint(libs.findLibrary("ktlint-cli").get())
+        }
+        if (extensions.findByType<DetektExtension>() != null) {
+            setupDetekt()
         }
         if (extensions.findByType<DokkaExtension>() != null) {
             setupDokka(copyright = "Ensody GmbH")

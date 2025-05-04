@@ -6,6 +6,7 @@ plugins {
 dependencies {
     api(libs.android.gradle)
     api(libs.kotlin.gradle)
+    api(libs.detekt.gradle)
     api(libs.dokka.gradle)
 }
 

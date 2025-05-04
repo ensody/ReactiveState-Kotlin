@@ -51,9 +51,7 @@ public inline fun <reified T : CoroutineLauncher> ComponentActivity.reactiveView
 public fun Lazy<CoroutineLauncher>.attachLazyReactiveViewModel(
     owner: LifecycleOwner,
 ) {
-    if (owner !is ErrorEvents) {
-        throw IllegalStateException("You have to implement the ErrorEvents interface.")
-    }
+    check(owner is ErrorEvents) { "You have to implement the ErrorEvents interface." }
     owner.onStart {
         val viewModel = value
         val emittedErrors = ContextualErrorsFlow.get(viewModel.scope)
@@ -91,9 +89,7 @@ public fun <E : ErrorEvents> Lazy<ReactiveState<E>>.attachLazyReactiveState(
     handler: E?,
     owner: LifecycleOwner,
 ) {
-    if (handler == null) {
-        throw IllegalStateException("You have to implement the ViewModel's events interface.")
-    }
+    checkNotNull(handler) { "You have to implement the ViewModel's events interface." }
     owner.launchOnceStateAtLeast(Lifecycle.State.CREATED) {
         value.eventNotifier.handleEvents(handler, owner)
     }

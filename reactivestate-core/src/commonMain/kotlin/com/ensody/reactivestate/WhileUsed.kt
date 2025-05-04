@@ -62,7 +62,7 @@ public class WhileUsed<T>(
 ) {
     private val mutex = Mutex()
     private var value: Wrapped<T>? = null
-    private var disposables = WhileUsedReferenceToken()
+    private val disposables = WhileUsedReferenceToken()
     private var references = 0
     private var cleaner: Job? = null
 

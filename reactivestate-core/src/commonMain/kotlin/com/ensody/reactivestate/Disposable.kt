@@ -198,9 +198,7 @@ private class DisposableProperty<T>(invalidateOn: (invalidate: () -> Unit) -> An
 
     @Suppress("UNCHECKED_CAST")
     override operator fun getValue(thisRef: Any?, property: KProperty<*>): T {
-        if (!hasValue) {
-            throw IllegalStateException("The property is not set. Maybe it was disposed?")
-        }
+        check(hasValue) { "The property is not set. Maybe it was disposed?" }
         return value as T
     }
 

@@ -37,8 +37,10 @@ jobs:
       # TODO: switch to Kover
 #      - name: Create coverage report
 #        run: ./gradlew jacocoTestReportDefault
-      - name: Final checks
+      - name: ktlint
         run: ./gradlew ktlint
+      - name: detekt
+        run: ./gradlew detekt
 
       # Publish packages
       - name: Publish package

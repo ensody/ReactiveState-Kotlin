@@ -2,6 +2,7 @@
 
 package com.ensody.buildlogic
 
+import com.android.build.gradle.internal.cxx.io.writeTextIfDifferent
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
@@ -28,6 +29,11 @@ fun Project.initBuildLogicBase(block: Project.() -> Unit) {
     subprojects {
         version = rootProject.version
     }
+
+    // Setup detekt.yml
+    val rules = BuildLogicBasePlugin::class.java.module.getResourceAsStream("detekt.yml").reader().readText()
+    file("build/build-logic/detekt.yml").writeTextIfDifferent(rules)
+
     block()
 }
 

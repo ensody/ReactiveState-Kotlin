@@ -19,6 +19,7 @@ public interface CoroutineDispatcherConfig {
 }
 
 /** The default [CoroutineDispatcherConfig], mapping to [Dispatchers]. */
+@Suppress("InjectDispatcher")
 public object DefaultCoroutineDispatcherConfig : CoroutineDispatcherConfig {
     override val main: CoroutineDispatcher get() = Dispatchers.Main
     override val default: CoroutineDispatcher get() = Dispatchers.Default
