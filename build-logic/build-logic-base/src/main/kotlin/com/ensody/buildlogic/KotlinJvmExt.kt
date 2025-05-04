@@ -18,13 +18,12 @@ fun Project.setupKotlinJvm(
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
     block: KotlinJvmExtension.() -> Unit = {},
 ) {
-    pluginManager.apply("org.jetbrains.kotlin.jvm")
     tasks.withType<Test> {
         testLogging {
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
-    configure< KotlinJvmExtension> {
+    configure<KotlinJvmExtension> {
         explicitApi = ExplicitApiMode.Strict
         jvmToolchain {
             languageVersion.set(JavaLanguageVersion.of(javaVersion.majorVersion))

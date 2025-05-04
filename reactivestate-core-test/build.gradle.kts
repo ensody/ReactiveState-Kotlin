@@ -1,8 +1,20 @@
-dependencies {
-    commonMainApi(project(":reactivestate-core"))
-    commonMainApi(libs.kotlin.test.main)
-    jvmCommonMainApi(libs.kotlin.test.junit)
-    jvmCommonMainApi(libs.junit)
-    commonMainApi(libs.coroutines.test)
-    jvmCommonMainApi(libs.mockk)
+import com.ensody.buildlogic.setupBuildLogic
+
+plugins {
+    id("com.ensody.build-logic")
+}
+
+setupBuildLogic {
+    kotlin {
+        sourceSets.commonMain.dependencies {
+            api(project(":reactivestate-core"))
+            api(libs.kotlin.test.main)
+            api(libs.coroutines.test)
+        }
+        sourceSets["jvmCommonMain"].dependencies {
+            api(libs.kotlin.test.junit)
+            api(libs.junit)
+            api(libs.mockk)
+        }
+    }
 }

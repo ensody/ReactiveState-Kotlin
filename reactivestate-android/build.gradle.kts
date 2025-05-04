@@ -1,25 +1,43 @@
-dependencies {
-    androidMainApi(libs.androidx.annotation)
-    androidMainApi(libs.androidx.appcompat)
-    androidMainApi(libs.androidx.core)
-    androidMainApi(libs.androidx.activity)
-    androidMainApi(libs.androidx.fragment)
+import com.ensody.buildlogic.setupBuildLogic
 
-    androidMainApi(libs.androidx.lifecycle.runtime)
-    androidMainApi(libs.androidx.lifecycle.livedata)
-    androidMainApi(libs.androidx.lifecycle.service)
-//    androidMainApi(libs.androidx.lifecycle.viewmodel)
-    constraints {
-        api(libs.androidx.lifecycle.common)
-        api(libs.androidx.lifecycle.service)
-        api(libs.androidx.lifecycle.process)
+plugins {
+    id("com.ensody.build-logic")
+}
+
+setupBuildLogic {
+    kotlin {
+        sourceSets.androidMain.dependencies {
+            api(libs.androidx.annotation)
+            api(libs.androidx.appcompat)
+            api(libs.androidx.core)
+            api(libs.androidx.activity)
+            api(libs.androidx.fragment)
+
+            api(libs.androidx.lifecycle.runtime)
+            api(libs.androidx.lifecycle.livedata)
+            api(libs.androidx.lifecycle.service)
+//            api(libs.androidx.lifecycle.viewmodel)
+        }
+        sourceSets.androidUnitTest.dependencies {
+            implementation(libs.androidx.arch.testing)
+            implementation(libs.androidx.fragment.testing)
+            implementation(libs.androidx.test.core)
+            implementation(libs.androidx.test.junit)
+            implementation(libs.robolectric)
+        }
+        sourceSets.commonMain.dependencies {
+            api(project(":reactivestate-core"))
+        }
+        sourceSets.commonTest.dependencies {
+            implementation(project(":reactivestate-android-test"))
+        }
     }
-    commonMainApi(project(":reactivestate-core"))
-    commonTestImplementation(project(":reactivestate-android-test"))
 
-    androidTestImplementation(libs.androidx.arch.testing)
-    androidTestImplementation(libs.androidx.fragment.testing)
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.junit)
-    androidTestImplementation(libs.robolectric)
+    dependencies {
+        constraints {
+            api(libs.androidx.lifecycle.common)
+            api(libs.androidx.lifecycle.service)
+            api(libs.androidx.lifecycle.process)
+        }
+    }
 }

@@ -10,8 +10,6 @@ import org.jetbrains.dokka.gradle.engine.plugins.DokkaHtmlPluginParameters
 import java.time.LocalDate
 
 fun Project.setupDokka(copyright: String) {
-    plugins.apply("org.jetbrains.dokka")
-
     extra.set(dokkaDoneMarker, true)
 
     if (!isRootProject) {

@@ -12,8 +12,6 @@ fun Project.setupAndroid(
     coreLibraryDesugaring: Provider<MinimalExternalModuleDependency>?,
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
 ) {
-    pluginManager.apply("com.android.library")
-
     configure<BaseExtension> {
         namespace = "$group.${name.replace('-', '.')}"
         val sdk = 35

@@ -7,8 +7,6 @@ import org.gradle.api.publish.maven.MavenPublication
 import org.gradle.kotlin.dsl.getByType
 
 fun Project.setupPlatformProject() {
-    pluginManager.apply("java-platform")
-
     extensions.getByType<JavaPlatformExtension>().allowDependencies()
 
     afterEvaluate {

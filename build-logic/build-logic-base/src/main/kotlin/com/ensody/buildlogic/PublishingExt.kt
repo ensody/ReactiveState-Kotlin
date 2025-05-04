@@ -29,8 +29,6 @@ fun Project.setupPublication(
     signingKeyInfo: SigningKeyInfo? = null,
     block: MavenPublication.() -> Unit = {},
 ) {
-    plugins.apply("maven-publish")
-
     if (pluginManager.hasPlugin("java-platform")) {
         configure<PublishingExtension> {
             publications {
@@ -88,18 +86,23 @@ fun Project.setupPublication(
     afterEvaluate {
         configure<PublishingExtension> {
             publications.filterIsInstance<MavenPublication>().forEach {
-                it.block()
+                it.apply {
+                    pom {
+                        name = "${rootProject.name}: ${project.name}"
+                    }
+                    block()
+                }
             }
         }
     }
 
     if (signingKeyInfo != null) {
-        plugins.apply("signing")
+        pluginManager.apply("signing")
         configure<SigningExtension> {
             useInMemoryPgpKeys(signingKeyInfo.keyId, signingKeyInfo.keyRing, signingKeyInfo.keyPassword)
         }
     }
-    if (plugins.hasPlugin("signing")) {
+    if (pluginManager.hasPlugin("signing")) {
         configure<SigningExtension> {
             sign(extensions.getByType<PublishingExtension>().publications)
         }

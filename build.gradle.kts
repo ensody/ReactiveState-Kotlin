@@ -7,7 +7,6 @@ plugins {
     alias(libs.plugins.jetbrains.compose) apply false
     alias(libs.plugins.kotlin.compose) apply false
     alias(libs.plugins.dokka) apply false
-    alias(libs.plugins.versions)
     alias(libs.plugins.nexusPublish)
 }
 

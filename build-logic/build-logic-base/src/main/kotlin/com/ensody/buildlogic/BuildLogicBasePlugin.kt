@@ -20,7 +20,7 @@ class BuildLogicBaseDependencies(
 
 lateinit var buildLogicBaseDeps: BuildLogicBaseDependencies
 
-fun Project.initBuildLogicBase() {
+fun Project.initBuildLogicBase(block: Project.() -> Unit) {
     require(isRootProject) { "initBuildLogic() must be called on the root project!" }
     buildLogicBaseDeps = BuildLogicBaseDependencies(this)
     version = detectProjectVersion()
@@ -28,16 +28,13 @@ fun Project.initBuildLogicBase() {
     subprojects {
         version = rootProject.version
     }
-    setupBuildLogicBase()
+    block()
 }
 
-fun Project.setupBuildLogicBase() {
-    pluginManager.apply("com.ensody.build-logic-base")
-
-    if (isRootProject) return
-
+fun Project.setupBuildLogicBase(block: Project.() -> Unit) {
     group = (listOf(rootProject.group) + project.path.trimStart(':').split(".").dropLast(1))
         .joinToString(".")
+    block()
 }
 
 val libs get() = buildLogicBaseDeps.libs

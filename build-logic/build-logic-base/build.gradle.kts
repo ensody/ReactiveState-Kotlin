@@ -7,7 +7,6 @@ dependencies {
     api(libs.android.gradle)
     api(libs.kotlin.gradle)
     api(libs.dokka.gradle)
-    api(libs.gradleVersions)
 }
 
 gradlePlugin {

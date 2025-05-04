@@ -19,12 +19,12 @@ fun Project.setupKmp(
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
     block: KotlinMultiplatformExtension.() -> Unit,
 ) {
-    pluginManager.apply("org.jetbrains.kotlin.multiplatform")
     tasks.withType<Test> {
         testLogging {
             exceptionFormat = TestExceptionFormat.FULL
         }
     }
+
     configure<KotlinMultiplatformExtension> {
         explicitApi = ExplicitApiMode.Strict
         jvmToolchain {
