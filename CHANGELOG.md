@@ -13,6 +13,7 @@
 * Renamed modules: `reactivestate` -> `reactivestate-android`, `reactivestate-test` -> `reactivestate-android-test`. You might only want to use `reactivestate-compose` in case you don't need to add ViewModels to Activities/Fragments.
 * Fixed `MutableStateFlow.compareAndSet` for `.toMutable`/`.beforeUpdate`/`.afterUpdate`.
 * Added `Flow.stateOnDemand` variant with `initial` value.
+* `CoroutineLauncher.launch` now synchronously increments the loading counter to avoid UI flickering issues in edge cases.
 
 ## 5.13.0
 

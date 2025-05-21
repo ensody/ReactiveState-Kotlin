@@ -56,12 +56,19 @@ public interface CoroutineLauncher {
         withLoading: MutableStateFlow<Int>? = loading,
         onError: (suspend (Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit,
-    ): Job =
-        rawLaunch(context = context, start = start) {
-            track(withLoading = withLoading, onError = onError) {
-                block()
+    ): Job {
+        // Increment before coroutine launch to avoid UI flickering in edge cases
+        withLoading?.increment()
+        return rawLaunch(context = context, start = start) {
+            withErrorReporting({ onError?.invoke(it) ?: onError(it) }) {
+                try {
+                    block()
+                } finally {
+                    withLoading?.decrement()
+                }
             }
         }
+    }
 
     /**
      * Tracks a suspension [block]'s loading state and errors.
