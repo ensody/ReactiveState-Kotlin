@@ -14,6 +14,7 @@
 * Fixed `MutableStateFlow.compareAndSet` for `.toMutable`/`.beforeUpdate`/`.afterUpdate`.
 * Added `Flow.stateOnDemand` variant with `initial` value.
 * `CoroutineLauncher.launch` now synchronously increments the loading counter to avoid UI flickering issues in edge cases.
+* Removed direct dependency on JUnit 4, so you can choose more freely which JUnit version to use.
 
 ## 5.13.0
 

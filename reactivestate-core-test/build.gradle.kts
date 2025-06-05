@@ -11,10 +11,5 @@ setupBuildLogic {
             api(libs.kotlin.test.main)
             api(libs.coroutines.test)
         }
-        sourceSets["jvmCommonMain"].dependencies {
-            api(libs.kotlin.test.junit)
-            api(libs.junit)
-            api(libs.mockk)
-        }
     }
 }

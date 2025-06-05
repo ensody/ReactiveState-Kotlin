@@ -12,6 +12,7 @@ import org.gradle.api.publish.PublishingExtension
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.findByType
+import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.repositories
 import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
@@ -87,6 +88,11 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                     optIn.add("kotlinx.coroutines.ExperimentalForInheritanceCoroutinesApi")
                     optIn.add("kotlinx.coroutines.FlowPreview")
                     optIn.add("com.ensody.reactivestate.ExperimentalReactiveStateApi")
+                }
+
+                sourceSets["jvmCommonTest"].dependencies {
+                    implementation(libs.findLibrary("kotlin-test-junit").get())
+                    implementation(libs.findLibrary("junit").get())
                 }
             }
             tasks.register("testAll") {

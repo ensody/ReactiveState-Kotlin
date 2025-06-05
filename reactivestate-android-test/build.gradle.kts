@@ -16,6 +16,10 @@ setupBuildLogic {
             api(libs.androidx.test.core)
             api(libs.androidx.test.junit)
             api(libs.robolectric)
+
+            api(libs.kotlin.test.junit)
+            api(libs.junit)
+            api(libs.mockk)
         }
     }
 }
