@@ -113,6 +113,49 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
     return WrapperProperty(child)
 }
 
+/**
+ * A variant of [childReactiveState] which allows child-types of [ErrorEvents] as [E]
+ * by expecting a dedicated [eventHandler] and not requiring the parent-[ReactiveState]
+ * to implement the events directly (but it could absolutely do so and just pass `this`).
+ *
+ * Normally, a [BaseReactiveState] would define an [ReactiveState.eventNotifier],
+ * [childReactiveState] would pass events from the child-[ReactiveState] to it using
+ * `launch(withLoading = null) { eventNotifier.emitAll(child.eventNotifier) }`
+ * and [baseBuildViewModel] would add a listener to it via [EventNotifier.handleEvents].
+ *
+ * But since the generic of the normal [childReactiveState] is bound to [ErrorEvents] only
+ * and *child classes of [ErrorEvents] aren't allowed*, we need to copy the logic here.
+ *
+ * That is
+ * - defining another [EventNotifier] for the child-types of [ErrorEvents] (which is just [E])
+ * - emit events from the child-[ReactiveState] to it
+ * - listening to it via [handleEvents] and pass events to [eventHandler]
+ * - extend this function from `ReactiveState<in E>` instead of `ReactiveState<out E>`
+ */
+fun <E : ErrorEvents, P : ReactiveState<in E>, RS : ReactiveState<E>> P.childReactiveState(
+    eventHandler: E,
+    block: () -> RS,
+): ReadOnlyProperty<Any?, RS> {
+    val child = block()
+    if (runCatching { requireContextualValRoot(scope) }.isFailure) {
+        launch(withLoading = null) {
+            loading.incrementFrom(child.loading)
+        }
+    }
+
+    val childTypeEventNotifier: EventNotifier<E> = EventNotifier()
+    launch(withLoading = null) {
+        childTypeEventNotifier.handleEvents(eventHandler)
+    }
+    launch(withLoading = null) {
+        childTypeEventNotifier.emitAll(child.eventNotifier)
+    }
+
+    (this as? OnReactiveStateAttached)?.onReactiveStateAttached(child)
+    (child as? OnReactiveStateAttachedTo)?.onReactiveStateAttachedTo(this)
+    return WrapperProperty(child)
+}
+
 /** Just wraps an eagerly computed value in a property to allow `val foo by bar` notation. */
 private class WrapperProperty<T>(val data: T) : ReadOnlyProperty<Any?, T> {
     override fun getValue(thisRef: Any?, property: KProperty<*>): T = data
