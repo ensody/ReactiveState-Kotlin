@@ -52,7 +52,7 @@ nexus-gradle = { module = "io.github.gradle-nexus:publish-plugin", version.ref =
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradle" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-jetbrains-compose = { id = "org.jetbrains.compose", version = "1.8.1" }
+jetbrains-compose = { id = "org.jetbrains.compose", version = "1.8.2" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
