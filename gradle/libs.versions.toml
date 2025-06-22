@@ -28,7 +28,7 @@ androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-
 androidx-lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "androidxLifecycle" }
 androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "androidxLifecycle" }
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "androidxLifecycle" }
-androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.9.0" }
+androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.9.1" }
 
 desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 junit = { module = "junit:junit", version = "4.13.2" }
@@ -36,7 +36,7 @@ kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.6.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.2" }
-robolectric = { module = "org.robolectric:robolectric", version = "4.14.1" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.15" }
 
 gradle-android = { module = "com.android.tools.build:gradle", version = "8.8.2" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
