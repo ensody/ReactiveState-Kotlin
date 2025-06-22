@@ -83,7 +83,6 @@ fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder
                 withWasmJs()
                 withWasmWasi()
                 withIos()
-                withMacos()
                 withJvm()
                 withAndroidTarget()
             }

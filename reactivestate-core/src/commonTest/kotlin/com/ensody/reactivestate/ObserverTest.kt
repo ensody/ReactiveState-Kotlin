@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import com.ensody.reactivestate.test.CoroutineTest
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +20,33 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class ObserverTest : CoroutineTest() {
+    @Test
+    fun cacheStabilityMinimizesUpdates() = runTest {
+        val source = MutableStateFlow(0)
+        var updates = 0
+        val mirror = derived {
+            updates += 1
+            2 * get(source)
+        }
+        mirror.value
+        mirror.value
+        mirror.value
+        assertEquals(1, updates)
+        val runner = async { mirror.collect() }
+        runCurrent()
+        mirror.value
+        assertEquals(1, updates)
+        val runner2 = async { mirror.collect() }
+        runCurrent()
+        mirror.value
+        assertEquals(1, updates)
+        source.value = 10
+        runCurrent()
+        assertEquals(2, updates)
+        runner.cancel()
+        runner2.cancel()
+    }
+
     @Test
     fun autoRunOnCoroutineScope() = runTest {
         val source = MutableStateFlow(0)

@@ -126,7 +126,7 @@ public fun CoroutineScope.coAutoRun(
 
 /** Just the minimum interface needed for [Resolver]. No generic types. */
 public abstract class BaseAutoRunner : AttachedDisposables {
-    internal abstract val resolver: Resolver
+    internal abstract val resolver: ResolverImpl
     public abstract val launcher: CoroutineLauncher
 
     public abstract fun triggerChange()
@@ -140,7 +140,7 @@ public abstract class InternalBaseAutoRunner(
     private val immediate: Boolean,
 ) : BaseAutoRunner() {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
-    override var resolver: Resolver = Resolver(this)
+    override var resolver: ResolverImpl = ResolverImpl(this)
         internal set
     protected open val withLoading: MutableStateFlow<Int>? = null
 
@@ -182,7 +182,7 @@ public abstract class InternalBaseAutoRunner(
     /** Stops watching observables. */
     override fun dispose() {
         flowConsumer?.cancel()
-        resolver = Resolver(this).also(resolver::switchTo)
+        resolver = ResolverImpl(this).also(resolver::switchTo)
         flowConsumer = null
         super.dispose()
     }
@@ -233,10 +233,10 @@ public class AutoRunner<T>(
     }
 
     private fun <T> observe(once: Boolean, observer: AutoRunCallback<T>): T {
-        if (once) return Resolver(this, once).observer()
+        if (once) return ResolverImpl(this, once).observer()
 
         val previousResolver = resolver
-        val nextResolver = Resolver(this)
+        val nextResolver = ResolverImpl(this)
         try {
             return nextResolver.observer()
         } finally {
@@ -285,7 +285,7 @@ public class CoAutoRunner<T>(
 ) : InternalBaseAutoRunner(launcher, flowTransformer, immediate) {
     override val attachedDisposables: DisposableGroup = DisposableGroup()
     private val listener: CoAutoRunOnChangeCallback<T> = onChange ?: { run() }
-    override var resolver: Resolver = Resolver(this)
+    override var resolver: ResolverImpl = ResolverImpl(this)
 
     init {
         init()
@@ -303,10 +303,10 @@ public class CoAutoRunner<T>(
     }
 
     private suspend fun <T> observe(once: Boolean, observer: CoAutoRunCallback<T>): T {
-        if (once) return Resolver(this, once).observer()
+        if (once) return ResolverImpl(this, once).observer()
 
         val previousResolver = resolver
-        val nextResolver = Resolver(this)
+        val nextResolver = ResolverImpl(this)
         try {
             return nextResolver.observer()
         } finally {
@@ -323,8 +323,31 @@ public class CoAutoRunner<T>(
 }
 
 /** Tracks observables for [AutoRunner] and [CoAutoRunner]. */
-public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Boolean = false) {
-    internal val observables = mutableMapOf<Any, FrozenAutoRunnerObservable<*, *>>()
+public interface Resolver {
+    public val autoRunner: BaseAutoRunner
+
+    @InternalReactiveStateApi
+    public val InternalResolver.once: Boolean
+
+    public fun <S : Any, T : AutoRunnerObservable<V>, V> track(
+        underlyingObservable: S,
+        getObservable: () -> T,
+    ): FrozenAutoRunnerObservable<V, T>
+
+    @InternalReactiveStateApi
+    public val InternalResolver.observables: Map<Any, FrozenAutoRunnerObservable<*, *>>
+}
+
+@InternalReactiveStateApi
+public object InternalResolver
+
+@OptIn(InternalReactiveStateApi::class)
+internal class ResolverImpl(override val autoRunner: BaseAutoRunner, private val once: Boolean = false) : Resolver {
+    override val InternalResolver.once: Boolean
+        get() = this@ResolverImpl.once
+    private val observables = mutableMapOf<Any, FrozenAutoRunnerObservable<*, *>>()
+    override val InternalResolver.observables: Map<Any, FrozenAutoRunnerObservable<*, *>>
+        get() = this@ResolverImpl.observables
 
     /**
      * Tracks an arbitrary observable.
@@ -337,7 +360,7 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
      *
      * @return The instantiated [AutoRunnerObservable] of type [T].
      */
-    public fun <S : Any, T : AutoRunnerObservable<V>, V> track(
+    override fun <S : Any, T : AutoRunnerObservable<V>, V> track(
         underlyingObservable: S,
         getObservable: () -> T,
     ): FrozenAutoRunnerObservable<V, T> {
@@ -348,16 +371,16 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
         val observable = FrozenAutoRunnerObservable<V, T>(castExisting ?: getObservable())
         observables[underlyingObservable] = observable
         if (!once && autoRunner.isActive && castExisting == null) {
-            observable.observable.addObserver()
-            existing?.observable?.removeObserver()
+            observable.observable.addObserver(autoRunner)
+            existing?.observable?.removeObserver(autoRunner)
         }
         return observable
     }
 
-    internal fun switchTo(next: Resolver) {
+    internal fun switchTo(next: ResolverImpl) {
         for ((underlyingObservable, item) in observables) {
             if (item.observable != next.observables[underlyingObservable]?.observable) {
-                item.observable.removeObserver()
+                item.observable.removeObserver(autoRunner)
             }
         }
     }
@@ -371,8 +394,8 @@ public class Resolver(public val autoRunner: BaseAutoRunner, public val once: Bo
 public interface AutoRunnerObservable<T> {
     public val value: T
     public val revisionedValue: Pair<T, ULong> get() = value to 0U
-    public fun addObserver()
-    public fun removeObserver()
+    public fun addObserver(autoRunner: BaseAutoRunner)
+    public fun removeObserver(autoRunner: BaseAutoRunner)
 }
 
 public class FrozenAutoRunnerObservable<T, O : AutoRunnerObservable<T>>(

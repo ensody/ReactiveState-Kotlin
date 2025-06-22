@@ -8,7 +8,10 @@ import kotlin.coroutines.CoroutineContext
  * Contains all values which are part of the ViewModel build process.
  */
 @ExperimentalReactiveStateApi
-public data class ReactiveStateContext(public val scope: CoroutineScope) {
+public data class ReactiveStateContext(
+    public val scope: CoroutineScope,
+    private val resolver: DIResolver,
+) : DIResolver by resolver {
     public operator fun plus(element: CoroutineContext.Element): ReactiveStateContext =
         copy(scope = scope + element)
 }

@@ -2,9 +2,9 @@ package com.ensody.reactivestate.compose
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStoreOwner
 import androidx.lifecycle.viewModelScope
@@ -14,17 +14,28 @@ import com.ensody.reactivestate.ContextualErrorsFlow
 import com.ensody.reactivestate.ContextualStateFlowStore
 import com.ensody.reactivestate.ContextualValRoot
 import com.ensody.reactivestate.CoroutineLauncher
+import com.ensody.reactivestate.DI
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
 import com.ensody.reactivestate.InMemoryStateFlowStore
 import com.ensody.reactivestate.ReactiveStateContext
+import com.ensody.reactivestate.invokeOnCompletion
 import com.ensody.reactivestate.triggerOnInit
+import com.ensody.reactivestate.withSpinLock
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.sync.Mutex
 
 /**
  * Creates a multiplatform ViewModel. The [provider] should instantiate the object directly.
  *
  * You have to pass loading and error effect handlers, so the most basic functionality is taken care of.
+ *
+ * Instead of returning the raw ViewModel this returns a Compose [State] object containing the ViewModel.
+ * This way the UI can keep up to date with a dynamically changing dependency injection graph.
+ * If the ViewModel depends on a [DI] object it gets destroyed and re-created whenever that DI module is replaced.
  */
 @ExperimentalReactiveStateApi
 @Composable
@@ -32,14 +43,14 @@ public inline fun <reified VM : CoroutineLauncher> reactiveViewModel(
     key: String? = null,
     crossinline onError: (Throwable) -> Unit,
     crossinline provider: ReactiveStateContext.() -> VM,
-): VM =
+): State<VM> =
     onViewModel(key = key) {
         provider().also {
             it.triggerOnInit()
         }
     }.also { viewModel ->
-        LaunchedEffect(viewModel) {
-            ContextualErrorsFlow.get(viewModel.scope).collect { onError(it) }
+        LaunchedEffect(viewModel.value) {
+            ContextualErrorsFlow.get(viewModel.value.scope).collect { onError(it) }
         }
     }
 
@@ -58,20 +69,38 @@ public inline fun <reified T : Any?> onViewModel(
     },
     key: String? = null,
     crossinline provider: ReactiveStateContext.() -> T,
-): T {
+): State<T> {
     // TODO: Use qualifiedName once JS supports it
     val fullKey = (key ?: "") + ":onViewModel:${T::class.simpleName}"
-    val storage = rememberSaveable<SnapshotStateMap<String, Any?>> { mutableStateMapOf() }
+    val storage = rememberSaveable<MutableMap<String, Any?>> { mutableMapOf() }
     return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
-        WrapperViewModel { scope ->
-            ReactiveStateContext(
-                scope + ContextualValRoot() + ContextualStateFlowStore.valued { InMemoryStateFlowStore(storage) },
-            ).provider()
+        WrapperViewModel { viewModelScope ->
+            // The viewModelScope can't be used directly because we have to destroy and re-create the ViewModel whenever
+            // the DI graph gets modified.
+            val mutex = Mutex()
+            var scope: CoroutineScope? = null
+            viewModelScope.invokeOnCompletion {
+                mutex.withSpinLock {
+                    scope?.cancel()
+                    scope = null
+                }
+            }
+            DI.derived {
+                val vmScope = MainScope()
+                mutex.withSpinLock {
+                    scope?.cancel()
+                    scope = vmScope
+                }
+                ReactiveStateContext(
+                    vmScope + ContextualValRoot() + ContextualStateFlowStore.valued { InMemoryStateFlowStore(storage) },
+                    this,
+                ).provider()
+            }
         }
-    }.value
+    }.value.collectAsState()
 }
 
 /** A wrapper ViewModel used to hold an arbitrary [value]. */
-public class WrapperViewModel<T : Any?>(provider: (CoroutineScope) -> T) : ViewModel() {
-    public val value: T = provider(viewModelScope)
+public class WrapperViewModel<T : Any?>(provider: (CoroutineScope) -> StateFlow<T>) : ViewModel() {
+    public val value: StateFlow<T> = provider(viewModelScope)
 }

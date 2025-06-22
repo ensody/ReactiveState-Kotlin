@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 public abstract class ReactiveViewModel(final override val scope: CoroutineScope) : CoroutineLauncher {
     private val emittedErrors: MutableFlow<Throwable> = ContextualErrorsFlow.get(scope)
     override val loading: MutableStateFlow<Int> = ContextualLoading.get(scope)
+    public val stateFlowStore: StateFlowStore by lazy { ContextualStateFlowStore.get(scope) }
 
     override fun onError(error: Throwable) {
         emittedErrors.tryEmit(error)

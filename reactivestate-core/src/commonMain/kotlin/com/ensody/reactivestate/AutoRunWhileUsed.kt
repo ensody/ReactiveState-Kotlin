@@ -12,13 +12,13 @@ private class WhileUsedObservable<T>(
 ) : AutoRunnerObservable<DisposableValue<T>?> {
     override var value: DisposableValue<T>? = null
 
-    override fun addObserver() {
+    override fun addObserver(autoRunner: BaseAutoRunner) {
         if (value == null) {
             value = data.disposableValue()
         }
     }
 
-    override fun removeObserver() {
+    override fun removeObserver(autoRunner: BaseAutoRunner) {
         value?.dispose()
     }
 }

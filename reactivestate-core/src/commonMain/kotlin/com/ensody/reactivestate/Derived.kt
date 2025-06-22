@@ -26,16 +26,34 @@ private fun <T> derivedCached(
     var cachedValue: Wrapped<T>? = null
     val mutex = Mutex()
 
-    fun getCached(block: () -> T): T {
+    fun getCached(onCached: (T) -> Unit = {}, block: () -> T): T {
         val cached = cachedValue
-        return if (cached != null && prevObservables.getNewValues() == dependencyValues) cached.value else block()
+        return if (cached != null && prevObservables.getNewValues() == dependencyValues) {
+            cached.value.also { onCached(it) }
+        } else {
+            block()
+        }
     }
 
+    @OptIn(InternalReactiveStateApi::class)
     return callbackFlow {
         autoRun {
-            val next = observer()
+            // We MUST NOT re-evaluate the observer lambda unnecessarily because it might be used to instantiate stable
+            // objects like ViewModels
+            val next = mutex.withSpinLock {
+                getCached(
+                    {
+                        val prev = InternalResolver.run { prevObservables }
+                        for ((underlying, observable) in prev) {
+                            track(underlying) { observable.observable }.value
+                        }
+                    },
+                ) {
+                    observer()
+                }
+            }
             trySend(next)
-            prevObservables = observables
+            prevObservables = InternalResolver.run { observables }
             dependencyValues = prevObservables.getFrozenValues()
             cachedValue = Wrapped(next)
         }
@@ -46,8 +64,8 @@ private fun <T> derivedCached(
                 getCached {
                     runWithResolver {
                         observer().also {
-                            dependencyValues = observables.getFrozenValues()
-                            prevObservables = observables
+                            dependencyValues = InternalResolver.run { observables.getFrozenValues() }
+                            prevObservables = InternalResolver.run { observables }
                             cachedValue = Wrapped(it)
                         }
                     }

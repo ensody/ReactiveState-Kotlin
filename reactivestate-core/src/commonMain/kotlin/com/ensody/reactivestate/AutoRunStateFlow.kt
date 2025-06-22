@@ -5,11 +5,10 @@ import kotlinx.coroutines.flow.StateFlow
 
 /** Returns [StateFlow.value] and tracks the observable (on the `MainScope`). */
 public fun <T> Resolver.get(data: StateFlow<T>): T =
-    track(data) { StateFlowObservable(data, autoRunner) }.value
+    track(data) { StateFlowObservable(data) }.value
 
 private class StateFlowObservable<T>(
     private val data: StateFlow<T>,
-    private val autoRunner: BaseAutoRunner,
 ) : AutoRunnerObservable<T> {
     private var observer: Job? = null
 
@@ -17,9 +16,9 @@ private class StateFlowObservable<T>(
 
     @Suppress("UNCHECKED_CAST")
     override val revisionedValue: Pair<T, ULong>
-        get() = (data as? RevisionedValue<T>)?.revisionedValue ?: value to 0U
+        get() = (data as? RevisionedValue<T>)?.revisionedValue ?: (value to 0U)
 
-    override fun addObserver() {
+    override fun addObserver(autoRunner: BaseAutoRunner) {
         if (observer == null) {
             var ignore: Wrapped<T>? = Wrapped(data.value)
             observer = autoRunner.launcher.launch(withLoading = null) {
@@ -33,7 +32,7 @@ private class StateFlowObservable<T>(
         }
     }
 
-    override fun removeObserver() {
+    override fun removeObserver(autoRunner: BaseAutoRunner) {
         observer?.cancel()
         observer = null
     }

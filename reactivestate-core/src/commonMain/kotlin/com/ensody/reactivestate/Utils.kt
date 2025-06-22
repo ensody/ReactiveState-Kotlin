@@ -8,10 +8,12 @@ public inline fun <T> propertyName(crossinline block: (name: String) -> T): Read
     lazyProperty { block(it.name) }
 
 /** A helper for creating a lazily computed [ReadOnlyProperty] based on a [KProperty]. */
-public fun <T> lazyProperty(block: (property: KProperty<*>) -> T): ReadOnlyProperty<Any?, T> =
-    LazyProperty(block)
+public fun <T> lazyProperty(block: (property: KProperty<*>) -> T): LazyProperty<T> =
+    LazyPropertyImpl(block)
 
-private class LazyProperty<T>(block: (property: KProperty<*>) -> T) : ReadOnlyProperty<Any?, T> {
+public interface LazyProperty<T> : ReadOnlyProperty<Any?, T>
+
+private class LazyPropertyImpl<T>(block: (property: KProperty<*>) -> T) : LazyProperty<T> {
     private lateinit var property: KProperty<*>
     private val result by lazy { block(property) }
 

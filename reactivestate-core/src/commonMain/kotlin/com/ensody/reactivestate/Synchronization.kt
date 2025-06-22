@@ -1,9 +1,11 @@
 package com.ensody.reactivestate
 
 import kotlinx.coroutines.sync.Mutex
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 /** Locks the mutex with a while loop. WARNING: This blocks the current thread! */
-internal fun Mutex.spinLock() {
+public fun Mutex.spinLock() {
     while (true) {
         if (tryLock()) {
             break
@@ -12,7 +14,8 @@ internal fun Mutex.spinLock() {
 }
 
 /** Locks the mutex with [spinLock]. WARNING: This blocks the current thread! */
-internal fun <T> Mutex.withSpinLock(block: () -> T): T {
+public fun <T> Mutex.withSpinLock(block: () -> T): T {
+    contract { callsInPlace(block, InvocationKind.EXACTLY_ONCE) }
     spinLock()
     try {
         return block()

@@ -15,3 +15,12 @@ public annotation class ExperimentalReactiveStateApi
 @Retention(value = AnnotationRetention.BINARY)
 @Target(AnnotationTarget.PROPERTY)
 public annotation class DependencyAccessor
+
+/** Marks internal ReactiveState APIs. */
+@MustBeDocumented
+@RequiresOptIn(
+    message = "Internal API. Don't use this.",
+    level = RequiresOptIn.Level.ERROR,
+)
+@Retention(value = AnnotationRetention.BINARY)
+public annotation class InternalReactiveStateApi

@@ -2,6 +2,7 @@
 
 ## Next release (6.0.0 preview)
 
+* Added reactive dependency injection solution (see `DI`) with graph tracking that can even re-create ViewModels when a DI module/node is changed at runtime.
 * Added `ContextualVal`/`ContextualValSuspend` for coroutine-local variables (like thread-locals or `CompositionLocal` for coroutines).
 * Made the experimental `ReactiveViewModel` more flexible by building it around `ContextualVal`.
 * Changed `loading` and all `withLoading` parameters from `MutableValueFlow` to `MutableStateFlow`.
@@ -14,6 +15,7 @@
 * Fixed `MutableStateFlow.compareAndSet` for `.toMutable`/`.beforeUpdate`/`.afterUpdate`.
 * Added `Flow.stateOnDemand` variant with `initial` value.
 * `CoroutineLauncher.launch` now synchronously increments the loading counter to avoid UI flickering issues in edge cases.
+* Added `childReactiveState` variant which takes an arbitrary event handler, so the parent ReactiveState doesn't have to implement the whole events interface.
 * Removed direct dependency on JUnit 4, so you can choose more freely which JUnit version to use.
 
 ## 5.13.0
