@@ -10,17 +10,23 @@ import java.io.File
 
 val Project.isRootProject get() = this == rootProject
 
-fun shell(command: String, workingDir: File? = null, inheritIO: Boolean = false): String {
+fun shell(
+    command: String,
+    workingDir: File? = null,
+    env: Map<String, String> = emptyMap(),
+    inheritIO: Boolean = false,
+): String {
     val processBuilder = ProcessBuilder("/bin/bash", "-c", command)
     workingDir?.let { processBuilder.directory(it) }
     processBuilder.redirectErrorStream(true)
+    processBuilder.environment().putAll(env)
     val process = processBuilder.start()
     return process.inputStream.bufferedReader().readText().trim().also {
         val exitCode = process.waitFor()
         if (inheritIO) {
             println(it)
         }
-        check(exitCode == 0) { "Process exit code was: $exitCode\nOriginal command: $command"}
+        check(exitCode == 0) { "Process exit code was: $exitCode\nOriginal command: $command" }
     }
 }
 

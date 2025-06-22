@@ -47,11 +47,11 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v-')
         run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
         env:
-          PUBLICATION_USERNAME: ${{ secrets.PUBLICATION_USERNAME }}
-          PUBLICATION_PASSWORD: ${{ secrets.PUBLICATION_PASSWORD }}
-          SIGNING_KEY_ID: ${{ secrets.SIGNING_KEY_ID }}
-          SIGNING_KEY_RING: ${{ secrets.SIGNING_KEY_RING }}
-          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.PUBLICATION_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.PUBLICATION_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY_RING }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
 
       - name: Bundle the build report
         if: failure()

@@ -5,11 +5,6 @@ androidxCore = "1.16.0"
 androidxFragment = "1.8.6"
 androidxLifecycle = "2.8.7"
 androidxTestCore = "1.6.1"
-androidGradle = "8.8.2"
-dokka = "2.0.0"
-desugarJdkLibs = "2.1.5"
-detekt = "1.23.8"
-nexusPublish = "2.0.0"
 
 [libraries]
 coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutines" }
@@ -35,7 +30,7 @@ androidx-lifecycle-runtime = { module = "androidx.lifecycle:lifecycle-runtime-kt
 androidx-lifecycle-service = { module = "androidx.lifecycle:lifecycle-service", version.ref = "androidxLifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version = "2.9.0" }
 
-desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version = "2.1.5" }
 junit = { module = "junit:junit", version = "4.13.2" }
 kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
@@ -43,18 +38,11 @@ ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.6.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.2" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.14.1" }
 
-android-gradle = { module = "com.android.tools.build:gradle", version.ref = "androidGradle" }
-kotlin-gradle = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
-dokka-gradle = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version.ref = "dokka" }
-detekt-gradle = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "detekt" }
-nexus-gradle = { module = "io.github.gradle-nexus:publish-plugin", version.ref = "nexusPublish" }
-
-[plugins]
-android-application = { id = "com.android.application", version.ref = "androidGradle" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
-jetbrains-compose = { id = "org.jetbrains.compose", version = "1.8.1" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-nexusPublish = { id = "io.github.gradle-nexus.publish-plugin", version.ref = "nexusPublish" }
+gradle-android = { module = "com.android.tools.build:gradle", version = "8.8.2" }
+gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+gradle-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }
+gradle-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.23.8" }
+gradle-kotlin-compose = { module = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
+gradle-jetbrains-compose = { module = "org.jetbrains.compose:org.jetbrains.compose.gradle.plugin", version = "1.8.1" }
+gradle-kotlin-jvm = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
+gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.32.0" }

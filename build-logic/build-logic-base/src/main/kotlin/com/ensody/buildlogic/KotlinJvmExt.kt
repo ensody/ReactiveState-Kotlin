@@ -30,8 +30,7 @@ fun Project.setupKotlinJvm(
         }
         compilerOptions {
             allWarningsAsErrors.set(true)
-            optIn.add("kotlin.RequiresOptIn")
-            optIn.add("kotlin.io.encoding.ExperimentalEncodingApi")
+            optIn.addAll(commonKotlinOptIns)
             freeCompilerArgs.add("-Xexpect-actual-classes")
         }
         block()

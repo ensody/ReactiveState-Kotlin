@@ -2,6 +2,7 @@ package com.ensody.buildlogic
 
 import org.gradle.api.Project
 import org.gradle.internal.extensions.core.extra
+import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.withType
@@ -20,7 +21,7 @@ fun Project.setupDokka(copyright: String) {
             add("dokka", this@setupDokka)
         }
     }
-    extensions.getByType<DokkaExtension>().apply {
+    configure<DokkaExtension> {
         dokkaSourceSets.configureEach {
             enableAndroidDocumentationLink.set(true)
             includes.from(

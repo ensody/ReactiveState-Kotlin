@@ -32,8 +32,7 @@ fun Project.setupKmp(
         }
         compilerOptions {
             allWarningsAsErrors.set(true)
-            optIn.add("kotlin.RequiresOptIn")
-            optIn.add("kotlin.io.encoding.ExperimentalEncodingApi")
+            optIn.addAll(commonKotlinOptIns)
             freeCompilerArgs.add("-Xexpect-actual-classes")
         }
         applyKmpHierarchy()
@@ -41,12 +40,28 @@ fun Project.setupKmp(
     }
 }
 
+val commonKotlinOptIns = listOf(
+    "kotlin.RequiresOptIn",
+    "kotlin.io.encoding.ExperimentalEncodingApi",
+    "kotlin.contracts.ExperimentalContracts",
+)
+
 fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder.Root.() -> Unit = {}) {
     applyDefaultHierarchyTemplate {
         common {
             group("jvmCommon") {
                 withJvm()
                 withAndroidTarget()
+            }
+            group("desktop") {
+                withLinux()
+                withMingw()
+                withMacos()
+            }
+            group("appleMobile") {
+                withIos()
+                withTvos()
+                withWatchos()
             }
             group("compose") {
                 withJs()
@@ -91,7 +106,6 @@ fun KotlinMultiplatformExtension.addAllTargets(
 fun KotlinMultiplatformExtension.allDesktop() {
     allMacos()
     allLinux()
-    allMacos()
     mingwX64()
 }
 

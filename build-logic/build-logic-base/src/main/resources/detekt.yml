@@ -1,3 +1,6 @@
+# Base config:
+# https://github.com/detekt/detekt/blob/main/detekt-core/src/main/resources/default-detekt-config.yml
+
 complexity:
   active: false
 
@@ -24,6 +27,8 @@ naming:
     active: false
   MemberNameEqualsClassName:
     active: false
+  VariableNaming:
+    active: false
 
 potential-bugs:
   IgnoredReturnValue:
@@ -31,6 +36,8 @@ potential-bugs:
 
 style:
   ForbiddenComment:
+    active: false
+  MagicNumber:
     active: false
   MayBeConst:
     active: false

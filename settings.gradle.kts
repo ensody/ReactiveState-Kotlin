@@ -13,10 +13,20 @@ pluginManagement {
 
 rootProject.name = "ReactiveState"
 
-include(":reactivestate-bom")
+val ignorePaths = setOf("build", "build-logic", "gradle", "src")
+fun autoDetectModules(root: File) {
+    for (file in root.listFiles()) {
+        if (file.name.startsWith(".") || file.name in ignorePaths) {
+            continue
+        }
+        if (file.isDirectory()) {
+            if (file.list().any { it == "build.gradle.kts" }) {
+                include(":" + file.relativeTo(rootDir).path.replace("/", ":").replace("\\", ":"))
+            } else {
+                autoDetectModules(file)
+            }
+        }
+    }
+}
 
-include(":reactivestate-android")
-include(":reactivestate-android-test")
-include(":reactivestate-compose")
-include(":reactivestate-core")
-include(":reactivestate-core-test")
+autoDetectModules(rootDir)
