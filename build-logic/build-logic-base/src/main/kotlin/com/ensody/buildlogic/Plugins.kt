@@ -79,6 +79,18 @@ class KmpBuildLogicPlugin : Plugin<Project> {
     }
 }
 
+/** Cocoapods/XCFramework setup. */
+class CocoapodsBuildLogicPlugin : Plugin<Project> {
+    override fun apply(target: Project) {
+        target.run {
+            pluginManager.apply("com.ensody.build-logic.kmp")
+            if (!isRootProject) {
+                pluginManager.apply("org.jetbrains.kotlin.native.cocoapods")
+            }
+        }
+    }
+}
+
 /** Jetpack Compose setup. */
 class ComposeBuildLogicPlugin : Plugin<Project> {
     override fun apply(target: Project) {
