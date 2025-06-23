@@ -107,6 +107,7 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                 signAllPublications()
             }
             pom {
+                name = "${rootProject.name}: ${project.name}"
                 description = project.description?.takeIf { it.isNotBlank() }
                     ?: "Kotlin Multiplatform ViewModels and reactive state management based on StateFlow"
                 url = "https://github.com/ensody/ReactiveState-Kotlin"
