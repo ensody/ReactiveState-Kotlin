@@ -132,7 +132,7 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
  * - listening to it via [handleEvents] and pass events to [eventHandler]
  * - extend this function from `ReactiveState<in E>` instead of `ReactiveState<out E>`
  */
-fun <E : ErrorEvents, P : ReactiveState<in E>, RS : ReactiveState<E>> P.childReactiveState(
+fun <E : ErrorEvents, P : ReactiveState<*>, RS : ReactiveState<E>> P.childReactiveState(
     eventHandler: E,
     block: () -> RS,
 ): ReadOnlyProperty<Any?, RS> {
@@ -143,12 +143,8 @@ fun <E : ErrorEvents, P : ReactiveState<in E>, RS : ReactiveState<E>> P.childRea
         }
     }
 
-    val childTypeEventNotifier: EventNotifier<E> = EventNotifier()
     launch(withLoading = null) {
-        childTypeEventNotifier.handleEvents(eventHandler)
-    }
-    launch(withLoading = null) {
-        childTypeEventNotifier.emitAll(child.eventNotifier)
+        child.eventNotifier.handleEvents(eventHandler)
     }
 
     (this as? OnReactiveStateAttached)?.onReactiveStateAttached(child)
