@@ -42,6 +42,11 @@ fun Project.withGeneratedBuildFile(category: String, path: String, sourceSet: St
     generatedFiles.getOrPut(this.path) { mutableSetOf() }.add(outputPath.normalize().absoluteFile)
 }
 
+fun Project.getDefaultPackageName(): String =
+    group.toString().split(".").let { prefix ->
+        prefix + name.split("-").dropWhile { it == prefix.last() }
+    }.joinToString(".")
+
 internal val generatedFiles = mutableMapOf<String, MutableSet<File>>()
 
 internal fun File.withParents(): List<File> =

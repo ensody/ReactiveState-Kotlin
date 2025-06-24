@@ -19,6 +19,21 @@ fun Project.setupKmp(
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
     block: KotlinMultiplatformExtension.() -> Unit,
 ) {
+    val commonMainDir = file("src/commonMain")
+    if (!commonMainDir.exists() || commonMainDir.walkBottomUp().none { it.extension == "kt" }) {
+        val packageName = getDefaultPackageName()
+        withGeneratedBuildFile("empty", "${packageName.replace(".", "/")}/empty.kt", "commonMain") {
+            """
+            package $packageName
+
+            // The Kotlin compiler doesn't like empty binaries
+            // Workaround for https://youtrack.jetbrains.com/issue/KT-42702
+            // and https://youtrack.jetbrains.com/issue/KT-47345
+            internal val empty: Boolean = false
+            """
+        }
+    }
+
     tasks.withType<Test> {
         testLogging {
             exceptionFormat = TestExceptionFormat.FULL

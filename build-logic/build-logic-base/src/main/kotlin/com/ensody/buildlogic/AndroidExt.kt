@@ -13,7 +13,7 @@ fun Project.setupAndroid(
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
 ) {
     configure<BaseExtension> {
-        namespace = "$group.${name.replace('-', '.')}"
+        namespace = getDefaultPackageName()
         val sdk = 35
         compileSdkVersion(sdk)
         defaultConfig {
