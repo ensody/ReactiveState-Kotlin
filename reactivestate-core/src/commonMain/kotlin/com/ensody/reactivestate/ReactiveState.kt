@@ -96,7 +96,8 @@ public open class BaseReactiveState<E : ErrorEvents>(final override val scope: C
  * }
  * ```
  */
-public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.childReactiveState(
+private fun <E : ErrorEvents, P : ReactiveState<*>, RS : ReactiveState<E>> P.childReactiveStateBase(
+    eventHandler: suspend (child: RS) -> Unit,
     block: () -> RS,
 ): ReadOnlyProperty<Any?, RS> {
     val child = block()
@@ -106,12 +107,33 @@ public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.
         }
     }
     launch(withLoading = null) {
-        eventNotifier.emitAll(child.eventNotifier)
+        eventHandler(child)
     }
     (this as? OnReactiveStateAttached)?.onReactiveStateAttached(child)
     (child as? OnReactiveStateAttachedTo)?.onReactiveStateAttachedTo(this)
     return WrapperProperty(child)
 }
+
+/**
+ * Uses [childReactiveStateBase] and emits events from the child to the parent ReactiveState.
+ */
+public fun <E : ErrorEvents, P : ReactiveState<out E>, RS : ReactiveState<E>> P.childReactiveState(
+    block: () -> RS,
+): ReadOnlyProperty<Any?, RS> = childReactiveStateBase(
+    eventHandler = { child -> eventNotifier.emitAll(child.eventNotifier) },
+    block = block,
+)
+
+/**
+ * Uses [childReactiveStateBase] and emits events from the child to the given [eventHandler].
+ */
+public fun <E : ErrorEvents, P : ReactiveState<*>, RS : ReactiveState<E>> P.childReactiveState(
+    eventHandler: E,
+    block: () -> RS,
+): ReadOnlyProperty<Any?, RS> = childReactiveStateBase(
+    eventHandler = { child -> child.eventNotifier.handleEvents(eventHandler) },
+    block = block,
+)
 
 /** Just wraps an eagerly computed value in a property to allow `val foo by bar` notation. */
 private class WrapperProperty<T>(val data: T) : ReadOnlyProperty<Any?, T> {
