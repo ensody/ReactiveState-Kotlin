@@ -32,17 +32,33 @@ internal class ObserverTest : CoroutineTest() {
         mirror.value
         mirror.value
         assertEquals(1, updates)
+
         val runner = async { mirror.collect() }
         runCurrent()
         mirror.value
         assertEquals(1, updates)
+
         val runner2 = async { mirror.collect() }
         runCurrent()
         mirror.value
         assertEquals(1, updates)
+
         source.value = 10
         runCurrent()
         assertEquals(2, updates)
+
+        source.value = 20
+        assertEquals(2, updates)
+        mirror.value
+        assertEquals(3, updates)
+        runCurrent()
+        assertEquals(3, updates)
+
+        source.value = 30
+        assertEquals(3, updates)
+        runCurrent()
+        assertEquals(4, updates)
+
         runner.cancel()
         runner2.cancel()
     }

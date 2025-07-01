@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.1.21"
 coroutines = "1.10.2"
 androidxCore = "1.16.0"
 androidxFragment = "1.8.6"
