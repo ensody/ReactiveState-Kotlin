@@ -71,7 +71,7 @@ public inline fun <reified T : Any?> onViewModel(
     crossinline provider: ReactiveStateContext.() -> T,
 ): State<T> {
     // TODO: Use qualifiedName once JS supports it
-    val fullKey = (key ?: "") + ":onViewModel:${T::class.simpleName}"
+    val fullKey = "onViewModel:${T::class.simpleName}:$key"
     val storage = rememberSaveable<MutableMap<String, Any?>> { mutableMapOf() }
     return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
         WrapperViewModel { viewModelScope ->

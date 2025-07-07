@@ -103,7 +103,6 @@ public class DIImpl {
             get(state.factory)()
         }
         deps[klass]?.also {
-            // TODO: Can we set both in a single go?
             it.versionOfDependencies.value = 0
             it.factory.value = factory
         } ?: run { deps[klass] = State(newValue, MutableStateFlow(factory)) }

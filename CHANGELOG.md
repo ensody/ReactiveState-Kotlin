@@ -5,6 +5,8 @@
 * Added reactive dependency injection solution (see `DI`) with graph tracking that can even re-create ViewModels when a DI module/node is changed at runtime.
 * Added `ContextualVal`/`ContextualValSuspend` for coroutine-local variables (like thread-locals or `CompositionLocal` for coroutines).
 * Made the experimental `ReactiveViewModel` more flexible by building it around `ContextualVal`.
+* Added Composable `rememberOnViewModel { ... }` which remembers the block's result across configuration changes.
+* Added Composable `DI.derivedState { ... }` and `DI.derivedValue { ... }` which remember the block's result until a dependency changes and re-render the UI when needed.
 * Changed `loading` and all `withLoading` parameters from `MutableValueFlow` to `MutableStateFlow`.
 * Changed `increment()`/`decrement()` and `replace` to work on `MutableStateFlow` instead of `MutableValueFlow`.
 * Added `MutableStateFlow.replaceAndGet` and `getAndReplace` which are like their similarly named `updateAndGet`/`getAndUpdate` counterparts, but with the value passed as `this`.
