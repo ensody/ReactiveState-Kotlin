@@ -10,6 +10,7 @@ setupBuildLogic {
     kotlin {
         sourceSets.commonMain.dependencies {
             api(compose.runtime)
+            api(libs.androidx.lifecycle.runtime.compose)
             api(project(":reactivestate-core"))
         }
         sourceSets["composeMain"].dependencies {

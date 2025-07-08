@@ -3,10 +3,10 @@ package com.ensody.reactivestate.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelStoreOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -97,7 +97,7 @@ public inline fun <reified T : Any?> onViewModel(
                 ).provider()
             }
         }
-    }.value.collectAsState()
+    }.value.collectAsStateWithLifecycle()
 }
 
 /** A wrapper ViewModel used to hold an arbitrary [value]. */

@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ensody.reactivestate.afterUpdate
 import com.ensody.reactivestate.beforeUpdate
 import com.ensody.reactivestate.withSetter
@@ -19,6 +23,21 @@ public fun <T> MutableStateFlow<T>.collectAsMutableState(
     context: CoroutineContext = EmptyCoroutineContext,
 ): MutableState<T> =
     collectAsState(context).toMutable { this@collectAsMutableState.value = it }
+
+/**
+ * Converts this [MutableStateFlow] to a [MutableState].
+ */
+@Composable
+public fun <T> MutableStateFlow<T>.collectAsMutableStateWithLifecycle(
+    lifecycleOwner: LifecycleOwner = LocalLifecycleOwner.current,
+    minActiveState: Lifecycle.State = Lifecycle.State.STARTED,
+    context: CoroutineContext = EmptyCoroutineContext,
+): MutableState<T> =
+    collectAsStateWithLifecycle(
+        lifecycleOwner = lifecycleOwner,
+        minActiveState = minActiveState,
+        context = context,
+    ).toMutable { this@collectAsMutableStateWithLifecycle.value = it }
 
 /**
  * Returns a new [MutableState] that calls [setter] before doing the actual value update.
