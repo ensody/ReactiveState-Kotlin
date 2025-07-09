@@ -1,6 +1,6 @@
 # ReactiveState
 
-[![Maven Central](https://img.shields.io/maven-central/v/com.ensody.reactivestate/reactivestate-core)](https://central.sonatype.com/artifact/com.ensody.reactivestate/reactivestate-core-android)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ensody.reactivestate/reactivestate-core?color=%2345cf00)](https://central.sonatype.com/artifact/com.ensody.reactivestate/reactivestate-core)
 
 Kotlin Multiplatform ViewModels and reactive state management based on `StateFlow`.
 

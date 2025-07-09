@@ -13,10 +13,12 @@ internal class DITest {
     val testDI = DIImpl()
 
     init {
-        testDI.register { FooDeps(get(someConfigFlag), barDeps) }
+        testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
         testDI.register { BarDeps(fooDeps) }
     }
 
+    private val defaultFlow = testDI.derived { get(defaultDeps) }
+    private val default = defaultFlow.value
     private val fooFlow = testDI.derived { get(fooDeps) }
     private val foo = fooFlow.value
     private val barFlow = testDI.derived { get(barDeps) }
@@ -24,6 +26,8 @@ internal class DITest {
 
     @Test
     fun stability() {
+        assertSame(default, testDI.derived { get(defaultDeps) }.value)
+        assertSame(default, foo.defaultDeps)
         assertSame(foo, testDI.derived { get(fooDeps) }.value)
         assertSame(bar, testDI.derived { get(barDeps) }.value)
     }
@@ -37,7 +41,7 @@ internal class DITest {
         testDI.register {
             // This causes a too early access
             get(barDeps)
-            FooDeps(get(someConfigFlag), barDeps)
+            FooDeps(get(someConfigFlag), barDeps, defaultDeps)
         }
         assertFailsWith<IllegalStateException> { barFlow.value.configFlag }
     }
@@ -45,8 +49,9 @@ internal class DITest {
     @Test
     fun updateDIGraphOnRegister() {
         // Replacing FooDeps invalidates the whole subgraph depending on FooDeps. So, BarDeps gets re-created.
-        testDI.register { FooDeps(get(someConfigFlag), barDeps) }
+        testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
         assertNotSame(foo, testDI.derived { get(fooDeps) }.value)
+        assertSame(default, testDI.derived { get(fooDeps) }.value.defaultDeps)
         val newBar = testDI.derived { get(barDeps) }.value
         assertNotSame(bar, newBar)
         assertTrue(foo.circularConfigFlag)
@@ -73,6 +78,16 @@ internal class DITest {
 }
 
 // -------------
+// module DefaultDeps
+// -------------
+
+// Convenience accessor for FooDeps
+private val DIResolver.defaultDeps: LazyProperty<DefaultDeps>
+    get() = DI.run { get { DefaultDeps() } }
+
+private class DefaultDeps(val value: Boolean = true)
+
+// -------------
 // module foo
 // -------------
 
@@ -83,9 +98,11 @@ private val DIResolver.fooDeps: LazyProperty<FooDeps> get() = DI.run { get() }
 private class FooDeps(
     val configFlag: Boolean,
     lazyBarDeps: LazyProperty<BarDeps>,
+    lazyDefaultDeps: LazyProperty<DefaultDeps>,
 ) {
     // All deps have to be resolved lazily
     val barDeps by lazyBarDeps
+    val defaultDeps by lazyDefaultDeps
 
     // All deps have to be resolved lazily
     val circularConfigFlag by lazy { barDeps.configFlag }

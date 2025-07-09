@@ -118,10 +118,17 @@ public class DIImpl {
         }
 
     // We hide this function as an extension, so nobody can mistakenly get() arbitrary T values not belonging to the DI
-    public inline fun <reified T : Any> DIResolver.get(): LazyProperty<T> =
-        InternalDI.run { get(this@get, T::class) }
+    public inline fun <reified T : Any> DIResolver.get(noinline default: (() -> T)? = null): LazyProperty<T> =
+        InternalDI.run { get(this@get, T::class, default) }
 
-    public fun <T : Any> InternalDI.get(resolver: DIResolver, klass: KClass<T>): LazyProperty<T> {
+    public fun <T : Any> InternalDI.get(
+        resolver: DIResolver,
+        klass: KClass<T>,
+        default: (() -> T)? = null,
+    ): LazyProperty<T> {
+        if (default != null && klass !in deps) {
+            register(klass) { default() }
+        }
         val state = deps.getValue(klass)
         resolver.run { owner }?.also {
             // A DI module/node must not resolve any deps eagerly, so we can support circular dependencies.
