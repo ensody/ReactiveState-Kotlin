@@ -16,7 +16,7 @@ internal class ReactiveViewModelTest : CoroutineTest(ContextualValRoot()) {
     fun nestingOfReactiveViewModels() = runTest {
         assertEquals(0, viewModel.loading.value)
         assertEquals(OnInit.State.Initializing, viewModel.onInit.state.value)
-        viewModel.triggerOnInit()
+        viewModel.onInit.trigger()
         runCurrent()
         assertEquals(OnInit.State.Initializing, viewModel.onInit.state.value)
         assertEquals(1, viewModel.loading.value)

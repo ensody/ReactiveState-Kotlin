@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.coroutineContext
@@ -104,4 +105,33 @@ public fun requireContextualValRoot(scope: CoroutineScope) {
 /** Throws an exception if [ContextualValRoot] was not added to the [CoroutineContext]/[CoroutineScope]. */
 public fun requireContextualValRoot(context: CoroutineContext) {
     requireNotNull(context[ContextualValRootInternal.key]) { "ContextualValRoot is missing in the CoroutineScope" }
+}
+
+public val ContextualStore: ContextualVal<ContextualValStore> = ContextualVal("ContextualStore") {
+    requireContextualValRoot(it)
+    ContextualValStore()
+}
+
+public class ContextualValStore {
+    public class Key<T>
+
+    private val storage = mutableMapOf<Key<*>, Any?>()
+
+    public operator fun contains(key: Key<*>): Boolean =
+        key in storage
+
+    @Suppress("UNCHECKED_CAST")
+    public operator fun <T> get(key: Key<T>): T? =
+        storage[key] as T?
+
+    @Suppress("UNCHECKED_CAST")
+    public fun <T> getOrPut(
+        key: Key<T>,
+        defaultValue: () -> T,
+    ): T =
+        storage.getOrPut(key, defaultValue) as T
+
+    public fun <T> put(key: Key<T>, value: T) {
+        storage[key] = value
+    }
 }

@@ -18,11 +18,11 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.js.JsName
 
 /**
- * A mechanism for ViewModel initialization-time tasks like repository cache refresh. Use via [ContextualOnInit].
+ * A mechanism for [ReactiveViewModel] initialization-time tasks like repository cache refresh.
  *
  * With [observe] you get notified when the ViewModel is ready. On the provided [OnInitContext] you can launch
  * coroutines which are associated with your observer. If any of the coroutines fail the [state] will reflect that
- * and you can run [trigger] (or the simpler [CoroutineLauncher.triggerOnInit]) again for only the failing observers.
+ * and you can run [trigger] again for only the failing observers.
  */
 @ExperimentalReactiveStateApi
 public interface OnInit {
@@ -37,31 +37,13 @@ public interface OnInit {
 
     public fun observe(block: OnInitContext.() -> Unit)
     public fun unobserve(block: OnInitContext.() -> Unit)
-    public fun trigger(source: CoroutineLauncher)
+    public fun trigger()
 
     public sealed interface State {
         public data object Initializing : State
         public data class Error(val errors: List<Throwable>) : State
         public data object Finished : State
     }
-}
-
-/**
- * Provides access to a ViewModel's [OnInit] instance.
- */
-@ExperimentalReactiveStateApi
-public val ContextualOnInit: ContextualVal<OnInit> = ContextualVal("ContextualOnInit") {
-    requireContextualValRoot(it)
-    OnInit()
-}
-
-@ExperimentalReactiveStateApi
-public val CoroutineLauncher.onInit: OnInit get() = ContextualOnInit.get(scope)
-
-/** Runs [OnInit.trigger] for this class. */
-@ExperimentalReactiveStateApi
-public fun CoroutineLauncher.triggerOnInit() {
-    ContextualOnInit.get(scope).trigger(this)
 }
 
 /**
@@ -110,11 +92,10 @@ public interface OnInitContext {
 
 @JsName("createOnInit")
 @ExperimentalReactiveStateApi
-public fun OnInit(): OnInit =
-    OnInitImpl()
+public fun OnInit(source: CoroutineLauncher): OnInit =
+    OnInitImpl(source)
 
-private class OnInitImpl : OnInit {
-    private var source: CoroutineLauncher? = null
+private class OnInitImpl(private val source: CoroutineLauncher) : OnInit {
     private val observers: MutableStateFlow<List<OnInitContext.() -> Unit>> = MutableStateFlow(emptyList())
     private val mutex = Mutex()
 
@@ -122,20 +103,14 @@ private class OnInitImpl : OnInit {
 
     override fun observe(block: OnInitContext.() -> Unit) {
         observers.replace { plus(block) }
-        source?.let {
-            trigger(it)
-        }
+        trigger()
     }
 
     override fun unobserve(block: OnInitContext.() -> Unit) {
         observers.replace { minus(block) }
     }
 
-    override fun trigger(source: CoroutineLauncher) {
-        if (this.source == null) {
-            this.source = source
-        }
-
+    override fun trigger() {
         source.launch(withLoading = null) {
             mutex.withLock {
                 if (observers.value.isNotEmpty()) {

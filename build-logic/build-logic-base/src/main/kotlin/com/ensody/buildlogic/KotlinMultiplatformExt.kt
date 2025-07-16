@@ -75,20 +75,26 @@ fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder
             }
             group("appleMobile") {
                 withIos()
+                group("ios")
                 withTvos()
                 withWatchos()
             }
             group("compose") {
+                group("js")
                 withJs()
+                group("wasmJs")
                 withWasmJs()
                 withWasmWasi()
+                group("ios")
                 withIos()
                 withJvm()
                 withAndroidTarget()
             }
             group("nonJvm") {
                 withNative()
+                group("js")
                 withJs()
+                group("wasmJs")
                 withWasmJs()
             }
             group("nonJs") {

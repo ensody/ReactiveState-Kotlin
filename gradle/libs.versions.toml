@@ -40,7 +40,7 @@ ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.6.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.4" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
 
-gradle-android = { module = "com.android.tools.build:gradle", version = "8.10.0" }
+gradle-android = { module = "com.android.tools.build:gradle", version = "8.11.1" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-cocoapods = { module = "org.jetbrains.kotlin.native.cocoapods:org.jetbrains.kotlin.native.cocoapods.gradle.plugin", version.ref = "kotlin" }
 gradle-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }
