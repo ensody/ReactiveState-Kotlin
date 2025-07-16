@@ -36,7 +36,7 @@ desugarJdkLibs = { module = "com.android.tools:desugar_jdk_libs", version = "2.1
 junit = { module = "junit:junit", version = "4.13.2" }
 kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
-ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.6.0" }
+ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.7.0" }
 mockk = { module = "io.mockk:mockk", version = "1.14.4" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
 
