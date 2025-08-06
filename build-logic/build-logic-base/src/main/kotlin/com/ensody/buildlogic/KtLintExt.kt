@@ -22,7 +22,13 @@ fun Project.setupKtLint(version: Provider<MinimalExternalModuleDependency>) {
         description = "Check Kotlin code style."
         classpath = configurations.getByName("ktlint")
         mainClass.set("com.pinterest.ktlint.Main")
-        args("src/*ain/**/*.kt", "src/*est/**/*.kt", "--reporter=plain", "--reporter=checkstyle,output=$projectDir/build/ktlint.xml")
+        args(
+            "--log-level=warn",
+            "src/*ain/**/*.kt",
+            "src/*est/**/*.kt",
+            "--reporter=plain",
+            "--reporter=checkstyle,output=$projectDir/build/ktlint.xml",
+        )
     }
     tasks.findByName("check")?.dependsOn("ktlint")
 
@@ -31,6 +37,11 @@ fun Project.setupKtLint(version: Provider<MinimalExternalModuleDependency>) {
         description = "Fix Kotlin code style deviations."
         classpath = configurations.getByName("ktlint")
         mainClass.set("com.pinterest.ktlint.Main")
-        args("-F", "src/*ain/**/*.kt", "src/*est/**/*.kt")
+        args(
+            "--log-level=warn",
+            "-F",
+            "src/*ain/**/*.kt",
+            "src/*est/**/*.kt",
+        )
     }
 }

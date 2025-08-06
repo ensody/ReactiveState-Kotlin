@@ -4,7 +4,6 @@ package com.ensody.buildlogic
 
 import com.android.build.gradle.BaseExtension
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
-import com.vanniktech.maven.publish.SonatypeHost
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -66,24 +65,24 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                     implementation(libs.findLibrary("junit").get())
                 }
             }
+            // testDebugUnitTest throws an error if there are no tests
+            val hasTests = file("src").listFiles().orEmpty().any { sourceSet ->
+                sourceSet.name.endsWith("Test") && sourceSet.walkTopDown().any { it.extension == "kt" }
+            }
             tasks.register("testAll") {
                 group = "verification"
-                dependsOn(
-                    "testDebugUnitTest",
-                    "jvmTest",
-                    "iosSimulatorArm64Test",
-                    "iosX64Test",
-                    "macosArm64Test",
-                    "macosX64Test",
-                    "mingwX64Test",
-                    "linuxX64Test",
-//                    "linuxArm64Test",
-//                    "tvosSimulatorArm64Test",
-//                    "tvosX64Test",
-//                    "watchosSimulatorArm64Test",
-//                    "watchosX64Test",
-//                    "jsIrNodeTest",
-                )
+                if (hasTests) {
+                    dependsOn(
+                        "testDebugUnitTest",
+                        "jvmTest",
+                        "iosSimulatorArm64Test",
+                        "iosX64Test",
+                        "macosArm64Test",
+                        "macosX64Test",
+                        "mingwX64Test",
+                        "linuxX64Test",
+                    )
+                }
             }
         }
         if (extensions.findByType<KotlinBaseExtension>() != null) {

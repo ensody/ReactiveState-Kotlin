@@ -1,6 +1,6 @@
 package com.ensody.buildlogic
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.gradle.TestedExtension
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.artifacts.MinimalExternalModuleDependency
@@ -12,8 +12,9 @@ fun Project.setupAndroid(
     coreLibraryDesugaring: Provider<MinimalExternalModuleDependency>?,
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
 ) {
-    configure<BaseExtension> {
+    configure<TestedExtension> {
         namespace = getDefaultPackageName()
+        testNamespace = "$namespace.unittests"
         val sdk = 35
         compileSdkVersion(sdk)
         defaultConfig {

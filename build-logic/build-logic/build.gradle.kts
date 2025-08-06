@@ -5,7 +5,6 @@ plugins {
 
 dependencies {
     api(project(":build-logic-base"))
-//    implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 
 val autoDetectPluginRegex = Regex("""^(?:public\s+)?class\s+(\w+)BuildLogicPlugin\s*:.*$""", RegexOption.MULTILINE)
