@@ -167,4 +167,4 @@ fun Project.setupBuildLogicBase(block: Project.() -> Unit) {
     }
 }
 
-val libs get() = buildLogicBaseDeps.libs
+val rootLibs get() = buildLogicBaseDeps.libs

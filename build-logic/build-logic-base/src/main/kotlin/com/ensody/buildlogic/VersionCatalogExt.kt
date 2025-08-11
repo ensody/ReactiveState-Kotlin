@@ -9,7 +9,7 @@ fun Project.setupVersionCatalog() {
     gradle.taskGraph.whenReady {
         configure<CatalogPluginExtension> {
             versionCatalog {
-                version("kotlin", libs.findVersion("kotlin").get().toString())
+                version("kotlin", rootLibs.findVersion("kotlin").get().toString())
                 val versionAlias = version(rootProject.name.lowercase(), project.version.toString())
                 for (subproject in rootProject.subprojects) {
                     if (!subproject.plugins.hasPlugin("maven-publish") ||

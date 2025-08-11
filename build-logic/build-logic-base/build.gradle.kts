@@ -4,15 +4,15 @@ plugins {
 }
 
 dependencies {
-    api(libs.gradle.android)
-    api(libs.gradle.kotlin)
-    api(libs.gradle.cocoapods)
-    api(libs.gradle.detekt)
-    api(libs.gradle.dokka)
-    api(libs.gradle.kotlin.compose)
-    api(libs.gradle.jetbrains.compose)
-    api(libs.gradle.kotlin.jvm)
-    api(libs.gradle.maven.publish)
+    api(rootLibs.gradle.android)
+    api(rootLibs.gradle.kotlin)
+    api(rootLibs.gradle.cocoapods)
+    api(rootLibs.gradle.detekt)
+    api(rootLibs.gradle.dokka)
+    api(rootLibs.gradle.kotlin.compose)
+    api(rootLibs.gradle.jetbrains.compose)
+    api(rootLibs.gradle.kotlin.jvm)
+    api(rootLibs.gradle.maven.publish)
 }
 
 val autoDetectPluginRegex = Regex("""^(?:public\s+)?class\s+(\w+)BuildLogicPlugin\s*:.*$""", RegexOption.MULTILINE)

@@ -146,7 +146,7 @@ fun KotlinMultiplatformExtension.allAndroidNative() {
     androidNativeX86()
 }
 
-fun KotlinMultiplatformExtension.allAppleMobile(x64: Boolean = true, onlyComposeSupport: Boolean) {
+fun KotlinMultiplatformExtension.allAppleMobile(x64: Boolean = true, onlyComposeSupport: Boolean = false) {
     allIos(x64 = x64)
     allTvos()
     allWatchos(onlyComposeSupport = onlyComposeSupport)

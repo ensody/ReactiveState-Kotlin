@@ -1,5 +1,3 @@
-import kotlin.collections.contains
-
 pluginManagement {
     includeBuild("build-logic")
 
@@ -21,7 +19,7 @@ fun autoDetectModules(root: File) {
         if (file.name.startsWith(".") || file.name in ignorePaths) {
             continue
         }
-        if (file.isDirectory()) {
+        if (file.isDirectory) {
             val children = file.list()
             if ("settings.gradle.kts" in children) continue
             if (children.any { it == "build.gradle.kts" }) {

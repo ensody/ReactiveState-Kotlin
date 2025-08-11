@@ -48,7 +48,7 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
             setupPlatformProject()
         }
         if (extensions.findByType<BaseExtension>() != null) {
-            setupAndroid(coreLibraryDesugaring = libs.findLibrary("desugarJdkLibs").get())
+            setupAndroid(coreLibraryDesugaring = rootLibs.findLibrary("desugarJdkLibs").get())
         }
         if (extensions.findByType<KotlinMultiplatformExtension>() != null) {
             setupKmp {
@@ -61,8 +61,8 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                 }
 
                 sourceSets["jvmCommonTest"].dependencies {
-                    implementation(libs.findLibrary("kotlin-test-junit").get())
-                    implementation(libs.findLibrary("junit").get())
+                    implementation(rootLibs.findLibrary("kotlin-test-junit").get())
+                    implementation(rootLibs.findLibrary("junit").get())
                 }
             }
             // testDebugUnitTest throws an error if there are no tests
@@ -86,7 +86,7 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
             }
         }
         if (extensions.findByType<KotlinBaseExtension>() != null) {
-            setupKtLint(libs.findLibrary("ktlint-cli").get())
+            setupKtLint(rootLibs.findLibrary("ktlint-cli").get())
         }
         if (extensions.findByType<KotlinJvmExtension>() != null) {
             setupKotlinJvm()

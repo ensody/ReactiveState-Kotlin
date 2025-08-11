@@ -10,13 +10,21 @@ import java.io.File
 
 val Project.isRootProject get() = this == rootProject
 
-fun shell(
-    command: String,
+fun cli(
+    vararg command: String,
     workingDir: File? = null,
     env: Map<String, String> = emptyMap(),
     inheritIO: Boolean = false,
 ): String {
-    val processBuilder = ProcessBuilder("/bin/bash", "-c", command)
+    var cmd = command.first().replace("/", File.separator)
+    if (OS.current == OS.Windows) {
+        if (File("$cmd.bat").exists()) {
+            cmd += ".bat"
+        } else if (File("$cmd.exe").exists()) {
+            cmd += ".exe"
+        }
+    }
+    val processBuilder = ProcessBuilder(cmd, *command.drop(1).toTypedArray())
     workingDir?.let { processBuilder.directory(it) }
     processBuilder.redirectErrorStream(true)
     processBuilder.environment().putAll(env)
@@ -26,9 +34,17 @@ fun shell(
         if (inheritIO) {
             println(it)
         }
-        check(exitCode == 0) { "Process exit code was: $exitCode\nOriginal command: $command" }
+        check(exitCode == 0) { "Process exit code was: $exitCode\nOriginal command: ${command.toList()}\nResult:$it" }
     }
 }
+
+fun shell(
+    command: String,
+    workingDir: File? = null,
+    env: Map<String, String> = emptyMap(),
+    inheritIO: Boolean = false,
+): String =
+    cli("/bin/bash", "-c", command, workingDir = workingDir, env = env, inheritIO = inheritIO)
 
 fun Project.withGeneratedBuildFile(category: String, path: String, sourceSet: String? = null, content: () -> String) {
     val generatedDir = file("${getGeneratedBuildFilesRoot()}/$category")
@@ -61,15 +77,34 @@ internal fun Project.getGeneratedBuildFilesRoot(): File =
     file("$projectDir/build/generated/source/build-logic")
 
 internal fun Project.detectProjectVersion(): String =
-    System.getenv("OVERRIDE_VERSION")?.takeIf { it.isNotBlank() }
-        ?: shell("git tag --points-at HEAD").split("\n").filter {
+    System.getenv("OVERRIDE_VERSION")?.removePrefix("v")?.removePrefix("-")?.takeIf { it.isNotBlank() }
+        ?: cli("git", "tag", "--points-at", "HEAD").split("\n").filter {
             versionRegex.matchEntire(it) != null
         }.maxByOrNull {
             VersionComparable(versionRegex.matchEntire(it)!!.destructured.toList())
         }?.removePrefix("v")?.removePrefix("-") ?: run {
-            val branchName = shell("git rev-parse --abbrev-ref HEAD")
+            val branchName = cli("git", "rev-parse", "--abbrev-ref", "HEAD")
             "999999.0.0-${sanitizeBranchName(branchName)}.1"
         }
+
+enum class OS {
+    Linux,
+    macOS,
+    Windows,
+    ;
+
+    companion object Companion {
+        val current: OS by lazy {
+            val osName = System.getProperty("os.name").lowercase()
+            when {
+                "mac" in osName || "darwin" in osName -> macOS
+                "linux" in osName -> Linux
+                "windows" in osName -> Windows
+                else -> error("Unknown operating system: $osName")
+            }
+        }
+    }
+}
 
 private class VersionComparable(val parts: List<String>) : Comparable<VersionComparable> {
     override fun compareTo(other: VersionComparable): Int {
