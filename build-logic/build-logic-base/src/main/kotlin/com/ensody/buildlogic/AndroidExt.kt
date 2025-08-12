@@ -36,7 +36,11 @@ fun Project.setupAndroid(
         testOptions {
             // Needed for Robolectric
             unitTests {
-                isIncludeAndroidResources = true
+                // TODO: Remove this workaround for https://issuetracker.google.com/issues/411739086 once fixed in AGP
+                isIncludeAndroidResources = listOf("androidUnitTest", "test").any { name ->
+                    val sourceSet = file("src/$name")
+                    sourceSet.exists() && sourceSet.walkTopDown().any { it.extension == "kt" }
+                }
             }
         }
 

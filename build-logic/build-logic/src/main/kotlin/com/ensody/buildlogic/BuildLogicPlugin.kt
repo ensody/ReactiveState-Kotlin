@@ -65,24 +65,18 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                     implementation(rootLibs.findLibrary("junit").get())
                 }
             }
-            // testDebugUnitTest throws an error if there are no tests
-            val hasTests = file("src").listFiles().orEmpty().any { sourceSet ->
-                sourceSet.name.endsWith("Test") && sourceSet.walkTopDown().any { it.extension == "kt" }
-            }
             tasks.register("testAll") {
                 group = "verification"
-                if (hasTests) {
-                    dependsOn(
-                        "testDebugUnitTest",
-                        "jvmTest",
-                        "iosSimulatorArm64Test",
-                        "iosX64Test",
-                        "macosArm64Test",
-                        "macosX64Test",
-                        "mingwX64Test",
-                        "linuxX64Test",
-                    )
-                }
+                dependsOn(
+                    "testDebugUnitTest",
+                    "jvmTest",
+                    "iosSimulatorArm64Test",
+                    "iosX64Test",
+                    "macosArm64Test",
+                    "macosX64Test",
+                    "mingwX64Test",
+                    "linuxX64Test",
+                )
             }
         }
         if (extensions.findByType<KotlinBaseExtension>() != null) {

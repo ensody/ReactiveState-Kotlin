@@ -76,22 +76,14 @@ public inline fun <reified T : Any?> onViewModel(
         WrapperViewModel { viewModelScope ->
             // The viewModelScope can't be used directly because we have to destroy and re-create the ViewModel whenever
             // the DI graph gets modified.
-            val mutex = Mutex()
-            var scope: CoroutineScope? = null
+            var scopeRef: CoroutineScope? = null
             viewModelScope.invokeOnCompletion {
-                mutex.withSpinLock {
-                    scope?.cancel()
-                    scope = null
-                }
+                scopeRef?.cancel()
             }
             DI.derived {
-                val vmScope = MainScope()
-                mutex.withSpinLock {
-                    scope?.cancel()
-                    scope = vmScope
-                }
+                scopeRef = scope
                 ReactiveStateContext(
-                    vmScope + ContextualValRoot() + ContextualStateFlowStore.valued { InMemoryStateFlowStore(storage) },
+                    scope + ContextualValRoot() + ContextualStateFlowStore.valued { InMemoryStateFlowStore(storage) },
                     this,
                 ).provider()
             }

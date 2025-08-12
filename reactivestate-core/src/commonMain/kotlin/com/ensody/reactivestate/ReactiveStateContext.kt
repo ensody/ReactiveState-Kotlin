@@ -9,7 +9,7 @@ import kotlin.coroutines.CoroutineContext
  */
 @ExperimentalReactiveStateApi
 public data class ReactiveStateContext(
-    public val scope: CoroutineScope,
+    override val scope: CoroutineScope,
     private val resolver: DIResolver,
 ) : DIResolver by resolver {
     public operator fun plus(element: CoroutineContext.Element): ReactiveStateContext =

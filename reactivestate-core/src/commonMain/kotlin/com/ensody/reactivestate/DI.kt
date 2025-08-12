@@ -1,9 +1,13 @@
 package com.ensody.reactivestate
 
 import com.ensody.reactivestate.derived
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.sync.Mutex
 import kotlin.reflect.KClass
 import com.ensody.reactivestate.derived as realDerived
 
@@ -111,11 +115,23 @@ public class DIImpl {
     public fun <T> derived(factory: DIResolver.() -> T): StateFlow<T> =
         derived(null, factory)
 
-    private fun <T> derived(klass: KClass<*>?, factory: DIResolver.() -> T): StateFlow<T> =
-        realDerived {
-            val resolver = DIResolverImpl(this, this@DIImpl, klass)
+    private fun <T> derived(klass: KClass<*>?, factory: DIResolver.() -> T): StateFlow<T> {
+        val mutex = Mutex()
+        var scope: CoroutineScope? = null
+        var lastResolver: DIResolverImpl? = null
+        return realDerived {
+            val nextScope = MainScope()
+            mutex.withSpinLock {
+                scope?.cancel()
+                scope = nextScope
+            }
+            val resolver = DIResolverImpl(this, nextScope, this@DIImpl, klass).also {
+                lastResolver?.scope?.cancel()
+                lastResolver = it
+            }
             resolver.factory().also { resolver.ready = true }
         }
+    }
 
     // We hide this function as an extension, so nobody can mistakenly get() arbitrary T values not belonging to the DI
     public inline fun <reified T : Any> DIResolver.get(noinline default: (() -> T)? = null): LazyProperty<T> =
@@ -171,6 +187,8 @@ public object InternalDI
 public interface DIResolver : Resolver {
     public val DI: DIImpl
 
+    public val scope: CoroutineScope
+
     @InternalReactiveStateApi
     public val InternalDI.owner: KClass<*>?
 
@@ -184,6 +202,7 @@ public fun <T> DIResolver.get(lazyProperty: LazyProperty<T>): T =
 
 private class DIResolverImpl(
     delegate: Resolver,
+    override val scope: CoroutineScope,
     override val DI: DIImpl,
     private val klass: KClass<*>?,
     var ready: Boolean = false,

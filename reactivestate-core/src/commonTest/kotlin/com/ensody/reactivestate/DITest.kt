@@ -1,20 +1,25 @@
 package com.ensody.reactivestate
 
+import com.ensody.reactivestate.test.CoroutineTest
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runCurrent
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-internal class DITest {
+internal class DITest : CoroutineTest() {
     val someConfigFlag = MutableStateFlow(true)
     val testDI = DIImpl()
+    var destroyedBar = 0
 
     init {
         testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
-        testDI.register { BarDeps(fooDeps) }
+        testDI.register { BarDeps(fooDeps, scope.apply { invokeOnCompletion { destroyedBar += 1 } }) }
     }
 
     private val defaultFlow = testDI.derived { get(defaultDeps) }
@@ -30,6 +35,7 @@ internal class DITest {
         assertSame(default, foo.defaultDeps)
         assertSame(foo, testDI.derived { get(fooDeps) }.value)
         assertSame(bar, testDI.derived { get(barDeps) }.value)
+        assertEquals(0, destroyedBar)
     }
 
     @Test
@@ -47,7 +53,7 @@ internal class DITest {
     }
 
     @Test
-    fun updateDIGraphOnRegister() {
+    fun updateDIGraphOnRegister() = runTest {
         // Replacing FooDeps invalidates the whole subgraph depending on FooDeps. So, BarDeps gets re-created.
         testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
         assertNotSame(foo, testDI.derived { get(fooDeps) }.value)
@@ -55,15 +61,25 @@ internal class DITest {
         val newBar = testDI.derived { get(barDeps) }.value
         assertNotSame(bar, newBar)
         assertTrue(foo.circularConfigFlag)
+        runCurrent()
+        assertEquals(1, destroyedBar)
 
         // Any flow also auto-updates
         assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
         assertSame(newBar, testDI.derived { get(barDeps) }.value)
         assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+
+        runCurrent()
+        assertEquals(1, destroyedBar)
+
+        testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
+        assertNotSame(newBar, testDI.derived { get(barDeps) }.value)
+        runCurrent()
+        assertEquals(2, destroyedBar)
     }
 
     @Test
-    fun updateDIGraphOnStateFlowChange() {
+    fun updateDIGraphOnStateFlowChange() = runTest {
         // Changing the StateFlow that FooDeps depends on also invalidates FooDeps and BarDeps
         someConfigFlag.value = false
         assertNotSame(foo, testDI.derived { get(fooDeps) }.value)
@@ -74,6 +90,15 @@ internal class DITest {
         assertFalse(fooFlow.value.circularConfigFlag)
         assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
         assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+        runCurrent()
+        assertEquals(1, destroyedBar)
+
+        someConfigFlag.value = true
+        assertNotSame(bar, testDI.derived { get(barDeps) }.value)
+        assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
+        assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+        runCurrent()
+        assertEquals(2, destroyedBar)
     }
 }
 
@@ -120,7 +145,7 @@ private class MyUseCase(val circularConfigFlag: Boolean)
 private val DIResolver.barDeps: LazyProperty<BarDeps> get() = DI.run { get() }
 
 // Circular dependency to Foo, so we have
-private class BarDeps(lazyFooDeps: LazyProperty<FooDeps>) {
+private class BarDeps(lazyFooDeps: LazyProperty<FooDeps>, val scope: CoroutineScope) {
     val fooDeps: FooDeps by lazyFooDeps
 
     val configFlag: Boolean by lazy { fooDeps.configFlag }
