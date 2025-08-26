@@ -38,7 +38,7 @@ kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.7.1" }
 mockk = { module = "io.mockk:mockk", version = "1.14.5" }
-robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.16" }
 
 gradle-android = { module = "com.android.tools.build:gradle", version = "8.12.0" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
