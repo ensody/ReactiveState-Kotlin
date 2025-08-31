@@ -1,28 +1,28 @@
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.2.10"
 coroutines = "1.10.2"
-androidxCore = "1.16.0"
-androidxFragment = "1.8.6"
-androidxLifecycle = "2.8.7"
-androidxTestCore = "1.6.1"
-androidxCompose = "2.9.1"
+androidxCore = "1.17.0"
+androidxFragment = "1.8.9"
+androidxLifecycle = "2.9.3"
+androidxTestCore = "1.7.0"
+androidxCompose = "2.9.3"
 
 [libraries]
 coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutines" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-compose-bom = { module = "androidx.compose:compose-bom", version = "2025.04.01" }
+compose-bom = { module = "androidx.compose:compose-bom", version = "2025.07.00" }
 
 androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
-androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.0" }
+androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
 androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.10.1" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidxFragment" }
 androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragment" }
 androidx-arch-testing = { module = "androidx.arch.core:core-testing", version = "2.2.0" }
 androidx-test-core = { module = "androidx.test:core-ktx", version.ref = "androidxTestCore" }
-androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version = "1.2.1" }
+androidx-test-junit = { module = "androidx.test.ext:junit-ktx", version = "1.3.0" }
 
 androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "androidxLifecycle" }
 androidx-lifecycle-livedata = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "androidxLifecycle" }
@@ -38,12 +38,12 @@ kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.7.1" }
 mockk = { module = "io.mockk:mockk", version = "1.14.5" }
-robolectric = { module = "org.robolectric:robolectric", version = "4.15.1" }
+robolectric = { module = "org.robolectric:robolectric", version = "4.16" }
 
-gradle-android = { module = "com.android.tools.build:gradle", version = "8.12.0" }
+gradle-android = { module = "com.android.tools.build:gradle", version = "8.12.2" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-cocoapods = { module = "org.jetbrains.kotlin.native.cocoapods:org.jetbrains.kotlin.native.cocoapods.gradle.plugin", version.ref = "kotlin" }
-gradle-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.0.0" }
+gradle-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.1.0-Beta" }
 gradle-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version = "1.23.8" }
 gradle-kotlin-compose = { module = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
 gradle-jetbrains-compose = { module = "org.jetbrains.compose:org.jetbrains.compose.gradle.plugin", version = "1.8.2" }

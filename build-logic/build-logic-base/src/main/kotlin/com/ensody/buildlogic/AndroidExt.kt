@@ -15,7 +15,7 @@ fun Project.setupAndroid(
     configure<TestedExtension> {
         namespace = getDefaultPackageName()
         testNamespace = "$namespace.unittests"
-        val sdk = 35
+        val sdk = 36
         compileSdkVersion(sdk)
         defaultConfig {
             minSdk = 21

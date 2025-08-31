@@ -1,6 +1,6 @@
 # Module reactivestate-android
 
-APIs mostly useful for classic Android Fragment/Activity.
+APIs mostly useful for legacy Android Fragment/Activity. You should prefer the APIs in reactivestate-core and reactivestate-compose instead.
 
 ## Event handling
 
@@ -256,9 +256,9 @@ These are the building blocks for your own lifecycle-aware components which can 
 Finally, with `validUntil()` you can define properties that only exist during a certain lifecycle subset and are dereference their value outside of that lifecycle subset.
 This can get rid of the ugly [boilerplate](https://developer.android.com/topic/libraries/view-binding#fragments) when working with view bindings, for example.
 
-## Multiplatform ViewModel example
+## ViewModel example
 
-This library allows creating multiplatform ViewModels (inherited from `BaseReactiveState`) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
+This library allows creating ViewModels (inherited from `BaseReactiveState` - not to be confused with the new `ReactiveViewModel` API) and also provides a `by reactiveState` helper for attaching it to Android's `Activity` or `Fragment` with proper lifecycle handling.
 
 ```kotlin
 // This is a multiplatform "ViewModel". It doesn't inherit from Android's ViewModel
