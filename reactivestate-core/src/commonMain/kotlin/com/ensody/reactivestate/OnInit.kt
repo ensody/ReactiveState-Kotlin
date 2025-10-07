@@ -37,13 +37,24 @@ public interface OnInit {
 
     public fun observe(block: OnInitContext.() -> Unit)
     public fun unobserve(block: OnInitContext.() -> Unit)
+
+    /** Starts any not yet finished observers. This can also be used for retry if some observer fails. */
     public fun trigger()
+
+    /** Marks all completed observers as not-yet-complete, so [trigger] will run them again. */
+    public fun setInitializingState()
 
     public sealed interface State {
         public data object Initializing : State
         public data class Error(val errors: List<Throwable>) : State
         public data object Finished : State
     }
+}
+
+/** Triggers all observers, even completed ones, from scratch. */
+public fun OnInit.retrigger() {
+    setInitializingState()
+    trigger()
 }
 
 /**
@@ -68,8 +79,8 @@ public interface OnInitContext {
      *
      * @param context additional to [CoroutineScope.coroutineContext] context of the coroutine.
      * @param start coroutine start option. The default value is [CoroutineStart.DEFAULT].
-     * @param withLoading Tracks loading state for the (re-)computation. Defaults to [ContextualLoading].
-     *                    This should be `null` for long-running / never-terminating coroutines (e.g. `flow.collect`).
+     * @param withLoading Tracks loading state for the (re-)computation.
+     *                    Defaults to `null` since the OnInit already has the loading state.
      * @param onError Optional custom error handler.
      * @param block the coroutine code which will be invoked in the context of the provided scope.
      */
@@ -77,7 +88,7 @@ public interface OnInitContext {
         context: CoroutineContext = EmptyCoroutineContext,
         longRunning: Boolean = false,
         start: CoroutineStart = CoroutineStart.DEFAULT,
-        withLoading: MutableStateFlow<Int>? = if (longRunning) null else oneShot.loading,
+        withLoading: MutableStateFlow<Int>? = null,
         onError: (suspend (Throwable) -> Unit)? = null,
         block: suspend CoroutineScope.() -> Unit,
     ): Job =
@@ -97,17 +108,18 @@ public fun OnInit(source: CoroutineLauncher): OnInit =
 
 private class OnInitImpl(private val source: CoroutineLauncher) : OnInit {
     private val observers: MutableStateFlow<List<OnInitContext.() -> Unit>> = MutableStateFlow(emptyList())
+    private val finishedObservers: MutableStateFlow<List<OnInitContext.() -> Unit>> = MutableStateFlow(emptyList())
     private val mutex = Mutex()
 
     override val state: MutableStateFlow<OnInit.State> = MutableStateFlow(OnInit.State.Initializing)
 
     override fun observe(block: OnInitContext.() -> Unit) {
         observers.replace { plus(block) }
-        trigger()
     }
 
     override fun unobserve(block: OnInitContext.() -> Unit) {
         observers.replace { minus(block) }
+        finishedObservers.replace { minus(block) }
     }
 
     override fun trigger() {
@@ -121,7 +133,8 @@ private class OnInitImpl(private val source: CoroutineLauncher) : OnInit {
                                 val context = OnInitContextImpl(source, it)
                                 context.process()
                                 if (context.errors.value.isEmpty()) {
-                                    unobserve(context.observer)
+                                    observers.replace { minus(context.observer) }
+                                    finishedObservers.replace { plus(context.observer) }
                                 } else {
                                     state.update {
                                         val errors = (it as? OnInit.State.Error)?.errors.orEmpty()
@@ -137,6 +150,11 @@ private class OnInitImpl(private val source: CoroutineLauncher) : OnInit {
                 }
             }
         }
+    }
+
+    override fun setInitializingState() {
+        observers.replace { plus(observers.replaceAndGet { emptyList() }) }
+        state.value = OnInit.State.Initializing
     }
 }
 

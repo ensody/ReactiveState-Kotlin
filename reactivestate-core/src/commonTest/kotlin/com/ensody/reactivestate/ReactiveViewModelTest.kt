@@ -19,7 +19,7 @@ internal class ReactiveViewModelTest : CoroutineTest(ContextualValRoot()) {
         viewModel.onInit.trigger()
         runCurrent()
         assertEquals(OnInit.State.Initializing, viewModel.onInit.state.value)
-        assertEquals(1, viewModel.loading.value)
+        assertEquals(0, viewModel.loading.value)
         viewModel.increment()
         viewModel.increment()
         runCurrent()
@@ -28,7 +28,7 @@ internal class ReactiveViewModelTest : CoroutineTest(ContextualValRoot()) {
         assertEquals(2, viewModel.countAutoRun.value)
         assertEquals(2, viewModel.countCoAutoRun.value)
 
-        assertEquals(1, viewModel.loading.value)
+        assertEquals(0, viewModel.loading.value)
         advanceTimeBy(1000)
         assertEquals(0, viewModel.loading.value)
         assertEquals(OnInit.State.Finished, viewModel.onInit.state.value)
