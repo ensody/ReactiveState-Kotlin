@@ -45,7 +45,6 @@ public fun <T> MutableStateFlow<T>.collectAsMutableStateWithLifecycle(
  * The value is set automatically for you after [setter] has been called. For more control use [withSetter].
  * This can be used to wrap a [State]/[MutableState] with extra update logic.
  */
-@Composable
 public fun <T> MutableState<T>.beforeUpdate(setter: MutableState<T>.(T) -> Unit): MutableState<T> =
     withSetter {
         setter(it)
@@ -58,7 +57,6 @@ public fun <T> MutableState<T>.beforeUpdate(setter: MutableState<T>.(T) -> Unit)
  * The value is set automatically for you before [setter] has been called. For more control use [withSetter].
  * This can be used to wrap a [State]/[MutableState] with extra update logic.
  */
-@Composable
 public fun <T> MutableState<T>.afterUpdate(setter: MutableState<T>.(T) -> Unit): MutableState<T> =
     withSetter {
         value = it
@@ -74,14 +72,12 @@ public fun <T> MutableState<T>.afterUpdate(setter: MutableState<T>.(T) -> Unit):
  * This can be used to wrap a [MutableState] with extra update logic.
  * For simpler use cases you might prefer [beforeUpdate]/[afterUpdate] instead.
  */
-@Composable
 public fun <T> MutableState<T>.withSetter(setter: MutableState<T>.(T) -> Unit): MutableState<T> =
     MutableStateInterceptor(state = this, setter = setter)
 
 /**
  * Converts this [State] to a [MutableState] that calls [setter] for doing the actual value update.
  */
-@Composable
 public fun <T> State<T>.toMutable(setter: State<T>.(T) -> Unit): MutableState<T> =
     StateInterceptor(state = this, setter = setter)
 
