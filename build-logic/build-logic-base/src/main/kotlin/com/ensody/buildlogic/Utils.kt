@@ -82,7 +82,8 @@ internal fun Project.detectProjectVersion(): String =
             versionRegex.matchEntire(it) != null
         }.maxByOrNull {
             VersionComparable(versionRegex.matchEntire(it)!!.destructured.toList())
-        }?.removePrefix("v")?.removePrefix("-") ?: run {
+        }?.removePrefix("v")?.removePrefix("-")?.takeIf { System.getenv("RUNNING_ON_CI") == "true" }
+        ?: run {
             val branchName = cli("git", "rev-parse", "--abbrev-ref", "HEAD")
             "999999.0.0-${sanitizeBranchName(branchName)}.1"
         }

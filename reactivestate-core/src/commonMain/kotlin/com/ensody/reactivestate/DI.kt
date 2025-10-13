@@ -134,13 +134,15 @@ public class DIImpl {
     }
 
     // We hide this function as an extension, so nobody can mistakenly get() arbitrary T values not belonging to the DI
-    public inline fun <reified T : Any> DIResolver.get(noinline default: (() -> T)? = null): LazyProperty<T> =
+    public inline fun <reified T : Any> DIResolver.get(
+        noinline default: (DIResolver.() -> T)? = null,
+    ): LazyProperty<T> =
         InternalDI.run { get(this@get, T::class, default) }
 
     public fun <T : Any> InternalDI.get(
         resolver: DIResolver,
         klass: KClass<T>,
-        default: (() -> T)? = null,
+        default: (DIResolver.() -> T)? = null,
     ): LazyProperty<T> {
         if (default != null && klass !in deps) {
             register(klass) { default() }
