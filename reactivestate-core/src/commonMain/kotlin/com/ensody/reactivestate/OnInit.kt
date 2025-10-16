@@ -182,6 +182,10 @@ private class OnInitContextImpl(
                 }
             }
         }
+
+        override fun onError(error: Throwable) {
+            source.onError(error)
+        }
     }
 
     suspend fun process() {
