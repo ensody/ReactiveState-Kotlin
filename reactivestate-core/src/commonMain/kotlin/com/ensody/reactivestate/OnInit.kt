@@ -184,7 +184,7 @@ private class OnInitContextImpl(
         }
 
         override fun onError(error: Throwable) {
-            source.onError(error)
+            errors.replace { plus(error) }
         }
     }
 
