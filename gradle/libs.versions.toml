@@ -48,4 +48,4 @@ gradle-detekt = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", v
 gradle-kotlin-compose = { module = "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin", version.ref = "kotlin" }
 gradle-jetbrains-compose = { module = "org.jetbrains.compose:org.jetbrains.compose.gradle.plugin", version = "1.9.0" }
 gradle-kotlin-jvm = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin", version.ref = "kotlin" }
-gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.34.0" }
+gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.35.0" }
