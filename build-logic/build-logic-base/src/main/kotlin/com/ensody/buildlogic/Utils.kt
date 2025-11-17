@@ -85,7 +85,7 @@ internal fun Project.detectProjectVersion(): String =
         }?.removePrefix("v")?.removePrefix("-")?.takeIf { System.getenv("RUNNING_ON_CI") == "true" }
         ?: run {
             val branchName = cli("git", "rev-parse", "--abbrev-ref", "HEAD")
-            "999999.0.0-${sanitizeBranchName(branchName)}.1"
+            "0.0.-${sanitizeBranchName(branchName)}.1"
         }
 
 enum class OS {
@@ -120,5 +120,5 @@ private class VersionComparable(val parts: List<String>) : Comparable<VersionCom
 private fun sanitizeBranchName(name: String): String =
     sanitizeRegex.replace(name, "-")
 
-private val versionRegex = Regex("""v-?(\d+)\.(\d+)\.(\d+)((-.+?\.)(\d+))*""")
+private val versionRegex = Regex("""v-?(\d+)\.(\d+)\.(\d+)(((?:-.+?)?\.)(\d+))*""")
 private val sanitizeRegex = Regex("""[^A-Za-z0-9\-]""")

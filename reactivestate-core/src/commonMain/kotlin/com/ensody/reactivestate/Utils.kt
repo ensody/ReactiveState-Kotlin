@@ -30,3 +30,19 @@ public data class Wrapped<T>(public val value: T) : JvmSerializable, ReadOnlyPro
     override fun toString(): String =
         "Wrapped($value)"
 }
+
+/** Returns the result of [block] if [value] is true, else null. Similar to [takeIf], but flipped arguments. */
+public inline fun <T> ifTake(value: Boolean, block: () -> T): T? =
+    if (value) block() else null
+
+/** Returns the result of [block] if [value] is false, else null. Similar to [takeUnless], but flipped arguments. */
+public inline fun <T> unlessTake(value: Boolean, block: () -> T): T? =
+    if (!value) block() else null
+
+/** Returns the result of [block] if [value] is true, else null. Similar to [run], but executes conditionally. */
+public inline fun <T, R> T.runIf(value: Boolean, block: T.() -> R): R? =
+    if (value) block() else null
+
+/** Executes [block] if [value] is true, else just returns `this`. Similar to [apply], but executes conditionally. */
+public inline fun <T> T.applyIf(value: Boolean, block: T.() -> Unit): T =
+    if (value) apply(block) else this
