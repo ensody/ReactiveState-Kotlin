@@ -18,3 +18,6 @@ kotlin-js-store
 *.xcodeproj
 *.xcworkspace
 Pods
+
+.zig-cache
+zig-out

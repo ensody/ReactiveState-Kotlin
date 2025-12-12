@@ -31,7 +31,7 @@ fun Project.setupKotlinJvm(
         compilerOptions {
             allWarningsAsErrors.set(true)
             optIn.addAll(commonKotlinOptIns)
-            freeCompilerArgs.add("-Xexpect-actual-classes")
+            freeCompilerArgs.addAll(commonKotlinCompilerArgs)
         }
         block()
     }

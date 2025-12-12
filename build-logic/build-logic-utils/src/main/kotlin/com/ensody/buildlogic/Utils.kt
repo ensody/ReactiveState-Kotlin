@@ -87,14 +87,13 @@ fun Project.getGeneratedBuildFilesRoot(): File =
 
 fun Project.detectProjectVersion(): String =
     System.getenv("OVERRIDE_VERSION")?.removePrefix("v")?.removePrefix("-")?.takeIf { it.isNotBlank() }
-        ?: cli("git", "tag", "--points-at", "HEAD").split("\n").filter {
+        ?: runCatching { cli("git", "tag", "--points-at", "HEAD") }.getOrNull()?.split("\n")?.filter {
             versionRegex.matchEntire(it) != null
-        }.maxByOrNull {
+        }?.maxByOrNull {
             VersionComparable(versionRegex.matchEntire(it)!!.destructured.toList())
         }?.removePrefix("v")?.removePrefix("-")?.takeIf { System.getenv("RUNNING_ON_CI") == "true" }
         ?: run {
-            val branchName = cli("git", "rev-parse", "--abbrev-ref", "HEAD")
-            "0.0.1-${sanitizeBranchName(branchName)}.1"
+            "0.0.1-local.1"
         }
 
 enum class OS {

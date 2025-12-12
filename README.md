@@ -72,34 +72,34 @@ See the [ReactiveState documentation](https://ensody.github.io/ReactiveState-Kot
 
 ## Installation
 
-Add the package to your `build.gradle`'s `dependencies {}`:
+Add the package to your `build.gradle.kts`'s `dependencies {}`:
 
-```groovy
+```kotlin
 dependencies {
     // Add the BOM using the desired ReactiveState version
-    api platform("com.ensody.reactivestate:reactivestate-bom:VERSION")
+    api(platform("com.ensody.reactivestate:reactivestate-bom:VERSION"))
     // Leave out the version number from now on.
 
     // Jetpack Compose integration
-    implementation "com.ensody.reactivestate:reactivestate-compose"
+    api("com.ensody.reactivestate:reactivestate-compose")
 
     // Android-only integration for Activity/Fragment
-    implementation "com.ensody.reactivestate:reactivestate-android"
+    api("com.ensody.reactivestate:reactivestate-android")
 
     // UI-independent core APIs
-    implementation "com.ensody.reactivestate:reactivestate-core"
+    api("com.ensody.reactivestate:reactivestate-core")
 
     // Utils for unit tests that want to use coroutines
-    implementation "com.ensody.reactivestate:reactivestate-core-test"
+    api("com.ensody.reactivestate:reactivestate-core-test")
 
     // Android-only unit test extensions
-    implementation "com.ensody.reactivestate:reactivestate-android-test"
+    api("com.ensody.reactivestate:reactivestate-android-test")
 }
 ```
 
-Also, make sure you've integrated the Maven Central repo, e.g. in your root `build.gradle`:
+Also, make sure you've integrated the Maven Central repo, e.g. in your root `build.gradle.kts`:
 
-```groovy
+```kotlin
 subprojects {
     repositories {
         // ...

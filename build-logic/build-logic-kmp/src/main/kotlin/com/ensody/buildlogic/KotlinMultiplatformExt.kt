@@ -48,17 +48,29 @@ fun Project.setupKmp(
         compilerOptions {
             allWarningsAsErrors.set(true)
             optIn.addAll(commonKotlinOptIns)
-            freeCompilerArgs.add("-Xexpect-actual-classes")
+            freeCompilerArgs.addAll(commonKotlinCompilerArgs)
         }
         applyKmpHierarchy()
         block()
     }
 }
 
+val commonKotlinCompilerArgs = listOf(
+    "-Xexpect-actual-classes",
+    "-Xannotation-default-target=param-property",
+)
+
 val commonKotlinOptIns = listOf(
     "kotlin.RequiresOptIn",
-    "kotlin.io.encoding.ExperimentalEncodingApi",
+    "kotlin.ExperimentalStdlibApi",
+    "kotlin.ExperimentalUnsignedTypes",
+    "kotlin.concurrent.atomics.ExperimentalAtomicApi",
     "kotlin.contracts.ExperimentalContracts",
+    "kotlin.experimental.ExperimentalObjCRefinement",
+    "kotlin.experimental.ExperimentalObjCName",
+    "kotlin.io.encoding.ExperimentalEncodingApi",
+    "kotlin.time.ExperimentalTime",
+    "kotlin.uuid.ExperimentalUuidApi",
 )
 
 fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder.Root.() -> Unit = {}) {
@@ -111,6 +123,14 @@ fun KotlinMultiplatformExtension.addAllTargets(
     onlyComposeSupport: Boolean = false,
     iosX64: Boolean = true,
 ) {
+    addAllNonJsTargets(onlyComposeSupport = onlyComposeSupport, iosX64 = iosX64)
+    allJs()
+}
+
+fun KotlinMultiplatformExtension.addAllNonJsTargets(
+    onlyComposeSupport: Boolean = false,
+    iosX64: Boolean = true,
+) {
     androidTarget {
         publishLibraryVariants("release")
     }
@@ -118,7 +138,6 @@ fun KotlinMultiplatformExtension.addAllTargets(
         allAndroidNative()
     }
     jvm()
-    allJs()
     allAppleMobile(x64 = iosX64, onlyComposeSupport = onlyComposeSupport)
     allDesktop()
 }
