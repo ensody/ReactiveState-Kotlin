@@ -30,5 +30,4 @@ fun autoDetectModules(root: File) {
         }
     }
 }
-
 autoDetectModules(rootDir)

@@ -13,6 +13,7 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.repositories
+import org.gradle.plugin.devel.GradlePluginDevelopmentExtension
 import org.jetbrains.dokka.gradle.DokkaExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinBaseExtension
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
@@ -93,6 +94,9 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
         }
         if (extensions.findByType<CatalogPluginExtension>() != null) {
             setupVersionCatalog()
+        }
+        if (extensions.findByType<GradlePluginDevelopmentExtension>() != null) {
+            setupGradlePlugin(rootLibs.findVersion("kotlinForGradlePlugins").get().toString())
         }
         extensions.findByType<MavenPublishBaseExtension>()?.apply {
             configureBasedOnAppliedPlugins(sourcesJar = true, javadocJar = System.getenv("RUNNING_ON_CI") == "true")

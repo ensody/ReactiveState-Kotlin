@@ -14,7 +14,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "build-logic-root"
+rootProject.name += "-root"
 
 val ignorePaths = setOf("build", "docs", "gradle", "src")
 fun autoDetectModules(root: File) {
@@ -33,5 +33,4 @@ fun autoDetectModules(root: File) {
         }
     }
 }
-
 autoDetectModules(rootDir)
