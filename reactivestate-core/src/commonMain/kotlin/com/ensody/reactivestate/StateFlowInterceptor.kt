@@ -12,8 +12,11 @@ import kotlinx.coroutines.sync.Mutex
  * The value is set automatically for you after [setter] has been called. For more control use [withSetter].
  * This can be used to wrap a [StateFlow]/[MutableStateFlow] with extra update logic.
  */
-public fun <T> MutableStateFlow<T>.beforeUpdate(setter: (T) -> Unit): MutableStateFlow<T> =
-    withSetter {
+public fun <T> MutableStateFlow<T>.beforeUpdate(
+    ignoreEqual: Boolean = true,
+    setter: (T) -> Unit,
+): MutableStateFlow<T> =
+    withSetter(ignoreEqual = ignoreEqual) {
         setter(it)
         value = it
     }
@@ -24,8 +27,11 @@ public fun <T> MutableStateFlow<T>.beforeUpdate(setter: (T) -> Unit): MutableSta
  * The value is set automatically for you before [setter] has been called. For more control use [withSetter].
  * This can be used to wrap a [StateFlow]/[MutableStateFlow] with extra update logic.
  */
-public fun <T> MutableStateFlow<T>.afterUpdate(setter: (T) -> Unit): MutableStateFlow<T> =
-    withSetter {
+public fun <T> MutableStateFlow<T>.afterUpdate(
+    ignoreEqual: Boolean = true,
+    setter: (T) -> Unit,
+): MutableStateFlow<T> =
+    withSetter(ignoreEqual = ignoreEqual) {
         value = it
         setter(it)
     }
@@ -40,29 +46,37 @@ public fun <T> MutableStateFlow<T>.afterUpdate(setter: (T) -> Unit): MutableStat
  * For simpler use cases you might prefer [beforeUpdate]/[afterUpdate] instead.
  */
 public fun <T> MutableStateFlow<T>.withSetter(
+    ignoreEqual: Boolean = true,
     setter: MutableStateFlow<T>.(T) -> Unit,
 ): MutableStateFlow<T> =
-    MutableStateFlowInterceptor(this, setter)
+    MutableStateFlowInterceptor(this, ignoreEqual, setter)
 
 /**
  * Converts this [StateFlow] to a [MutableStateFlow] that calls [setter] for doing the actual value update.
  */
 public fun <T> StateFlow<T>.toMutable(
+    ignoreEqual: Boolean = true,
     setter: StateFlow<T>.(T) -> Unit,
 ): MutableStateFlow<T> =
-    StateFlowInterceptor(this, setter)
+    StateFlowInterceptor(this, ignoreEqual, setter)
 
 private class MutableStateFlowInterceptor<T>(
     private val delegate: MutableStateFlow<T>,
+    private val ignoreEqual: Boolean = true,
     private val setter: MutableStateFlow<T>.(T) -> Unit,
 ) : MutableStateFlow<T> by delegate {
     override var value: T
         get() = delegate.value
-        set(value) { delegate.setter(value) }
+        set(value) {
+            if (!ignoreEqual || this.value != value) {
+                delegate.setter(value)
+            }
+        }
 }
 
 private class StateFlowInterceptor<T>(
     private val delegate: StateFlow<T>,
+    private val ignoreEqual: Boolean = true,
     private val setter: StateFlow<T>.(T) -> Unit,
 ) : MutableStateFlow<T> {
 
@@ -74,7 +88,11 @@ private class StateFlowInterceptor<T>(
 
     override var value: T
         get() = delegate.value
-        set(value) { delegate.setter(value) }
+        set(value) {
+            if (!ignoreEqual || this.value != value) {
+                delegate.setter(value)
+            }
+        }
 
     override suspend fun collect(collector: FlowCollector<T>): Nothing {
         subscriptionCount.increment()

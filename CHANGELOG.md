@@ -21,6 +21,7 @@
 * Added `MutableStateFlow<T>.collectAsMutableStateWithLifecycle()`.
 * Added `childReactiveState` variant which takes an arbitrary event handler, so the parent ReactiveState doesn't have to implement the whole events interface.
 * Changed `MutableState.beforeUpdate`, `MutableState.afterUpdate` and `MutableState.withSetter` and `State.toMutable` to not be `@Composable`.
+* Added `ignoreEqual` (default true) to `MutableStateFlow.beforeUpdate`, `MutableStateFlow.afterUpdate` and `MutableStateFlow.withSetter` and `StateFlow.toMutable`.
 * Removed direct dependency on JUnit 4, so you can choose more freely which JUnit version to use.
 * Added `ifTake` and `unlessTake` inversions of `takeIf` and `takeUnless`.
 * Added `runIf` and `applyIf`.
