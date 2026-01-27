@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import com.ensody.reactivestate.DIImpl
 import com.ensody.reactivestate.DIResolver
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
+import com.ensody.reactivestate.qualifiedNameOrSimpleName
 
 @ExperimentalReactiveStateApi
 @Composable
@@ -15,7 +16,6 @@ public inline fun <reified T> DIImpl.derivedValue(key: Any? = null, crossinline 
 @ExperimentalReactiveStateApi
 @Composable
 public inline fun <reified T> DIImpl.derivedState(key: Any? = null, crossinline block: DIResolver.() -> T): State<T> =
-    // TODO: Use qualifiedName once JS supports it
-    rememberOnViewModel(key = "${T::class.simpleName}|$key") {
+    rememberOnViewModel(key = "${T::class.qualifiedNameOrSimpleName}|$key") {
         this@derivedState.derived { block() }
     }.collectAsState()

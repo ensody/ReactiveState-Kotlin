@@ -1,6 +1,7 @@
 package com.ensody.reactivestate
 
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 
 /** A [lazyProperty] that only receives the [KProperty.name] as its argument. */
@@ -46,3 +47,5 @@ public inline fun <T, R> T.runIf(value: Boolean, block: T.() -> R): R? =
 /** Executes [block] if [value] is true, else just returns `this`. Similar to [apply], but executes conditionally. */
 public inline fun <T> T.applyIf(value: Boolean, block: T.() -> Unit): T =
     if (value) apply(block) else this
+
+public expect val KClass<*>.qualifiedNameOrSimpleName: String?

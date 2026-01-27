@@ -19,13 +19,11 @@ import com.ensody.reactivestate.InMemoryStateFlowStore
 import com.ensody.reactivestate.ReactiveStateContext
 import com.ensody.reactivestate.ReactiveViewModel
 import com.ensody.reactivestate.invokeOnCompletion
-import com.ensody.reactivestate.withSpinLock
+import com.ensody.reactivestate.qualifiedNameOrSimpleName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.sync.Mutex
 
 /**
  * Creates a multiplatform ViewModel. The [provider] should instantiate the object directly.
@@ -69,8 +67,7 @@ public inline fun <reified T : Any?> onViewModel(
     key: String? = null,
     crossinline provider: ReactiveStateContext.() -> T,
 ): State<T> {
-    // TODO: Use qualifiedName once JS supports it
-    val fullKey = "onViewModel:${T::class.simpleName}:$key"
+    val fullKey = "onViewModel:${T::class.qualifiedNameOrSimpleName}:$key"
     val storage = rememberSaveable<MutableMap<String, Any?>> { mutableMapOf() }
     return viewModel(viewModelStoreOwner = viewModelStoreOwner, key = fullKey) {
         WrapperViewModel { viewModelScope ->

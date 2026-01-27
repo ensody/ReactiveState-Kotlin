@@ -6,14 +6,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ensody.reactivestate.ExperimentalReactiveStateApi
 import com.ensody.reactivestate.InternalReactiveStateApi
+import com.ensody.reactivestate.qualifiedNameOrSimpleName
 
 @ExperimentalReactiveStateApi
 @OptIn(InternalReactiveStateApi::class)
 @Composable
 public inline fun <reified T> rememberOnViewModel(key: Any? = null, crossinline block: () -> T): T {
     val realKey = key ?: currentCompositeKeyHashCode
-    // TODO: Use qualifiedName once JS supports it
-    val fullKey = "rememberOnViewModel:${T::class.simpleName}:$realKey"
+    val fullKey = "rememberOnViewModel:${T::class.qualifiedNameOrSimpleName}:$realKey"
     return viewModel(key = fullKey) { RememberViewModel(block()) }.value
 }
 
