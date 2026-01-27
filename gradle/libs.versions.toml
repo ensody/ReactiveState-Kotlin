@@ -5,7 +5,7 @@ androidxCore = "1.17.0"
 androidxFragment = "1.8.9"
 androidxLifecycle = "2.9.4"
 androidxTestCore = "1.7.0"
-androidxCompose = "2.9.4"
+androidxCompose = "2.9.6"
 
 [libraries]
 coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutines" }
