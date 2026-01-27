@@ -16,7 +16,11 @@ dependencyResolutionManagement {
 
 rootProject.name += "-root"
 
-val ignorePaths = setOf("build", "docs", "gradle", "src")
+val ignorePaths = mutableSetOf("build", "docs", "gradle", "src")
+val rootLibs = file("../gradle/libs.versions.toml").readText().replace(Regex("#.*"), "")
+if ("org.jetbrains.kotlin.plugin.compose" !in rootLibs || "org.jetbrains.compose" !in rootLibs) {
+    ignorePaths.add("build-logic-compose")
+}
 fun autoDetectModules(root: File) {
     for (file in root.listFiles()) {
         if (file.name.startsWith(".") || file.name in ignorePaths) {

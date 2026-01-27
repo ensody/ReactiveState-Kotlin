@@ -1,0 +1,34 @@
+# Base config:
+# https://github.com/detekt/detekt/blob/main/detekt-core/src/main/resources/default-detekt-config.yml
+
+complexity:
+  active: false
+
+coroutines:
+  InjectDispatcher:
+    dispatcherNames:
+      - 'Main'
+      - 'IO'
+      - 'Default'
+      - 'Unconfined'
+  RedundantSuspendModifier:
+    active: false
+
+empty-blocks:
+  EmptyFunctionBlock:
+    active: false
+
+exceptions:
+  active: false
+
+naming:
+  active: false
+
+potential-bugs:
+  IgnoredReturnValue:
+    active: false
+  UnreachableCode:
+    active: false
+
+style:
+  active: false

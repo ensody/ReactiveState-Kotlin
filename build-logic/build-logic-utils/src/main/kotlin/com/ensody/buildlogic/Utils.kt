@@ -42,8 +42,14 @@ fun shell(
     workingDir: File? = null,
     env: Map<String, String> = emptyMap(),
     inheritIO: Boolean = false,
-): String =
-    cli("/bin/bash", "-l", "-c", command, workingDir = workingDir, env = env, inheritIO = inheritIO)
+): String {
+    val shellCommand = if (OS.current == OS.Windows) {
+        arrayOf("cmd.exe", "/c")
+    } else {
+        arrayOf("/bin/bash", "-c", "-l")
+    }
+    return cli(*shellCommand, command, workingDir = workingDir, env = env, inheritIO = inheritIO)
+}
 
 fun File.writeTextIfDifferent(text: String) {
     if (!exists() || readText() != text) {
@@ -69,7 +75,7 @@ fun Project.withGeneratedBuildFile(category: String, path: String, sourceSet: St
 
 fun Project.getDefaultPackageName(): String =
     group.toString().split(".").let { prefix ->
-        prefix + name.split("-").dropWhile { it == prefix.last() }
+        prefix + name.split("-").filter { it.isNotBlank() }.dropWhile { it == prefix.last() }
     }.joinToString(".")
 
 val generatedFiles = mutableMapOf<String, MutableSet<File>>()
@@ -102,7 +108,7 @@ enum class OS {
     Windows,
     ;
 
-    companion object Companion {
+    companion object {
         val current: OS by lazy {
             val osName = System.getProperty("os.name").lowercase()
             when {
@@ -110,6 +116,22 @@ enum class OS {
                 "linux" in osName -> Linux
                 "windows" in osName -> Windows
                 else -> error("Unknown operating system: $osName")
+            }
+        }
+    }
+}
+
+enum class CpuArch {
+    aarch64,
+    x64,
+    ;
+
+    companion object {
+        val current: CpuArch by lazy {
+            when (val arch = System.getProperty("os.arch").lowercase()) {
+                "aarch64", "arm64" -> aarch64
+                "amd64", "x86-64" -> x64
+                else -> error("Unknown CPU architecture: $arch")
             }
         }
     }

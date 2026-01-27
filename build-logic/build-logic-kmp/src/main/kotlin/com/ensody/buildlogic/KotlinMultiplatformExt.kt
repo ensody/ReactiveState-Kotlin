@@ -14,6 +14,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
+import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 fun Project.setupKmp(
     javaVersion: JavaVersion = JavaVersion.VERSION_17,
@@ -51,6 +52,13 @@ fun Project.setupKmp(
             freeCompilerArgs.addAll(commonKotlinCompilerArgs)
         }
         applyKmpHierarchy()
+        tasks.withType<KotlinNativeCompile> {
+            compilerOptions {
+                optIn.add("kotlin.experimental.ExperimentalNativeApi")
+                optIn.add("kotlinx.cinterop.BetaInteropApi")
+                optIn.add("kotlinx.cinterop.ExperimentalForeignApi")
+            }
+        }
         block()
     }
 }
@@ -110,7 +118,9 @@ fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder
                 withWasmJs()
             }
             group("nonJs") {
+                group("native")
                 withNative()
+                group("jvmCommon")
                 withJvm()
                 withAndroidTarget()
             }

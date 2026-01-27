@@ -6,7 +6,10 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.VersionCatalog
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.publish.PublishingExtension
+import org.gradle.kotlin.dsl.findByType
 import org.gradle.kotlin.dsl.getByType
+import java.io.File
 
 class BuildLogicBaseDependencies(
     val rootProject: Project,
@@ -35,6 +38,15 @@ fun Project.initBuildLogicBase(block: Project.() -> Unit) {
 fun Project.setupBuildLogicBase(block: Project.() -> Unit) {
     group = (listOf(rootProject.group) + project.path.trimStart(':').split(".").dropLast(1))
         .joinToString(".")
+    extensions.findByType<PublishingExtension>()?.apply {
+        repositories {
+            maven {
+                name = "localMaven"
+                val outputDir = File(rootDir, "build/localmaven")
+                url = outputDir.toURI()
+            }
+        }
+    }
     block()
     afterEvaluate {
         val generatedRoot = getGeneratedBuildFilesRoot()
