@@ -10,6 +10,7 @@
 * Added Composable `DI.derivedState { ... }` and `DI.derivedValue { ... }` which remember the block's result until a dependency changes and re-render the UI when needed.
 * Changed `loading` and all `withLoading` parameters from `MutableValueFlow` to `MutableStateFlow`.
 * Changed `increment()`/`decrement()` and `replace` to work on `MutableStateFlow` instead of `MutableValueFlow`.
+* Changed `derived` to support a `context` parameter within which the `observer` lambda block is executed.
 * Added `MutableStateFlow.replaceAndGet` and `getAndReplace` which are like their similarly named `updateAndGet`/`getAndUpdate` counterparts, but with the value passed as `this`.
 * Changed `StateFlowStore` to return `MutableStateFlow` instead of `MutableValueFlow`.
 * Removed `ValueFlow`, `MutableValueFlow` and `SuspendMutableValueFlow`.

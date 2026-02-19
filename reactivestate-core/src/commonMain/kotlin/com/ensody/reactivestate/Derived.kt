@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Mutex
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getFrozenValues(): List<Any?> =
     values.map { it.revisionedValue }
@@ -18,6 +20,7 @@ private fun Map<Any, FrozenAutoRunnerObservable<*, *>>.getNewValues(): List<Any?
 
 private fun <T> derivedCached(
     synchronous: Boolean,
+    context: CoroutineContext,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> {
     // The values of the observed dependencies. We only track this if nobody is subscribed.
@@ -77,24 +80,26 @@ private fun <T> derivedCached(
 
 private fun <T> derivedOnDemand(
     synchronous: Boolean,
+    context: CoroutineContext,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
     callbackFlow {
         autoRun { trySend(observer()) }
         awaitClose {}
-    }.stateOnDemand(synchronous = synchronous, emitValueOnStart = false) {
+    }.stateOnDemand(context = context, synchronous = synchronous, emitValueOnStart = false) {
         runWithResolver(observer)
     }
 
 internal fun <T> scopelessDerived(
+    context: CoroutineContext = EmptyCoroutineContext,
     synchronous: Boolean = true,
     cache: Boolean = true,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
     if (cache) {
-        derivedCached(synchronous = synchronous, observer = observer)
+        derivedCached(context = context, synchronous = synchronous, observer = observer)
     } else {
-        derivedOnDemand(synchronous = synchronous, observer = observer)
+        derivedOnDemand(context = context, synchronous = synchronous, observer = observer)
     }
 
 /**
@@ -105,8 +110,13 @@ internal fun <T> scopelessDerived(
  * @param synchronous Whether `.value` access synchronously recomputes even if someone collects. Defaults to `true`.
  * @param cache Caching of [StateFlow.value] expensive computations while nobody collects. Defaults to `true`.
  */
-public fun <T> derived(synchronous: Boolean = true, cache: Boolean = true, observer: AutoRunCallback<T>): StateFlow<T> =
-    scopelessDerived(synchronous = synchronous, cache = cache, observer = observer)
+public fun <T> derived(
+    context: CoroutineContext = EmptyCoroutineContext,
+    synchronous: Boolean = true,
+    cache: Boolean = true,
+    observer: AutoRunCallback<T>,
+): StateFlow<T> =
+    scopelessDerived(context = context, synchronous = synchronous, cache = cache, observer = observer)
 
 /**
  * Creates a [StateFlow] that computes its value based on other [StateFlow]s via an [autoRun] block.
@@ -115,11 +125,12 @@ public fun <T> derived(synchronous: Boolean = true, cache: Boolean = true, obser
  * @param cache Caching of [StateFlow.value] expensive computations while nobody collects. Defaults to `true`.
  */
 public fun <T> CoroutineLauncher.derived(
+    context: CoroutineContext = EmptyCoroutineContext,
     synchronous: Boolean = true,
     cache: Boolean = synchronous,
     observer: AutoRunCallback<T>,
 ): StateFlow<T> =
-    scopelessDerived(synchronous = synchronous, cache = cache, observer = observer).also {
+    scopelessDerived(context = context, synchronous = synchronous, cache = cache, observer = observer).also {
         // Keep the value asynchronously updated in the background
         if (!synchronous) launch { it.collect {} }
     }
