@@ -1,5 +1,7 @@
 package com.ensody.reactivestate
 
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
@@ -33,19 +35,39 @@ public data class Wrapped<T>(public val value: T) : JvmSerializable, ReadOnlyPro
 }
 
 /** Returns the result of [block] if [value] is true, else null. Similar to [takeIf], but flipped arguments. */
-public inline fun <T> ifTake(value: Boolean, block: () -> T): T? =
-    if (value) block() else null
+public inline fun <T> ifTake(value: Boolean, block: () -> T): T? {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        value.holdsIn(block)
+    }
+    return if (value) block() else null
+}
 
 /** Returns the result of [block] if [value] is false, else null. Similar to [takeUnless], but flipped arguments. */
-public inline fun <T> unlessTake(value: Boolean, block: () -> T): T? =
-    if (!value) block() else null
+public inline fun <T> unlessTake(value: Boolean, block: () -> T): T? {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        (!value).holdsIn(block)
+    }
+    return if (!value) block() else null
+}
 
 /** Returns the result of [block] if [value] is true, else null. Similar to [run], but executes conditionally. */
-public inline fun <T, R> T.runIf(value: Boolean, block: T.() -> R): R? =
-    if (value) block() else null
+public inline fun <T, R> T.runIf(value: Boolean, block: T.() -> R): R? {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        value.holdsIn(block)
+    }
+    return if (value) block() else null
+}
 
 /** Executes [block] if [value] is true, else just returns `this`. Similar to [apply], but executes conditionally. */
-public inline fun <T> T.applyIf(value: Boolean, block: T.() -> Unit): T =
-    if (value) apply(block) else this
+public inline fun <T> T.applyIf(value: Boolean, block: T.() -> Unit): T {
+    contract {
+        callsInPlace(block, InvocationKind.AT_MOST_ONCE)
+        value.holdsIn(block)
+    }
+    return if (value) apply(block) else this
+}
 
 public expect val KClass<*>.qualifiedNameOrSimpleName: String?

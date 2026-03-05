@@ -74,6 +74,7 @@ val commonKotlinOptIns = listOf(
     "kotlin.ExperimentalUnsignedTypes",
     "kotlin.concurrent.atomics.ExperimentalAtomicApi",
     "kotlin.contracts.ExperimentalContracts",
+    "kotlin.contracts.ExperimentalExtendedContracts",
     "kotlin.experimental.ExperimentalObjCRefinement",
     "kotlin.experimental.ExperimentalObjCName",
     "kotlin.io.encoding.ExperimentalEncodingApi",

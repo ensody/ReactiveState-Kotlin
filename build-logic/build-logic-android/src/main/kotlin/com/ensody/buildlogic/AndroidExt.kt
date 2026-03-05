@@ -18,7 +18,7 @@ fun Project.setupAndroid(
         val sdk = 36
         compileSdkVersion(sdk)
         defaultConfig {
-            minSdk = 21
+            minSdk = 23
             targetSdk = sdk
             versionCode = 1
             versionName = project.version as String

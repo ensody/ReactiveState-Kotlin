@@ -65,11 +65,23 @@ private class MutableStateFlowInterceptor<T>(
     private val ignoreEqual: Boolean = true,
     private val setter: MutableStateFlow<T>.(T) -> Unit,
 ) : MutableStateFlow<T> by delegate {
+    private val mutex = Mutex()
+
     override var value: T
         get() = delegate.value
         set(value) {
             if (!ignoreEqual || this.value != value) {
                 delegate.setter(value)
+            }
+        }
+
+    override fun compareAndSet(expect: T, update: T): Boolean =
+        mutex.withSpinLock {
+            if (value == expect) {
+                value = update
+                true
+            } else {
+                false
             }
         }
 }
