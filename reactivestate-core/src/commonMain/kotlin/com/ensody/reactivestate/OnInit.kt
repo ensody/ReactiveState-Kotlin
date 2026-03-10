@@ -153,7 +153,7 @@ private class OnInitImpl(private val source: CoroutineLauncher) : OnInit {
     }
 
     override fun setInitializingState() {
-        observers.replace { plus(observers.replaceAndGet { emptyList() }) }
+        observers.replace { plus(finishedObservers.getAndReplace { emptyList() }) }
         state.value = OnInit.State.Initializing
     }
 }
