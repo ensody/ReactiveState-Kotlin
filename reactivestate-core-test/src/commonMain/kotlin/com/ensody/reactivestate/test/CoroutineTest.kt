@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
 
 /**
  * Base class for unit testing coroutine based code.
@@ -41,8 +42,11 @@ public open class CoroutineTest(
     }
 
     /** In addition to running the test this also disposes the [attachedDisposables] (useful with [collectFlow]). */
-    public override fun runTest(block: suspend TestScope.() -> Unit): TestResult =
-        super.runTest {
+    public override fun runTest(
+        testTimeout: Duration,
+        block: suspend TestScope.() -> Unit,
+    ): TestResult =
+        super.runTest(testTimeout = testTimeout) {
             try {
                 block()
             } finally {

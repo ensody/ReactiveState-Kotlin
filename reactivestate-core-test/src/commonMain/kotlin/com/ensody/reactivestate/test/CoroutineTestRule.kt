@@ -17,6 +17,8 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * Helper class for unit Tests that sets up [dispatchers] with a [TestDispatcherConfig] on every test run.
@@ -41,8 +43,11 @@ public open class CoroutineTestRule(
         enterCoroutineTest()
     }
 
-    public open fun runTest(block: suspend TestScope.() -> Unit): TestResult =
-        testScope.runTest {
+    public open fun runTest(
+        testTimeout: Duration = 1.minutes,
+        block: suspend TestScope.() -> Unit,
+    ): TestResult =
+        testScope.runTest(timeout = testTimeout) {
             block()
         }
 
