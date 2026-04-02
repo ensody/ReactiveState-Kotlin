@@ -262,4 +262,17 @@ internal class ObserverTest : CoroutineTest() {
         data.replace { plus(5) }
         assertEquals(2, observer.value)
     }
+
+    @Test
+    fun derivedFirstWhileCollecting() = runTest {
+        val data = MutableStateFlow(listOf(1))
+        val observer = derived { get(data).size }
+        val async = async { observer.collect() }
+        assertEquals(1, observer.first())
+        assertEquals(1, observer.value)
+        data.replace { plus(5) }
+        assertEquals(2, observer.first())
+        assertEquals(2, observer.value)
+        async.cancel()
+    }
 }

@@ -182,6 +182,8 @@ internal class DefaultOnDemandStateFlow<T>(
         var initialValue: Any? = if (emitValueOnStart) {
             value.also { collector.emit(it) }
         } else {
+            // Access value to make sure that we're up to date. Otherwise .first() might return a stale value.
+            value
             NIL
         }
         sharedCollect.collect {

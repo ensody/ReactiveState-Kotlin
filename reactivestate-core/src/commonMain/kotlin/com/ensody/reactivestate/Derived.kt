@@ -61,7 +61,7 @@ private fun <T> derivedCached(
             cachedValue = Wrapped(next)
         }
         awaitClose {}
-    }.stateOnDemand(synchronous = synchronous, emitValueOnStart = false) {
+    }.stateOnDemand(context = context, synchronous = synchronous, emitValueOnStart = false) {
         getCached {
             mutex.withSpinLock {
                 getCached {
