@@ -26,6 +26,7 @@
 * Removed direct dependency on JUnit 4, so you can choose more freely which JUnit version to use.
 * Added `ifTake` and `unlessTake` inversions of `takeIf` and `takeUnless`.
 * Added `runIf` and `applyIf`.
+* Removed `WhileUsed` since it results in bad code.
 
 ## 5.13.0
 
