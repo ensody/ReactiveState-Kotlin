@@ -15,6 +15,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
  */
 @ExperimentalReactiveStateApi
 public abstract class ReactiveViewModel(public final override val scope: CoroutineScope) : CoroutineLauncher {
+    init {
+        ContextualStore.get(scope).getOrPut(CoroutineLauncherKey) { this }
+    }
+
     public val onInit: OnInit = ContextualStore.get(scope).getOrPut(OnInitKey) { OnInit(this) }
     private val emittedErrors: MutableFlow<Throwable> = ContextualErrorsFlow.get(scope)
     override val loading: MutableStateFlow<Int> = ContextualLoading.get(scope)
@@ -26,6 +30,7 @@ public abstract class ReactiveViewModel(public final override val scope: Corouti
 }
 
 private val OnInitKey = ContextualValStore.Key<OnInit>()
+public val CoroutineLauncherKey: ContextualValStore.Key<CoroutineLauncher> = ContextualValStore.Key()
 
 @ExperimentalReactiveStateApi
 public val ContextualErrorsFlow: ContextualVal<MutableFlow<Throwable>> = ContextualVal("ContextualErrorsFlow") {
