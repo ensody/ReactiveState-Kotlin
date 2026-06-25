@@ -15,7 +15,7 @@ import org.jetbrains.kotlin.gradle.dsl.ExplicitApiMode
 import org.jetbrains.kotlin.gradle.dsl.KotlinJvmExtension
 
 fun Project.setupKotlinJvm(
-    javaVersion: JavaVersion = JavaVersion.VERSION_17,
+    javaVersion: JavaVersion = JavaVersion.VERSION_21,
     block: KotlinJvmExtension.() -> Unit = {},
 ) {
     tasks.withType<Test> {

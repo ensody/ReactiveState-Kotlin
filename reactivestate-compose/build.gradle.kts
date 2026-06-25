@@ -10,13 +10,13 @@ plugins {
 setupBuildLogic {
     kotlin {
         sourceSets.commonMain.dependencies {
-            api(compose.runtime)
+            api(libs.compose.runtime)
             api(libs.androidx.lifecycle.runtime.compose)
             api(project(":reactivestate-core"))
         }
         sourceSets["composeMain"].dependencies {
-            api(compose.foundation)
-            api(compose.ui)
+            api(libs.compose.foundation)
+            api(libs.compose.ui)
             api(libs.androidx.lifecycle.viewmodel.compose)
         }
         sourceSets.androidUnitTest.dependencies {

@@ -74,7 +74,6 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
                     "iosSimulatorArm64Test",
                     "iosX64Test",
                     "macosArm64Test",
-                    "macosX64Test",
                     "mingwX64Test",
                     "linuxX64Test",
                 )

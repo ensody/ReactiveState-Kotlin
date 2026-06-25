@@ -1,23 +1,27 @@
 [versions]
-kotlin = "2.3.10"
+kotlin = "2.3.21"
 coroutines = "1.10.2"
-androidxCore = "1.17.0"
+androidxCore = "1.18.0"
 androidxFragment = "1.8.9"
 androidxLifecycle = "2.10.0"
 androidxTestCore = "1.7.0"
 androidxCompose = "2.9.6"
+jetbrainsCompose = "1.10.1"
 
 [libraries]
 coroutines-bom = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-bom", version.ref = "coroutines" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutines" }
 
-compose-bom = { module = "androidx.compose:compose-bom", version = "2026.02.01" }
+compose-bom = { module = "androidx.compose:compose-bom", version = "2026.05.01" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "jetbrainsCompose" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "jetbrainsCompose" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "jetbrainsCompose" }
 
-androidx-annotation = { module = "androidx.annotation:annotation", version = "1.9.1" }
+androidx-annotation = { module = "androidx.annotation:annotation", version = "1.10.0" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version = "1.7.1" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
-androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.12.4" }
+androidx-activity = { module = "androidx.activity:activity-ktx", version = "1.13.0" }
 androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidxFragment" }
 androidx-fragment-testing = { module = "androidx.fragment:fragment-testing", version.ref = "androidxFragment" }
 androidx-arch-testing = { module = "androidx.arch.core:core-testing", version = "2.2.0" }

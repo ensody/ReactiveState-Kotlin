@@ -8,7 +8,7 @@ fun Project.setupDetekt() {
     tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         // Enable type resolution
         classpath = detektClasspath
-        jvmTarget = "17"
+        jvmTarget = "21"
 
         config.from(rootProject.file("build/build-logic/detekt.yml"))
         buildUponDefaultConfig = true
@@ -24,6 +24,6 @@ fun Project.setupDetekt() {
         )
     }
     tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
 }

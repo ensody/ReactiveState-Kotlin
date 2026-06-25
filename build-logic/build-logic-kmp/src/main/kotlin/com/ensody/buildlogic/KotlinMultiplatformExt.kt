@@ -17,7 +17,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
 fun Project.setupKmp(
-    javaVersion: JavaVersion = JavaVersion.VERSION_17,
+    javaVersion: JavaVersion = JavaVersion.VERSION_21,
     block: KotlinMultiplatformExtension.() -> Unit,
 ) {
     val commonMainDir = file("src/commonMain")
@@ -166,7 +166,6 @@ fun KotlinMultiplatformExtension.allLinux() {
 
 fun KotlinMultiplatformExtension.allMacos() {
     macosArm64()
-    macosX64()
 }
 
 fun KotlinMultiplatformExtension.allAndroidNative() {
@@ -178,7 +177,6 @@ fun KotlinMultiplatformExtension.allAndroidNative() {
 
 fun KotlinMultiplatformExtension.allAppleMobile(x64: Boolean = true, onlyComposeSupport: Boolean = false) {
     allIos(x64 = x64)
-    allTvos()
     allWatchos(onlyComposeSupport = onlyComposeSupport)
 }
 
@@ -192,14 +190,12 @@ fun KotlinMultiplatformExtension.allIos(x64: Boolean = true) {
 
 fun KotlinMultiplatformExtension.allTvos() {
     tvosArm64()
-    tvosX64()
     tvosSimulatorArm64()
 }
 
 fun KotlinMultiplatformExtension.allWatchos(onlyComposeSupport: Boolean) {
     watchosArm32()
     watchosArm64()
-    watchosX64()
     watchosSimulatorArm64()
     if (!onlyComposeSupport) {
         watchosDeviceArm64()

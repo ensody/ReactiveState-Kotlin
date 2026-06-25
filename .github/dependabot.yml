@@ -4,7 +4,16 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
   - package-ecosystem: gradle
     directory: "/"
     schedule:
       interval: "daily"
+    groups:
+      kotlin-dependencies:
+        patterns:
+          - "*"
