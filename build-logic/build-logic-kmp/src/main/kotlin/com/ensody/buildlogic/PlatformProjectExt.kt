@@ -10,25 +10,29 @@ import org.gradle.kotlin.dsl.getByType
 fun Project.setupPlatformProject() {
     extensions.getByType<JavaPlatformExtension>().allowDependencies()
 
-    afterEvaluate {
-        val allPublications = rootProject.subprojects.flatMap { subproject ->
-            if (!subproject.plugins.hasPlugin("maven-publish") ||
-                subproject.plugins.hasPlugin("java-platform") ||
-                subproject.plugins.hasPlugin("version-catalog")
-            ) {
-                return@flatMap emptyList()
-            }
-            subproject.extensions.findByType<PublishingExtension>()?.publications.orEmpty()
-                .filterIsInstance<MavenPublication>()
-                .filterNot {
-                    it.artifactId.endsWith("-metadata") || it.artifactId.endsWith("-kotlinMultiplatform")
-                }.map {
-                    subproject.dependencies.constraints.create("${it.groupId}:${it.artifactId}:${it.version}")
-                }
-        }
-
-        configurations.named("api").get().apply {
-            dependencyConstraints.addAll(allPublications)
+    // Ensure all subprojects are evaluated so their publications are available
+    rootProject.subprojects.forEach { subproject ->
+        if (subproject != this) {
+            evaluationDependsOn(subproject.path)
         }
     }
+
+    val allConstraints = rootProject.subprojects.flatMap { subproject ->
+        if (subproject == this) return@flatMap emptyList()
+        if (!subproject.plugins.hasPlugin("maven-publish") ||
+            subproject.plugins.hasPlugin("java-platform") ||
+            subproject.plugins.hasPlugin("version-catalog")
+        ) {
+            return@flatMap emptyList()
+        }
+        subproject.extensions.findByType<PublishingExtension>()?.publications.orEmpty()
+            .filterIsInstance<MavenPublication>()
+            .filterNot {
+                it.artifactId.endsWith("-metadata") || it.artifactId.endsWith("-kotlinMultiplatform")
+            }.map { publication ->
+                dependencies.constraints.create("${publication.groupId}:${publication.artifactId}:${publication.version}")
+            }
+    }
+
+    configurations.named("api").get().dependencyConstraints.addAll(allConstraints)
 }

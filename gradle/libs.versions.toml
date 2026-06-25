@@ -1,6 +1,7 @@
 [versions]
 kotlin = "2.3.21"
 coroutines = "1.10.2"
+androidGradle = "9.2.1"
 androidxCore = "1.18.0"
 androidxFragment = "1.8.9"
 androidxLifecycle = "2.10.0"
@@ -41,10 +42,11 @@ junit = { module = "junit:junit", version = "4.13.2" }
 kotlin-test-main =  { module = "org.jetbrains.kotlin:kotlin-test" }
 kotlin-test-junit =  { module = "org.jetbrains.kotlin:kotlin-test-junit" }
 ktlint-cli = { module = "com.pinterest.ktlint:ktlint-cli", version = "1.8.0" }
-mockk = { module = "io.mockk:mockk", version = "1.14.9" }
+mockk = { module = "io.mockk:mockk", version = "1.14.11" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.16.1" }
 
-gradle-android = { module = "com.android.tools.build:gradle", version = "8.13.2" }
+gradle-android-app = { module = "com.android.application:com.android.application.gradle.plugin", version.ref = "androidGradle" }
+gradle-android-lib = { module = "com.android.kotlin.multiplatform.library:com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "androidGradle" }
 gradle-kotlin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 gradle-cocoapods = { module = "org.jetbrains.kotlin.native.cocoapods:org.jetbrains.kotlin.native.cocoapods.gradle.plugin", version.ref = "kotlin" }
 gradle-dokka = { module = "org.jetbrains.dokka:dokka-gradle-plugin", version = "2.1.0" }

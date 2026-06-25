@@ -5,6 +5,10 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.withType
 
 fun Project.setupDetekt() {
+    if (file("src").walkBottomUp().none { it.isFile && it.extension == "kt" }) {
+        return
+    }
+
     tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
         // Enable type resolution
         classpath = detektClasspath
@@ -15,7 +19,7 @@ fun Project.setupDetekt() {
 
         setSource(
             files(
-                file("src").listFiles().filter {
+                file("src").listFiles().orEmpty().filter {
                     it.name.endsWith("Main") || it.name.endsWith("Test") || it.name in setOf("main", "test")
                 }.flatMap {
                     listOf(it.resolve("kotlin"), it.resolve("java"))

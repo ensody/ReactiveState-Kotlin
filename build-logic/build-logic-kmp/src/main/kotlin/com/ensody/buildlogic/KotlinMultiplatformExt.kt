@@ -38,6 +38,7 @@ fun Project.setupKmp(
     tasks.withType<Test> {
         testLogging {
             exceptionFormat = TestExceptionFormat.FULL
+            showStandardStreams = true
         }
     }
 
@@ -87,7 +88,6 @@ fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder
         common {
             group("jvmCommon") {
                 withJvm()
-                withAndroidTarget()
             }
             group("desktop") {
                 withLinux()
@@ -100,30 +100,25 @@ fun KotlinMultiplatformExtension.applyKmpHierarchy(block: KotlinHierarchyBuilder
                 withTvos()
                 withWatchos()
             }
-            group("compose") {
-                group("js")
+            group("web") {
                 withJs()
-                group("wasmJs")
                 withWasmJs()
+            }
+            group("compose") {
+                group("web")
                 withWasmWasi()
                 group("ios")
                 withIos()
-                withJvm()
-                withAndroidTarget()
+                group("jvmCommon")
             }
             group("nonJvm") {
                 withNative()
-                group("js")
-                withJs()
-                group("wasmJs")
-                withWasmJs()
+                group("web")
             }
             group("nonJs") {
                 group("native")
                 withNative()
                 group("jvmCommon")
-                withJvm()
-                withAndroidTarget()
             }
         }
         block()
@@ -142,9 +137,6 @@ fun KotlinMultiplatformExtension.addAllNonJsTargets(
     onlyComposeSupport: Boolean = false,
     iosX64: Boolean = true,
 ) {
-    androidTarget {
-        publishLibraryVariants("release")
-    }
     if (!onlyComposeSupport) {
         allAndroidNative()
     }
@@ -177,6 +169,7 @@ fun KotlinMultiplatformExtension.allAndroidNative() {
 
 fun KotlinMultiplatformExtension.allAppleMobile(x64: Boolean = true, onlyComposeSupport: Boolean = false) {
     allIos(x64 = x64)
+    allTvos()
     allWatchos(onlyComposeSupport = onlyComposeSupport)
 }
 

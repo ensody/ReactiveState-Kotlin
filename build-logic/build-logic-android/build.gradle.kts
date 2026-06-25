@@ -5,7 +5,8 @@ plugins {
 
 dependencies {
     api(project(":build-logic-kmp"))
-    api(rootLibs.gradle.android)
+    api(rootLibs.gradle.android.app)
+    api(rootLibs.gradle.android.lib)
 }
 
 val autoDetectPluginRegex = Regex("""^(?:public\s+)?class\s+(\w+)BuildLogicPlugin\s*:.*$""", RegexOption.MULTILINE)

@@ -2,7 +2,7 @@
 
 package com.ensody.buildlogic
 
-import com.android.build.gradle.BaseExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import com.vanniktech.maven.publish.MavenPublishBaseExtension
 import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import org.gradle.api.Plugin
@@ -48,10 +48,10 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
         if (extensions.findByType<JavaPlatformExtension>() != null) {
             setupPlatformProject()
         }
-        if (extensions.findByType<BaseExtension>() != null) {
-            setupAndroid(coreLibraryDesugaring = rootLibs.findLibrary("desugarJdkLibs").get())
-        }
-        if (extensions.findByType<KotlinMultiplatformExtension>() != null) {
+        extensions.findByType<KotlinMultiplatformExtension>()?.let {
+            if (it.extensions.findByType<KotlinMultiplatformAndroidLibraryTarget>() != null) {
+                setupAndroidLib(coreLibraryDesugaring = rootLibs.findLibrary("desugarJdkLibs").get())
+            }
             setupKmp {
                 addAllTargets(onlyComposeSupport = project.name == "reactivestate-compose")
                 compilerOptions {
@@ -69,7 +69,7 @@ fun Project.setupBuildLogic(block: Project.() -> Unit) {
             tasks.register("testAll") {
                 group = "verification"
                 dependsOn(
-                    "testDebugUnitTest",
+                    "testAndroidHostTest",
                     "jvmTest",
                     "iosSimulatorArm64Test",
                     "iosX64Test",

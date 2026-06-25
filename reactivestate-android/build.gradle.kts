@@ -1,7 +1,7 @@
 import com.ensody.buildlogic.setupBuildLogic
 
 plugins {
-    id("com.ensody.build-logic.android")
+    id("com.ensody.build-logic.androidlib")
     id("com.ensody.build-logic.kmp")
     id("com.ensody.build-logic.publish")
 }
@@ -20,7 +20,7 @@ setupBuildLogic {
             api(libs.androidx.lifecycle.service)
 //            api(libs.androidx.lifecycle.viewmodel)
         }
-        sourceSets.androidUnitTest.dependencies {
+        sourceSets["androidHostTest"].dependencies {
             implementation(libs.androidx.arch.testing)
             implementation(libs.androidx.fragment.testing)
             implementation(libs.androidx.test.core)
@@ -32,14 +32,6 @@ setupBuildLogic {
         }
         sourceSets.commonTest.dependencies {
             implementation(project(":reactivestate-android-test"))
-        }
-    }
-
-    dependencies {
-        constraints {
-            api(libs.androidx.lifecycle.common)
-            api(libs.androidx.lifecycle.service)
-            api(libs.androidx.lifecycle.process)
         }
     }
 }

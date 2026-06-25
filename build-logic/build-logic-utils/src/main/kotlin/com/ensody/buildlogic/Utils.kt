@@ -51,6 +51,9 @@ fun shell(
     return cli(*shellCommand, command, workingDir = workingDir, env = env, inheritIO = inheritIO)
 }
 
+fun String.normalizeNewlines(): String =
+    replace("\r\n", "\n").replace("\r", "\n").trim() + "\n"
+
 fun File.writeTextIfDifferent(text: String) {
     if (!exists() || readText() != text) {
         parentFile.mkdirs()
@@ -92,7 +95,7 @@ fun Project.getGeneratedBuildFilesRoot(): File =
     file("$projectDir/build/generated/source/build-logic")
 
 fun Project.detectProjectVersion(): String =
-    System.getenv("OVERRIDE_VERSION")?.takeIf { it.isNotBlank() }
+    System.getenv("OVERRIDE_VERSION")?.removePrefix("v")?.removePrefix("-")?.takeIf { it.isNotBlank() }
         ?: runCatching { cli("git", "tag", "--points-at", "HEAD") }.getOrNull()?.split("\n")?.filter {
             versionRegex.matchEntire(it) != null
         }?.maxByOrNull {
