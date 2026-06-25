@@ -133,6 +133,12 @@ public class DIImpl {
         }
     }
 
+    public fun <T> getCurrent(factory: DIResolver.() -> LazyProperty<T>): T =
+        derived { get(factory()) }.value
+
+    public fun <T> getCurrentOrNull(factory: DIResolver.() -> LazyProperty<T>): T? =
+        runCatchingNonFatal { derived { get(factory()) }.value }.getOrNull()
+
     // We hide this function as an extension, so nobody can mistakenly get() arbitrary T values not belonging to the DI
     public inline fun <reified T : Any> DIResolver.get(
         noinline default: (DIResolver.() -> T)? = null,

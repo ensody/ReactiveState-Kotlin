@@ -31,10 +31,10 @@ internal class DITest : CoroutineTest() {
 
     @Test
     fun stability() {
-        assertSame(default, testDI.derived { get(defaultDeps) }.value)
+        assertSame(default, testDI.getCurrent { defaultDeps })
         assertSame(default, foo.defaultDeps)
-        assertSame(foo, testDI.derived { get(fooDeps) }.value)
-        assertSame(bar, testDI.derived { get(barDeps) }.value)
+        assertSame(foo, testDI.getCurrent { fooDeps })
+        assertSame(bar, testDI.getCurrent { barDeps })
         assertEquals(0, destroyedBar)
     }
 
@@ -56,24 +56,24 @@ internal class DITest : CoroutineTest() {
     fun updateDIGraphOnRegister() = runTest {
         // Replacing FooDeps invalidates the whole subgraph depending on FooDeps. So, BarDeps gets re-created.
         testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
-        assertNotSame(foo, testDI.derived { get(fooDeps) }.value)
-        assertSame(default, testDI.derived { get(fooDeps) }.value.defaultDeps)
-        val newBar = testDI.derived { get(barDeps) }.value
+        assertNotSame(foo, testDI.getCurrent { fooDeps })
+        assertSame(default, testDI.getCurrent { fooDeps }.defaultDeps)
+        val newBar = testDI.getCurrent { barDeps }
         assertNotSame(bar, newBar)
         assertTrue(foo.circularConfigFlag)
         runCurrent()
         assertEquals(1, destroyedBar)
 
         // Any flow also auto-updates
-        assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
-        assertSame(newBar, testDI.derived { get(barDeps) }.value)
-        assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+        assertSame(fooFlow.value, testDI.getCurrent { fooDeps })
+        assertSame(newBar, testDI.getCurrent { barDeps })
+        assertSame(barFlow.value, testDI.getCurrent { barDeps })
 
         runCurrent()
         assertEquals(1, destroyedBar)
 
         testDI.register { FooDeps(get(someConfigFlag), barDeps, defaultDeps) }
-        assertNotSame(newBar, testDI.derived { get(barDeps) }.value)
+        assertNotSame(newBar, testDI.getCurrent { barDeps })
         runCurrent()
         assertEquals(2, destroyedBar)
     }
@@ -82,21 +82,21 @@ internal class DITest : CoroutineTest() {
     fun updateDIGraphOnStateFlowChange() = runTest {
         // Changing the StateFlow that FooDeps depends on also invalidates FooDeps and BarDeps
         someConfigFlag.value = false
-        assertNotSame(foo, testDI.derived { get(fooDeps) }.value)
-        assertNotSame(bar, testDI.derived { get(barDeps) }.value)
+        assertNotSame(foo, testDI.getCurrent { fooDeps })
+        assertNotSame(bar, testDI.getCurrent { barDeps })
 
         // Any flow also auto-updates
         assertFalse(fooFlow.value.configFlag)
         assertFalse(fooFlow.value.circularConfigFlag)
-        assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
-        assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+        assertSame(fooFlow.value, testDI.getCurrent { fooDeps })
+        assertSame(barFlow.value, testDI.getCurrent { barDeps })
         runCurrent()
         assertEquals(1, destroyedBar)
 
         someConfigFlag.value = true
-        assertNotSame(bar, testDI.derived { get(barDeps) }.value)
-        assertSame(fooFlow.value, testDI.derived { get(fooDeps) }.value)
-        assertSame(barFlow.value, testDI.derived { get(barDeps) }.value)
+        assertNotSame(bar, testDI.getCurrent { barDeps })
+        assertSame(fooFlow.value, testDI.getCurrent { fooDeps })
+        assertSame(barFlow.value, testDI.getCurrent { barDeps })
         runCurrent()
         assertEquals(2, destroyedBar)
     }
